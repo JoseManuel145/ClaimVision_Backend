@@ -11,7 +11,7 @@ app = FastAPI(
     description="API del proyecto ClaimVision, en constante actualizacion y mejoria",
     docs_url="/docs",
     redoc_url="/redoc",
-    version="1.0.0"
+    version="0.3.0"
 )
 
 app.add_middleware(
@@ -26,7 +26,7 @@ app.include_router(api_router, prefix="/api")
 
 @app.get("/", tags=["Root"])
 def root():
-    return {"message": "Bienvenido a ClaimVision API"}
+    return {"Status": "OK"}
 
 if __name__ == "__main__":
     print("Documentacion Interactiva: http://127.0.0.1:8000/docs")
