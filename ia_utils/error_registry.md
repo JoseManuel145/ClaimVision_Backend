@@ -116,3 +116,31 @@ when serializing dict item 'usuario_id'
 ### Como se soluciono
 * **Análisis de Causa Raíz:** En `UserTable`, el campo `usuario_id` (y opcionalmente `aseguradora_id`) se define como tipo `UUID(as_uuid=True)`. SQLAlchemy, al mapear el registro de base de datos a Python, devuelve objetos del tipo `uuid.UUID` nativos de Python. Al empaquetar estos datos en `TokenPayload` y pasarlos a `jose.jwt.encode` (que utiliza `json.dumps`), el serializador de JSON falla porque no sabe cómo codificar el objeto `UUID` nativo.
 * **Refactorización Aplicada:** Se modificó la función de mapeo `_to_domain` en `AuthRepository` para convertir de manera explícita los campos `usuario_id` y `aseguradora_id` a cadenas de texto (`str(obj.campo)`) si estos no son `None`. Esto garantiza que los objetos de dominio manejen cadenas seguras y serializables para JSON.
+
+---
+
+## 7. ImportError: cannot import name 'AuthUser' from 'src.modules.auth.domain.models'
+### Descripción del problema
+* **Contexto/Acción:** Al intentar iniciar la aplicación (FastAPI/uvicorn).
+* **Traceback/Mensaje de la Consola:**
+```text
+ImportError: cannot import name 'AuthUser' from 'src.modules.auth.domain.models'
+```
+
+### Como se soluciono
+* **Análisis de Causa Raíz:** El modelo de dominio `AuthUser` en `src/modules/auth/domain/models.py` fue renombrado a `User`. Sin embargo, múltiples archivos en el módulo de Auth y en otros módulos seguían importando y utilizando el nombre antiguo `AuthUser`.
+* **Refactorización Aplicada:** Se realizó una búsqueda y reemplazo en todos los puertos, repositorios y casos de uso de `AuthUser` a `User`, asegurando la consistencia del tipo de retorno e importaciones a lo largo del sistema (ej: en `auth_repository.py`, `ports.py`, `login_user.py`, `register_user.py`).
+
+---
+
+## 8. sqlalchemy.exc.InvalidRequestError: Table 'perfiles_clientes' is already defined
+### Descripción del problema
+* **Contexto/Acción:** Al importar las rutas y dependencias que cargaban modelos de bases de datos para el módulo aseguradora en el arranque del servidor.
+* **Traceback/Mensaje de la Consola:**
+```text
+sqlalchemy.exc.InvalidRequestError: Table 'perfiles_clientes' is already defined for this MetaData instance. Specify 'extend_existing=True' to redefine options and columns on an existing Table object.
+```
+
+### Como se soluciono
+* **Análisis de Causa Raíz:** Durante el desarrollo modular por subentidades, la tabla `perfiles_clientes` fue definida tanto en el módulo de `cliente` (`cliente_profile_table.py`) como en el módulo de `aseguradora` (`perfil_cliente_table.py`) compartiendo el mismo nombre `__tablename__ = "perfiles_clientes"`. SQLAlchemy rastrea y asocia las tablas de una base de forma global (Metadata), por lo que declarar múltiples modelos bajo la misma tabla sin configuración previa arroja un error de redefinición de metadatos.
+* **Refactorización Aplicada:** Se agregó el atributo `__table_args__ = {'extend_existing': True}` al modelo `PerfilClienteTable` dentro del módulo de aseguradora. Esto le indica al ORM que asocie este modelo a la tabla ya existente generada por el primer módulo que la declare durante el arranque, permitiendo convivir las definiciones en la misma metadata.
