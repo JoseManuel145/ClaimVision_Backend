@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, ConfigDict
 
-
+# para el MVP
 class UserRegister(BaseModel):
     nombre: str
     email: EmailStr
@@ -23,9 +23,7 @@ class UserResponse(BaseModel):
     rol: str | None = "cliente"
     estado: str = "Activo"
     aseguradora_id: str | None = None
-    password: str | None = None
     fecha_eliminacion: datetime | None = None
-
 
 class LoginResponseDTO(BaseModel):
     token: str
@@ -33,3 +31,8 @@ class LoginResponseDTO(BaseModel):
     email: str
     rol: str
     aseguradora_id: str | None
+
+class ConsentRequestDTO(BaseModel):
+    aviso_privacidad: bool
+    biometria: bool
+    transferencia_talleres: bool

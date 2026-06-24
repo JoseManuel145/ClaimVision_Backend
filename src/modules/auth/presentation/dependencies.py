@@ -4,7 +4,7 @@ from fastapi import Depends
 # infra
 from src.modules.auth.infra.db.repositories.recovery_repository import RecoveryCodeService
 from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
-from src.modules.auth.infra.google.google_oauth_service import GoogleOAuthService
+from src.modules.cliente.infra.db.repositories.cliente_repository import ClienteRepository
 from src.modules.auth.infra.security.password_service import PasswordService
 from src.modules.auth.infra.messaging.email_service import EmailService
 from src.modules.auth.infra.jwt.token_service import JwtTokenService
@@ -22,7 +22,8 @@ from src.modules.auth.application import (
     ResetPassword,
     VerifyRecoveryCode,
     SendRecoveryCode,
-    VerifyUser
+    VerifyUser,
+    ConfirmConsent
 )
 
 def verify_token_service():
@@ -62,3 +63,8 @@ def reset_password_service(session=Depends(get_session)):
 def verify_user_service(session=Depends(get_session)):
     repo = AuthRepository(session)
     return VerifyUser(repo)
+
+def confirm_consent_service(session=Depends(get_session)):
+    auth_repo = AuthRepository(session)
+    cliente_repo = ClienteRepository(session)
+    return ConfirmConsent(cliente_repo, auth_repo)
