@@ -93,19 +93,26 @@ Por lo tanto, nos centraremos en hacer el Core API Gateway en esta entrega.
 ---
 
 ### 4. Módulo de la Aseguradora (`aseguradora`)
-* **Descripción:** Panel web para administradores y operadores de la aseguradora para control de ajustadores, asignaciones y direccionamiento a taller.
+
+* **Descripción:** Panel web para administradores y operadores de la aseguradora. Permite administrar jerárquicamente a sus usuarios (clientes, ajustadores, talleres en convenio), monitorear incidentes, despachar ajustadores en sitio, canalizar reparaciones mediante privacidad desde el diseño y ejecutar cierres de siniestros y bloqueos ARCO sobre su red operativa.
 * **Componentes clave:**
-  - CRUD jerárquico de usuarios del tenant (ajustadores, talleres, clientes).
-  - Stream de siniestros en tiempo real mediante SSE o WebSockets.
-  - Asignación manual de ajustadores a siniestros.
-  - **Disociación Legal de Datos (LFPDPPP):** Clonación técnica para enviar al taller omitiendo los datos personales e identificadores del asegurado.
+* **Gestión Jerárquica de la Red:** Operaciones CRUD sobre los perfiles de su red. El alta de ajustadores exige obligatoriamente la captura de su cédula profesional.
+* **Monitoreo en Tiempo Real:** Panel unificado que recibe y actualiza el flujo de incidentes de los asegurados sin requerir actualización manual de la interfaz web, incluyendo alertas visuales prioritarias calculadas por la IA para colisiones de alta severidad.
+* **Delegación en Sitio:** Asignación manual de siniestros a ajustadores disponibles. El sistema detona una notificación push al dispositivo móvil del ajustador en un lapso no mayor a 5 segundos.
+* **Disociación Legal de Datos (LFPDPPP):** Proceso automatizado de canalización hacia el taller receptor. El sistema aplica una política de exclusión técnica, transfiriendo únicamente los reportes fotográficos, el peritaje final y los datos del vehículo, omitiendo los datos de identidad del cliente.
+* **Control de Entrega (Cierre de Siniestro):** Validación del estatus de "Trabajo Concluido" emitido por el taller. El operador autoriza la orden de entrega, disparando notificaciones (push y correo electrónico) directamente al asegurado con las instrucciones de recolección.
+* **Ejecución de Bloqueos ARCO (Tenant-Level):** Mecanismo para inhabilitar cuentas de clientes o personal que ejerzan derechos de Cancelación u Oposición. El sistema revoca tokens instantáneamente, cifra nombres y direcciones con AES-256 e invisibiliza los datos en reportes históricos y pantallas operativas.
+
 * **Endpoints:**
-  - `GET/POST/PUT/DELETE /v1/aseguradora/ajustadores` (CRUD de ajustadores)
-  - `GET/POST/PUT/DELETE /v1/aseguradora/clientes` (CRUD de clientes)
-  - `GET/POST/PUT/DELETE /v1/aseguradora/talleres` (CRUD de talleres)
-  - `GET /v1/aseguradora/siniestros/stream` (SSE/WS de monitoreo en tiempo real)
-  - `POST /v1/siniestros/{id}/asignar-ajustador` (asignación manual de ajustadores a siniestros)
-  - `POST /v1/siniestros/{id}/enviar-taller` (despacho disociado)
+* `GET/POST/PUT/DELETE /v1/aseguradora/ajustadores` (Operaciones sobre ajustadores, incluyendo captura de cédula profesional).
+* `GET/POST/PUT/DELETE /v1/aseguradora/clientes` (Operaciones sobre clientes, incluyendo suspensión de servicios).
+* `GET/POST/PUT/DELETE /v1/aseguradora/talleres` (Operaciones sobre talleres en convenio, incluyendo altas y desvinculación).
+* `GET /v1/aseguradora/siniestros/stream` (Conexión SSE/WebSockets para el monitoreo pasivo de incidentes entrantes y alertas de severidad).
+* `GET /v1/aseguradora/siniestros` (Consulta paginada del historial y seguimiento general de todos los incidentes del tenant).
+* `POST /v1/aseguradora/siniestros/{id}/asignar-ajustador` (Ejecuta la relación de la tabla y detona la alerta push al perito).
+* `POST /v1/aseguradora/siniestros/{id}/enviar-taller` (Clona y despacha el expediente al taller ejecutando la disociación de identidad por diseño).
+* `POST /v1/aseguradora/siniestros/{id}/autorizar-entrega` (Valida la conclusión del trabajo e informa asíncronamente al cliente).
+* `POST /v1/aseguradora/usuarios/{id}/bloqueo-arco` (Aplica el cifrado AES-256 y bloqueo normativo sobre un cliente o ajustador específico perteneciente a la aseguradora).
 
 ---
 
