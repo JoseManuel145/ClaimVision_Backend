@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     SUPABASE_BUCKET_IMG: str
     SUPABASE_BUCKET_PDF: str
 
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+
     # JWT CONFIGURATION
     SECRET_KEY: str
     ALGORITHM: str
