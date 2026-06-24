@@ -11,19 +11,14 @@ class Settings(BaseSettings):
     SUPABASE_BUCKET_IMG: str
     SUPABASE_BUCKET_PDF: str
 
-    # GOOGLE OAUTH
-    MAIL_USERNAME: str
-    MAIL_PASSWORD: str
-    GOOGLE_CLIENT_ID: str
-    GOOGLE_CLIENT_SECRET: str
-    GOOGLE_REDIRECT_URI: str
-
     # JWT CONFIGURATION
     SECRET_KEY: str
     ALGORITHM: str
     TIME_MINUTES: int
 
     BCRYPT_ROUNDS: int
+    ENCRYPTION_KEY: str
+    OCR_API_URL: str
 
     # LOGGING & CORS
     LOG_LEVEL: str
