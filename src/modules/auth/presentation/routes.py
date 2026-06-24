@@ -103,9 +103,7 @@ async def submit_consentimiento(
     try:
         usecase.execute(
             usuario_id=user.usuario_id,
-            aviso_privacidad=data.aviso_privacidad,
-            biometria=data.biometria,
-            transferencia_talleres=data.transferencia_talleres
+            data=data
         )
         return {"message": "Consentimiento registrado exitosamente"}
     except Exception as e:

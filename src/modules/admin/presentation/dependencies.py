@@ -8,6 +8,7 @@ from src.modules.admin.infra.services.desincorporacion_job_service import Desinc
 from src.modules.admin.application.registrar_aseguradora import RegistrarAseguradoraUseCase
 from src.modules.admin.application.list_aseguradoras import ListAseguradoras
 from src.modules.admin.application.actualizar_suscripcion import ActualizarSuscripcionUseCase
+from src.modules.admin.application.actualizar_aseguradora import ActualizarAseguradoraUseCase
 from src.modules.admin.application.get_aseguradora_by_id import GetAseguradoraById
 from src.modules.admin.application.desincorporar_aseguradora import DesincorporarAseguradoraUseCase
 from src.modules.admin.application.aplicar_bloqueo_arco import AplicarBloqueoArcoUseCase
@@ -27,6 +28,11 @@ def actualizar_suscripcion_service(session=Depends(get_session)):
     repo = AseguradoraRepository(session)
     audit_repo = AuditLogRepository(session)
     return ActualizarSuscripcionUseCase(repo, audit_repo)
+
+def actualizar_aseguradora_service(session=Depends(get_session)):
+    repo = AseguradoraRepository(session)
+    audit_repo = AuditLogRepository(session)
+    return ActualizarAseguradoraUseCase(repo, audit_repo)
 
 def get_aseguradora_by_id_service(session=Depends(get_session)):
     repo = AseguradoraRepository(session)
@@ -52,3 +58,4 @@ def verificar_aseguradora_service(session=Depends(get_session)):
 def consultar_auditoria_service(session=Depends(get_session)):
     audit_repo = AuditLogRepository(session)
     return ConsultarAuditoriaUseCase(audit_repo)
+

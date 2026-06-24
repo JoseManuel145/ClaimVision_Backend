@@ -1,3 +1,5 @@
+import os
+import base64
 from fastapi import status
 from fastapi import HTTPException
 from typing import Optional
@@ -8,8 +10,37 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from src.modules.auth.infra.jwt.token_service import JwtTokenService
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.core.exceptions import UnauthorizedError
+from src.core.config import settings
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 security_scheme = HTTPBearer()
+
+def _get_aesgcm() -> AESGCM:
+    key_bytes = base64.b64decode(settings.ENCRYPTION_KEY)
+    return AESGCM(key_bytes)
+
+def encrypt_aes256(plain_text: str) -> str:
+    """Cifra un texto utilizando AES-256-GCM. Retorna string base64."""
+    if not plain_text:
+        return ""
+    aesgcm = _get_aesgcm()
+    nonce = os.urandom(12)
+    encrypted = aesgcm.encrypt(nonce, plain_text.encode('utf-8'), None)
+    return base64.b64encode(nonce + encrypted).decode('utf-8')
+
+def decrypt_aes256(cipher_text: str) -> str:
+    """Descifra un texto cifrado con AES-256-GCM desde string base64."""
+    if not cipher_text:
+        return ""
+    try:
+        data = base64.b64decode(cipher_text.encode('utf-8'))
+        nonce = data[:12]
+        encrypted = data[12:]
+        aesgcm = _get_aesgcm()
+        decrypted = aesgcm.decrypt(nonce, encrypted, None)
+        return decrypted.decode('utf-8')
+    except Exception:
+        return cipher_text # Fallback o podríamos levantar ValueError
 
 def get_current_user(
     token_service: JwtTokenService = Depends(),

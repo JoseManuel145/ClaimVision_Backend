@@ -68,12 +68,24 @@ class BadGatewayError(HTTPException):
         super().__init__(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
 
 
+class ThirdPartyServiceError(HTTPException):
+    """502 Bad Gateway - Error en un servicio de terceros."""
+
+    def __init__(self, detail: str = "Error en servicio externo"):
+        super().__init__(status_code=status.HTTP_502_BAD_GATEWAY, detail=detail)
+
+
 class ServiceUnavailableError(HTTPException):
     """503 Service Unavailable - Servicio temporalmente no disponible."""
 
     def __init__(self, detail: str = "Servicio no disponible"):
         super().__init__(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=detail)
 
+class BusinessRuleError(HTTPException):
+    """409 Conflict - Conflicto de estado, p. ej. registro duplicado."""
+
+    def __init__(self, detail: str = "Conflicto"):
+        super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
 
 # Helpers para respuestas de éxito (útiles desde endpoints)
 def success_response(data: Any, status_code: int = status.HTTP_200_OK) -> JSONResponse:
@@ -114,6 +126,7 @@ __all__ = [
     "UnprocessableEntityError",
     "InternalServerError",
     "BadGatewayError",
+    "ThirdPartyServiceError",
     "ServiceUnavailableError",
     # Success helpers
     "success_response",

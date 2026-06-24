@@ -11,7 +11,11 @@ class AdminUserRepository(AdminUserRepositoryPort):
         user = self.session.query(UserTable).filter(UserTable.id == usuario_id).first()
         if not user:
             return None
-        return {"id": user.id, "estado": user.estatus_arco}
+        return {
+            "id": str(user.id),
+            "estado": user.estatus_arco,
+            "aseguradora_id": str(user.aseguradora_id) if user.aseguradora_id else None,
+        }
 
     def bloquear_por_arco(self, usuario_id: str) -> None:
         user = self.session.query(UserTable).filter(UserTable.id == usuario_id).first()

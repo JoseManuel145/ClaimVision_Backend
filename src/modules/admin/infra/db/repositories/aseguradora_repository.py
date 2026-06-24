@@ -1,7 +1,7 @@
 import uuid
-from typing import List
+from typing import List, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from src.modules.admin.domain.models import AseguradoraTenant
 from src.modules.admin.domain.ports import AseguradoraRepositoryPort
 from src.modules.admin.infra.db.tables.aseguradora_table import AseguradoraTable
@@ -56,10 +56,18 @@ class AseguradoraRepository(AseguradoraRepositoryPort):
             return None
         return _to_domain(r)
 
-    def list_all(self) -> List[AseguradoraTenant]:
-        stmt = select(AseguradoraTable)
+    def list_all(self, offset: int = 0, limit: int = 20, include_deleted: bool = False) -> Tuple[List[AseguradoraTenant], int]:
+        base = select(AseguradoraTable)
+        count_stmt = select(func.count()).select_from(AseguradoraTable)
+
+        if not include_deleted:
+            base = base.where(AseguradoraTable.deleted_at.is_(None))
+            count_stmt = count_stmt.where(AseguradoraTable.deleted_at.is_(None))
+
+        total = self.db.execute(count_stmt).scalar() or 0
+        stmt = base.order_by(AseguradoraTable.created_at.desc()).offset(offset).limit(limit)
         results = self.db.execute(stmt).scalars().all()
-        return [_to_domain(r) for r in results]
+        return [_to_domain(r) for r in results], total
 
     def update(self, aseguradora: AseguradoraTenant) -> AseguradoraTenant:
         stmt = (

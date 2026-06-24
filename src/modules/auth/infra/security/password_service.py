@@ -4,6 +4,8 @@ from src.core.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=settings.BCRYPT_ROUNDS)
 class PasswordService(PasswordPort):
+    def __init__(self):
+        pass
     def hash(self, password: str) -> str:
         return pwd_context.hash(password)
 

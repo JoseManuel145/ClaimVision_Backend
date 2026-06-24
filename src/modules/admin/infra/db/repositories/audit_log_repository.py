@@ -1,7 +1,7 @@
 import uuid
-from typing import List
+from typing import List, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import select, func
 from src.modules.admin.domain.models import AuditLog
 from src.modules.admin.domain.ports import AuditLogRepositoryPort
 from src.modules.admin.infra.db.tables.audit_log_table import AuditLogTable
@@ -18,6 +18,7 @@ def _to_domain(obj: AuditLogTable) -> AuditLog:
         metadata_context=obj.metadata_context,
         aseguradora_id=str(obj.aseguradora_id)
     )
+
 class AuditLogRepository(AuditLogRepositoryPort):
     def __init__(self, db: Session):
         self.db = db
@@ -48,7 +49,15 @@ class AuditLogRepository(AuditLogRepositoryPort):
         results = self.db.execute(stmt).scalars().all()
         return [_to_domain(r) for r in results]
 
-    def list_logs(self) -> List[AuditLog]:
-        stmt = select(AuditLogTable).order_by(AuditLogTable.created_at.desc())
+    def list_logs(self, offset: int = 0, limit: int = 20) -> Tuple[List[AuditLog], int]:
+        count_stmt = select(func.count()).select_from(AuditLogTable)
+        total = self.db.execute(count_stmt).scalar() or 0
+
+        stmt = (
+            select(AuditLogTable)
+            .order_by(AuditLogTable.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
         results = self.db.execute(stmt).scalars().all()
-        return [_to_domain(r) for r in results]
+        return [_to_domain(r) for r in results], total

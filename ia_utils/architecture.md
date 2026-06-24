@@ -278,6 +278,7 @@ modules/
 Para maximizar el rendimiento de la API en tareas de alta latencia (Vision AI, OCR, llamadas de red, persistencia), adoptamos un flujo asíncrono en las capas superiores:
 - **Presentation (`routes.py`)**: Todos los endpoints deben declararse con `async def` y ejecutar los casos de uso utilizando `await usecase.execute(...)`.
 - **Application (`usecases`)**: El método `execute` de cada caso de uso debe ser `async def execute(...)`.
+- Cuando un caso de uso recibe mas de dos variables, se debe crear un modelo para empaquetar esas variables y en el caso de uso se desempaquetan usando modelo.var1 modelo.var2...
 - **Infraestructura**: Si se consumen servicios bloqueantes o síncronos (como el motor síncrono de SQLAlchemy/Postgres o APIs externas síncronas), se ejecutan directamente en la función asíncrona o se delegan a un pool de hilos mediante utilidades de FastAPI.
 
 ### 3.2 Patrón de Mapeo de Datos (Mappers)

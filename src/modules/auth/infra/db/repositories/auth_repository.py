@@ -10,7 +10,7 @@ from sqlalchemy import update
 
 def _to_domain(obj: UserTable) -> AuthUser:
     return AuthUser(
-        usuario_id=str(obj.usuario_id) if obj.usuario_id is not None else None,
+        usuario_id=str(obj.id) if obj.id is not None else None,
         nombre=obj.nombre_completo_cifrado,
         email=obj.email,
         password=obj.password_hash,
