@@ -1,5 +1,5 @@
 from src.modules.auth.domain.ports import AuthPort, PasswordPort, TokenPort, LoginAttemptPort
-from src.modules.auth.domain.models import AuthUser, TokenPayload
+from src.modules.auth.domain.models import User, TokenPayload
 from src.shared.domain.models import EstadoUsuario
 from datetime import datetime, timedelta, timezone
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from src.shared.domain.models import EstadoUsuario
 
 @dataclass
-class AuthUser:
+class User:
     usuario_id: str
     nombre: str
     email: str

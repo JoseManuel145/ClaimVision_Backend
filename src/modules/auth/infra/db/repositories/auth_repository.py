@@ -1,6 +1,6 @@
 from src.shared.domain.models import Rol
 from src.modules.auth.infra.db.tables.user_table import UserTable
-from src.modules.auth.domain.models import AuthUser
+from src.modules.auth.domain.models import User
 from src.modules.auth.domain.ports import AuthPort
 from src.core.exceptions import NotFoundError
 from src.shared.domain.models import EstadoUsuario
@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 from sqlalchemy import update
 
-def _to_domain(obj: UserTable) -> AuthUser:
-    return AuthUser(
+def _to_domain(obj: UserTable) -> User:
+    return User(
         usuario_id=str(obj.id) if obj.id is not None else None,
         nombre=obj.nombre_completo_cifrado,
         email=obj.email,
@@ -27,7 +27,7 @@ class AuthRepository(AuthPort):
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, user: AuthUser) -> AuthUser:
+    def create(self, user: User) -> User:
         model = UserTable(
             usuario_id=user.usuario_id,
             nombre_completo_cifrado=user.nombre,
@@ -45,14 +45,14 @@ class AuthRepository(AuthPort):
         self.db.refresh(model)
         return _to_domain(model)
 
-    def get_by_id(self, usuario_id: str) -> AuthUser | None:
+    def get_by_id(self, usuario_id: str) -> User | None:
         stmt = select(UserTable).where(UserTable.usuario_id == usuario_id)
         r = self.db.execute(stmt).scalar()
         if r is None:
             return None
         return _to_domain(r)
 
-    def get_by_email(self, email: str) -> AuthUser | None:
+    def get_by_email(self, email: str) -> User | None:
         stmt = select(UserTable).where(UserTable.email == email)
         r = self.db.execute(stmt).scalar_one_or_none()
         if r is None:

@@ -1,20 +1,20 @@
 from enum import Enum
 from dataclasses import dataclass
 
-class Rol(str, Enum):
+class Rol(Enum):
     SUPER_ADMINISTRADOR = "Administrador_Global"
     ASEGURADORA = "Operador_Aseguradora"
     AJUSTADOR = "Ajustador"
     TALLER = "Operador_Taller"
     CLIENTE = "Cliente"
 
-class EstadoUsuario(str, Enum):
+class EstadoUsuario(Enum):
     ACTIVO = "Activo"
     BLOQUEADO_ARCO = "Bloqueado_ARCO"
     BLOQUEADO_TEMPORAL = "Bloqueado_Temporal"
     INACTIVO = "Inactivo"
 
-class EstatusSiniestro(str, Enum):
+class EstatusSiniestro(Enum):
     REPORTADO_PRELIMINAR = "Reportado_Preliminar"
     ASIGNADO_A_AJUSTADOR = "Asignado_A_Ajustador"
     PERITAJE_VALIDADO = "Peritaje_Validado"
@@ -23,24 +23,24 @@ class EstatusSiniestro(str, Enum):
     LISTO_PARA_ENTREGA = "Listo_Para_Entrega"
     ENTREGADO = "Entregado"
 
-class SeveridadDano(str, Enum):
+class SeveridadDano(Enum):
     BAJO = "Bajo"
     MEDIO = "Medio"
     ALTO = "Alto"
 
-class EstatusComercialAseguradora(str, Enum):
+class EstatusComercialAseguradora(Enum):
     ACTIVO = "Activo"
     SUSPENDIDO = "Suspendido"
     CANCELADO = "Cancelado"
 
-class TipoDano(str, Enum):
+class TipoDano(Enum):
     ABOLLADURA = "Abolladura"
     RAYADURA = "Rayadura"
     FRACTURA = "Fractura"
     ROTURA_CRISTAL = "Rotura_Cristal"
     DEFORMACION = "Deformacion"
 
-class EstatusCotizacion(str, Enum):
+class EstatusCotizacion(Enum):
     PENDIENTE_APROBACION = "Pendiente_Aprobacion"
     APROBADA = "Aprobada"
     RECHAZADA = "Rechazada"
