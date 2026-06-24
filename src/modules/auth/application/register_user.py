@@ -34,7 +34,6 @@ class RegisterUser:
             aseguradora_id=None,
             password=hashed,
             telefono="",
-            google_id=None,
         )
 
         user_created = self.auth_repo.create(model)

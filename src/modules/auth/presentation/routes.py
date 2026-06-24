@@ -1,14 +1,11 @@
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.core.security import get_current_user
-from fastapi import APIRouter, Depends, Request, HTTPException, status
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import EmailStr
 
 from src.modules.auth.presentation.dependencies import (
     login_user_service,
     register_user_service,
-    login_with_google_service,
-    get_google_auth_url_service,
     generate_recovery_code_service,
     send_recovery_code_service,
     verify_recovery_code_service,
@@ -53,23 +50,6 @@ async def me(
         user: AuthenticatedUser = Depends(get_current_user),
 ):
     return user
-
-
-@router.get("/google/login")
-async def google_login(
-        usecase=Depends(get_google_auth_url_service),
-):
-    url = await usecase.execute()
-    return RedirectResponse(url)
-
-
-@router.get("/google/callback", response_model=LoginResponseDTO)
-async def google_callback(
-        request: Request,
-        usecase=Depends(login_with_google_service),
-):
-    code = request.query_params.get("code")
-    return await usecase.execute(code)
 
 
 @router.post("/recovery/request")

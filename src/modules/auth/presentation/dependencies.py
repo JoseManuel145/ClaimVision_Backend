@@ -16,12 +16,9 @@ in_memory_login_attempt_repo = InMemoryLoginAttemptRepository()
 # usecases
 from src.modules.auth.application import (
     VerifyToken,
-    GetByGoogle,
     LoginUser,
     RegisterUser,
-    GetGoogleAuthUrl,
     GenerateRecoveryCode,
-    LoginWithGoogle,
     ResetPassword,
     VerifyRecoveryCode,
     SendRecoveryCode,
@@ -43,20 +40,6 @@ def login_user_service(session=Depends(get_session)):
     password_service = PasswordService()
     token_service = JwtTokenService()
     return LoginUser(repo, password_service, token_service, in_memory_login_attempt_repo)
-
-def login_with_google_service(session=Depends(get_session)):
-    repo = AuthRepository(session)
-    google_service = GoogleOAuthService()
-    token_service = JwtTokenService()
-    return LoginWithGoogle(google_service, repo, token_service)
-
-def get_by_google_service(session=Depends(get_session)):
-    repo = AuthRepository(session)
-    return GetByGoogle(repo)
-
-def get_google_auth_url_service():
-    google_service = GoogleOAuthService()
-    return GetGoogleAuthUrl(google_service)
 
 def generate_recovery_code_service(session=Depends(get_session)):
     recovery_repo = RecoveryCodeService(session)

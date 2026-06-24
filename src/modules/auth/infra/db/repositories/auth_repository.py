@@ -19,7 +19,6 @@ def _to_domain(obj: UserTable) -> AuthUser:
         estado=obj.estatus_arco,
         aseguradora_id=str(obj.aseguradora_id) if obj.aseguradora_id is not None else None,
         fecha_creacion=obj.fecha_creacion,
-        google_id=None,
         is_authenticated=False,
         fecha_eliminacion=obj.fecha_eliminacion
     )
@@ -60,10 +59,6 @@ class AuthRepository(AuthPort):
             return None
         return _to_domain(r)
 
-    def get_by_google_id(self, google_id: str) -> AuthUser | None:
-        return None
-
-
     def update_password(self, usuario_id: str, password_hash: str) -> None:
         stmt = (
             update(UserTable)
@@ -79,12 +74,7 @@ class AuthRepository(AuthPort):
         self.db.commit()
 
     def verify_user(self, usuario_id: str) -> None:
-        # Since is_authenticated column doesn't exist, we just check if user exists
         stmt = select(UserTable).where(UserTable.usuario_id == usuario_id)
         r = self.db.execute(stmt).scalar()
         if r is None:
             raise NotFoundError("User not found")
-
-    def link_google(self, usuario_id: str, google_id: str) -> None:
-        # Google login is not backed in DB schema, do nothing
-        pass

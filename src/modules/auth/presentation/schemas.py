@@ -12,7 +12,6 @@ class LoginRequestDTO(BaseModel):
     password: str
 
 class UserResponse(BaseModel):
-    # Usamos ConfigDict (Estándar de Pydantic V2)
     model_config = ConfigDict(from_attributes=True)
 
     usuario_id: str
@@ -20,13 +19,10 @@ class UserResponse(BaseModel):
     email: EmailStr
     fecha_creacion: datetime
 
-    # Sintaxis limpia: tipo | None = defecto
     telefono: str | None = None
     rol: str | None = "cliente"
     estado: str = "Activo"
     aseguradora_id: str | None = None
-    is_authenticated: bool = False
-    google_id: str | None = None
     password: str | None = None
     fecha_eliminacion: datetime | None = None
 

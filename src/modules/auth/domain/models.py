@@ -1,6 +1,6 @@
 from datetime import datetime
 from dataclasses import dataclass
-from src.shared.domain.models import Rol, EstadoUsuario
+from src.shared.domain.models import EstadoUsuario
 
 @dataclass
 class AuthUser:
@@ -12,11 +12,8 @@ class AuthUser:
     is_authenticated: bool = False
     estado: str = EstadoUsuario.ACTIVO.value
     aseguradora_id: str | None = None
-
-    # Actualizados a la sintaxis moderna | None
     password: str | None = None
     telefono: str | None = None
-    google_id: str | None = None
     fecha_eliminacion: datetime | None = None
 
 @dataclass
