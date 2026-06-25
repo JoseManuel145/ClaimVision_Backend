@@ -10,6 +10,10 @@ from src.modules.admin.application.list_aseguradoras import ListAseguradoras
 from src.modules.admin.application.actualizar_suscripcion import ActualizarSuscripcionUseCase
 from src.modules.admin.application.actualizar_aseguradora import ActualizarAseguradoraUseCase
 from src.modules.admin.application.get_aseguradora_by_id import GetAseguradoraById
+from src.modules.admin.application.crear_operador_aseguradora import CrearOperadorAseguradoraUseCase
+
+from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
+from src.modules.auth.infra.security.password_service import PasswordService
 from src.modules.admin.application.desincorporar_aseguradora import DesincorporarAseguradoraUseCase
 from src.modules.admin.application.aplicar_bloqueo_arco import AplicarBloqueoArcoUseCase
 from src.modules.admin.application.verificar_aseguradora import VerificarAseguradoraUseCase
@@ -58,4 +62,11 @@ def verificar_aseguradora_service(session=Depends(get_session)):
 def consultar_auditoria_service(session=Depends(get_session)):
     audit_repo = AuditLogRepository(session)
     return ConsultarAuditoriaUseCase(audit_repo)
+
+def crear_operador_aseguradora_service(session=Depends(get_session)):
+    aseguradora_repo = AseguradoraRepository(session)
+    audit_repo = AuditLogRepository(session)
+    auth_repo = AuthRepository(session)
+    password_port = PasswordService()
+    return CrearOperadorAseguradoraUseCase(aseguradora_repo, audit_repo, auth_repo, password_port)
 

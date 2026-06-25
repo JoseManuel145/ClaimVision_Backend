@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
 from typing import Optional, Dict, Any, List, Generic, TypeVar
 import math
@@ -13,6 +13,11 @@ class AseguradoraRequestDTO(BaseModel):
     dominio_correo: str
     plan_suscripcion: str
     contacto_legal_email: str
+
+class OperadorAseguradoraRequestDTO(BaseModel):
+    nombre: str
+    email: EmailStr
+    password: str
 
 class AseguradoraResponseDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)

@@ -5,6 +5,7 @@ from src.modules.aseguradora.domain.models.taller_model import TallerModel
 from src.modules.aseguradora.domain.ports.taller_repository_port import TallerRepositoryPort
 from src.modules.aseguradora.infra.db.tables.taller_table import TallerTable
 from src.modules.aseguradora.infra.db.tables.convenio_table import ConvenioAseguradoraTallerTable
+from datetime import datetime, timezone
 import uuid
 
 def _to_domain(obj: TallerTable) -> TallerModel:
@@ -47,11 +48,12 @@ class TallerRepository(TallerRepositoryPort):
         return _to_domain(r) if r else None
 
     def list_by_aseguradora(self, aseguradora_id: str, offset: int = 0, limit: int = 20) -> Tuple[List[TallerModel], int]:
+        aseg_uuid = uuid.UUID(aseguradora_id)
         base = select(TallerTable).join(ConvenioAseguradoraTallerTable, TallerTable.id == ConvenioAseguradoraTallerTable.taller_id)\
-            .where(ConvenioAseguradoraTallerTable.aseguradora_id == aseguradora_id, TallerTable.deleted_at.is_(None), ConvenioAseguradoraTallerTable.deleted_at.is_(None))
+            .where(ConvenioAseguradoraTallerTable.aseguradora_id == aseg_uuid, TallerTable.deleted_at.is_(None), ConvenioAseguradoraTallerTable.deleted_at.is_(None))
         
         count_stmt = select(func.count()).select_from(TallerTable).join(ConvenioAseguradoraTallerTable, TallerTable.id == ConvenioAseguradoraTallerTable.taller_id)\
-            .where(ConvenioAseguradoraTallerTable.aseguradora_id == aseguradora_id, TallerTable.deleted_at.is_(None), ConvenioAseguradoraTallerTable.deleted_at.is_(None))
+            .where(ConvenioAseguradoraTallerTable.aseguradora_id == aseg_uuid, TallerTable.deleted_at.is_(None), ConvenioAseguradoraTallerTable.deleted_at.is_(None))
         
         total = self.db.execute(count_stmt).scalar() or 0
         
@@ -82,7 +84,8 @@ class TallerRepository(TallerRepositoryPort):
     def vincular_taller_aseguradora(self, taller_id: str, aseguradora_id: str) -> None:
         model = ConvenioAseguradoraTallerTable(
             aseguradora_id=uuid.UUID(aseguradora_id),
-            taller_id=uuid.UUID(taller_id)
+            taller_id=uuid.UUID(taller_id),
+            fecha_convenio=datetime.now(timezone.utc).date()
         )
         self.db.add(model)
         self.db.commit()

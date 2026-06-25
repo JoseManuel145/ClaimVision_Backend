@@ -10,6 +10,7 @@ from src.modules.admin.presentation.schemas import (
     AuditResponse,
     PaginatedResponse,
     MAX_PAGE_SIZE,
+    OperadorAseguradoraRequestDTO
 )
 
 from src.modules.admin.presentation.dependencies import (
@@ -21,7 +22,8 @@ from src.modules.admin.presentation.dependencies import (
     desincorporar_aseguradora_service,
     aplicar_bloqueo_arco_service,
     verificar_aseguradora_service,
-    consultar_auditoria_service
+    consultar_auditoria_service,
+    crear_operador_aseguradora_service
 )
 
 from src.modules.admin.application.registrar_aseguradora import RegistrarAseguradoraUseCase
@@ -33,6 +35,7 @@ from src.modules.admin.application.desincorporar_aseguradora import Desincorpora
 from src.modules.admin.application.aplicar_bloqueo_arco import AplicarBloqueoArcoUseCase
 from src.modules.admin.application.verificar_aseguradora import VerificarAseguradoraUseCase
 from src.modules.admin.application.consultar_auditoria import ConsultarAuditoriaUseCase
+from src.modules.admin.application.crear_operador_aseguradora import CrearOperadorAseguradoraUseCase
 
 router = APIRouter()
 
@@ -51,6 +54,18 @@ async def registrar_aseguradora(
 ):
     try:
         return usecase.execute(user.usuario_id, data)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+@router.post("/aseguradoras/{aseguradora_id}/operadores", status_code=status.HTTP_201_CREATED)
+async def crear_operador_aseguradora(
+    aseguradora_id: str,
+    data: OperadorAseguradoraRequestDTO,
+    user: AuthenticatedUser = Depends(get_admin_user),
+    usecase: CrearOperadorAseguradoraUseCase = Depends(crear_operador_aseguradora_service)
+):
+    try:
+        return usecase.execute(user.usuario_id, aseguradora_id, data)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

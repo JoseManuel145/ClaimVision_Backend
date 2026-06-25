@@ -16,7 +16,7 @@ class CreateClienteByAseguradora:
         self.cliente_repo = cliente_repo
         self.password_service = password_service
 
-    def execute(self, aseguradora_id: str, dto: ClienteCreateDTO) -> User:
+    def execute(self, aseguradora_id: str, dto: ClienteCreateDTO) -> ClienteProfile:
         if self.auth_repo.get_by_email(dto.email):
             raise BusinessRuleError("El correo electrónico ya está registrado.")
         
@@ -50,4 +50,4 @@ class CreateClienteByAseguradora:
         )
         self.cliente_repo.save(profile)
 
-        return saved_user
+        return profile

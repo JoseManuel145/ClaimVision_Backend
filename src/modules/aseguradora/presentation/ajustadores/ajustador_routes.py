@@ -13,10 +13,10 @@ from src.modules.aseguradora.presentation.ajustadores.ajustador_dependencies imp
 
 router = APIRouter()
 
+from fastapi import HTTPException
 def get_aseguradora_user(user: AuthenticatedUser = Depends(get_current_user)) -> AuthenticatedUser:
-    if user.rol.value != "Operador_Aseguradora" or not user.aseguradora_id:
-        # Simplificación: Admin también podría entrar, pero para ajustarnos al dominio, pedimos Operador
-        pass
+    if user.rol != "Operador_Aseguradora" or not user.aseguradora_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso denegado. Requiere Operador de Aseguradora.")
     return user
 
 @router.post("", response_model=AjustadorResponseDTO, status_code=status.HTTP_201_CREATED)

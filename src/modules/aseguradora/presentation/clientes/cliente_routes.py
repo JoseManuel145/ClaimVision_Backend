@@ -26,14 +26,14 @@ def list_clientes(
     items, total = uc.execute(user.aseguradora_id, offset, limit)
     return items
 
-@router.post("", status_code=status.HTTP_201_CREATED)
+@router.post("",response_model=ClienteResponseDTO ,status_code=status.HTTP_201_CREATED)
 def create_cliente(
     dto: ClienteCreateDTO,
     user: AuthenticatedUser = Depends(get_aseguradora_user),
     uc=Depends(create_cliente_service)
 ):
-    uc.execute(user.aseguradora_id, dto)
-    return {"message": "Cliente creado exitosamente"}
+    cliente = uc.execute(user.aseguradora_id, dto)
+    return cliente
 
 @router.get("/{id}", response_model=ClienteResponseDTO)
 def get_cliente(
