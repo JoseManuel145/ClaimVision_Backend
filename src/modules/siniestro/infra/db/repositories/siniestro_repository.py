@@ -129,3 +129,18 @@ class SiniestroRepository(SiniestroRepositoryPort):
         stmt = base_query.order_by(SiniestroTable.created_at.desc()).offset(offset).limit(limit)
         results = self.db.execute(stmt).scalars().all()
         return [_to_domain(r) for r in results], total
+
+    def list_by_taller(self, taller_id: str, offset: int = 0, limit: int = 20, estatus: str | None = None) -> Tuple[List[SiniestroModel], int]:
+        taller_uuid = uuid.UUID(taller_id)
+        base_query = select(SiniestroTable).where(SiniestroTable.taller_id == taller_uuid, SiniestroTable.deleted_at.is_(None))
+        count_query = select(func.count()).select_from(SiniestroTable).where(SiniestroTable.taller_id == taller_uuid, SiniestroTable.deleted_at.is_(None))
+        
+        if estatus is not None:
+            base_query = base_query.where(SiniestroTable.estatus == estatus)
+            count_query = count_query.where(SiniestroTable.estatus == estatus)
+
+        total = self.db.execute(count_query).scalar() or 0
+        
+        stmt = base_query.order_by(SiniestroTable.created_at.desc()).offset(offset).limit(limit)
+        results = self.db.execute(stmt).scalars().all()
+        return [_to_domain(r) for r in results], total
