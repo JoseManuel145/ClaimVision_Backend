@@ -29,7 +29,7 @@ class AuthRepository(AuthPort):
 
     def create(self, user: User) -> User:
         model = UserTable(
-            usuario_id=user.usuario_id,
+            id=user.usuario_id,
             nombre_completo_cifrado=user.nombre,
             email=user.email,
             password_hash=user.password,
