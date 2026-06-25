@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from datetime import datetime
 from typing import Optional
 
@@ -14,6 +14,12 @@ class TallerResponseDTO(BaseModel):
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime]
+
+class OperadorTallerRequestDTO(BaseModel):
+    nombre: str = Field(..., min_length=3, max_length=100)
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    puesto: str = Field(default="Operador")
 
 class TallerCreateDTO(BaseModel):
     nombre_comercial: str

@@ -62,3 +62,15 @@ def delete_taller(
 ):
     uc.execute(id, user.aseguradora_id)
     return None
+
+from src.modules.aseguradora.presentation.talleres.taller_dependencies import crear_operador_taller_service
+from src.modules.aseguradora.presentation.talleres.taller_dto import OperadorTallerRequestDTO
+
+@router.post("/{id}/operadores", status_code=status.HTTP_201_CREATED)
+def crear_operador_taller(
+    id: str,
+    dto: OperadorTallerRequestDTO,
+    user: AuthenticatedUser = Depends(get_aseguradora_user),
+    uc=Depends(crear_operador_taller_service)
+):
+    return uc.execute(user.aseguradora_id, user.usuario_id, id, dto)
