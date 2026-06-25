@@ -4,6 +4,7 @@ from src.modules.admin.presentation.schemas import UpdateSuscripcionDTO
 from src.modules.admin.domain.models import AseguradoraTenant, AuditLog
 from src.modules.admin.domain.ports import AseguradoraRepositoryPort, AuditLogRepositoryPort
 from src.core.exceptions import NotFoundError
+from src.shared.domain.models import LIMITES_PLANES
 
 class ActualizarSuscripcionUseCase:
     def __init__(self, repo: AseguradoraRepositoryPort, audit_repo: AuditLogRepositoryPort):
@@ -19,7 +20,8 @@ class ActualizarSuscripcionUseCase:
         old_limit = tenant.limite_peritajes_mes
         
         tenant.plan_suscripcion = data.nuevo_plan
-        tenant.limite_peritajes_mes = data.limite_peritajes_mes
+        nuevo_limite = LIMITES_PLANES.get(data.nuevo_plan, tenant.limite_peritajes_mes)
+        tenant.limite_peritajes_mes = nuevo_limite
         
         updated = self.repo.update(tenant)
 
@@ -31,7 +33,7 @@ class ActualizarSuscripcionUseCase:
                 "old_plan": old_plan, 
                 "new_plan": data.nuevo_plan,
                 "old_limit": old_limit, 
-                "new_limit": data.limite_peritajes_mes
+                "new_limit": nuevo_limite
             },
             direccion_ip='[IP_ADDRESS]', #como consigo la ip? 
             user_agent=admin_id,

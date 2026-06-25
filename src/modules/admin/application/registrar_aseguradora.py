@@ -5,6 +5,7 @@ from src.modules.admin.presentation.schemas import AseguradoraRequestDTO
 from src.modules.admin.domain.models import AseguradoraTenant, AuditLog
 from src.modules.admin.domain.ports import AseguradoraRepositoryPort, AuditLogRepositoryPort
 from src.core.exceptions import BusinessRuleError
+from src.shared.domain.models import LIMITES_PLANES
 
 class RegistrarAseguradoraUseCase:
     def __init__(self, repo: AseguradoraRepositoryPort, audit_repo: AuditLogRepositoryPort):
@@ -21,7 +22,7 @@ class RegistrarAseguradoraUseCase:
             rfc=data.rfc,
             dominio_correo=data.dominio_correo,
             plan_suscripcion=data.plan_suscripcion,
-            limite_peritajes_mes=0,
+            limite_peritajes_mes=LIMITES_PLANES.get(data.plan_suscripcion, 100),
             peritajes_consumidos_mes=0,
             estatus_comercial='Suspendido',
             contacto_legal_email=data.contacto_legal_email,

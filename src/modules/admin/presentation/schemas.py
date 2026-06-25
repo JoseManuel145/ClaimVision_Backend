@@ -33,7 +33,6 @@ class AseguradoraResponseDTO(BaseModel):
 
 class UpdateSuscripcionDTO(BaseModel):
     nuevo_plan: str
-    limite_peritajes_mes: int
 
 class UpdateAseguradoraDTO(BaseModel):
     nombre: Optional[str] = None

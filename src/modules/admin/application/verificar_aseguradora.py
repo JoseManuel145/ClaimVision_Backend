@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from uuid import uuid4
 from src.modules.admin.domain.models import AseguradoraTenant, AuditLog
 from src.modules.admin.domain.ports import AseguradoraRepositoryPort, AuditLogRepositoryPort

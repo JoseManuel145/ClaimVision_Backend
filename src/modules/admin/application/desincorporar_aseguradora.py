@@ -18,7 +18,7 @@ class DesincorporarAseguradoraUseCase:
         
         old_estatus = tenant.estatus_comercial
         tenant.estatus_comercial = "Cancelado"
-        tenant.fecha_desincorporacion = datetime.now(timezone.utc)
+        tenant.deleted_at = datetime.now(timezone.utc)
         
         updated = self.repo.update(tenant)
 

@@ -79,7 +79,7 @@ async def list_aseguradoras_desincorporadas(
     # Para ser eficiente, se podría agregar un método dedicado al repositorio,
     # pero reutilizamos include_deleted=True y filtramos en memoria por ahora
     items, total = usecase.execute(offset=offset, limit=page_size, include_deleted=True)
-    deleted_items = [item for item in items if item.deleted_at is not None]
+    deleted_items = [item for item in items if item.deleted_at is not None or item.estatus_comercial == "Cancelado"]
     return PaginatedResponse.build(items=deleted_items, total=len(deleted_items), page=page, page_size=page_size)
 
 @router.get("/aseguradoras/{aseguradora_id}", response_model=AseguradoraResponseDTO)

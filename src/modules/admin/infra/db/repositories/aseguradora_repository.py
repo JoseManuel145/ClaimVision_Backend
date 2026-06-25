@@ -16,7 +16,7 @@ def _to_domain(obj: AseguradoraTable) -> AseguradoraTenant:
         plan_suscripcion=obj.plan_suscripcion,
         limite_peritajes_mes=obj.limite_peritajes_mes,
         peritajes_consumidos_mes=obj.peritajes_consumidos_mes,
-        estatus_comercial=obj.estatus_comercial,
+        estatus_comercial=obj.estatus_comercial.value if hasattr(obj.estatus_comercial, 'value') else obj.estatus_comercial,
         contacto_legal_email=obj.contacto_legal_email,
         version=obj.version,
         created_at=obj.created_at,
@@ -61,8 +61,9 @@ class AseguradoraRepository(AseguradoraRepositoryPort):
         count_stmt = select(func.count()).select_from(AseguradoraTable)
 
         if not include_deleted:
-            base = base.where(AseguradoraTable.deleted_at.is_(None))
-            count_stmt = count_stmt.where(AseguradoraTable.deleted_at.is_(None))
+            from src.shared.domain.models import EstatusComercialAseguradora
+            base = base.where(AseguradoraTable.deleted_at.is_(None)).where(AseguradoraTable.estatus_comercial != EstatusComercialAseguradora.CANCELADO.value)
+            count_stmt = count_stmt.where(AseguradoraTable.deleted_at.is_(None)).where(AseguradoraTable.estatus_comercial != EstatusComercialAseguradora.CANCELADO.value)
 
         total = self.db.execute(count_stmt).scalar() or 0
         stmt = base.order_by(AseguradoraTable.created_at.desc()).offset(offset).limit(limit)
