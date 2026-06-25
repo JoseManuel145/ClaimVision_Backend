@@ -44,3 +44,14 @@ class EstatusCotizacion(Enum):
     PENDIENTE_APROBACION = "Pendiente_Aprobacion"
     APROBADA = "Aprobada"
     RECHAZADA = "Rechazada"
+
+class PlanSuscripcion(Enum):
+    BASIC = "Basic"
+    PRO = "Pro"
+    ENTERPRISE = "Enterprise"
+
+LIMITES_PLANES = {
+    PlanSuscripcion.BASIC.value: 100,
+    PlanSuscripcion.PRO.value: 500,
+    PlanSuscripcion.ENTERPRISE.value: -1 # -1 indica ilimitado
+}

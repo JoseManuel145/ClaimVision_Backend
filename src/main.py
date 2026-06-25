@@ -11,7 +11,7 @@ app = FastAPI(
     description="API del proyecto ClaimVision, en constante actualizacion y mejoria",
     docs_url="/docs",
     redoc_url="/redoc",
-    version="0.3.0"
+    version="0.5.0"
 )
 
 app.add_middleware(
