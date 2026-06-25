@@ -3,7 +3,7 @@ from src.modules.auth.presentation.routes import router as auth_router
 from src.modules.cliente.presentation.routes import router as cliente_router
 from src.modules.admin.presentation.routes import router as admin_router
 from src.modules.aseguradora.presentation.router import router as aseguradora_router
-from src.modules.siniestro.presentation.routes import router as siniestro_router
+from src.modules.siniestro.presentation.router import router as siniestro_router
 
 api_router = APIRouter()
 api_router.include_router(auth_router, prefix="/auth", tags=["Auth"])

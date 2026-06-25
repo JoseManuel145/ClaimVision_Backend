@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Query, status
 from typing import List
 from src.core.security import get_current_user
 from src.modules.auth.domain.models import AuthenticatedUser
-from src.modules.siniestro.presentation.schemas import SiniestroResponseDTO
+from src.modules.siniestro.presentation.siniestros.siniestro_dto import SiniestroResponseDTO
 from src.modules.aseguradora.presentation.siniestros.siniestro_dto import AsignarAjustadorDTO, EnviarTallerDTO
-from src.modules.siniestro.presentation.dependencies import (
+from src.modules.siniestro.presentation.siniestros.siniestro_dependencies import (
     list_siniestros_service,
     asignar_ajustador_service,
     enviar_taller_service,

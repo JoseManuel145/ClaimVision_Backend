@@ -1,0 +1,6 @@
+from typing import Protocol, List
+from src.modules.siniestro.domain.models.imagen_siniestro_model import ImagenSiniestroModel
+
+class ImagenSiniestroRepositoryPort(Protocol):
+    def save(self, imagen: ImagenSiniestroModel) -> ImagenSiniestroModel: ...
+    def get_by_siniestro_id(self, siniestro_id: str) -> List[ImagenSiniestroModel]: ...
