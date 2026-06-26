@@ -3,4 +3,4 @@ __pycache__/
 .env
 .idea/
 create_superadmin.py
-requirements.txt
+requirements.txt    

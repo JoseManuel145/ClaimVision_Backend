@@ -8,7 +8,6 @@ class SiniestroModel:
     cliente_id: str
     ajustador_id: str | None
     taller_id: str | None
-    aseguradora_id: str | None = None
     estatus: str
     vehiculo_marca: str
     vehiculo_modelo: str
@@ -24,4 +23,5 @@ class SiniestroModel:
     version: int
     created_at: datetime
     updated_at: datetime
+    aseguradora_id: str | None = None
     deleted_at: datetime | None = None
