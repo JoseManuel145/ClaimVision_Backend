@@ -4,16 +4,12 @@ from src.modules.siniestro.domain.models.siniestro_model import SiniestroModel
 from src.modules.siniestro.domain.ports.siniestro_repository_port import SiniestroRepositoryPort
 from src.modules.siniestro.presentation.siniestros.siniestro_dto import SiniestroInicializarDTO
 from src.shared.domain.models import EstatusSiniestro
-from src.core.exceptions import BusinessRuleError
 
 class InicializarSiniestro:
     def __init__(self, repo: SiniestroRepositoryPort):
         self.repo = repo
 
     def execute(self, cliente_id: str, aseguradora_id: str, dto: SiniestroInicializarDTO) -> SiniestroModel:
-        if not aseguradora_id:
-            raise ValueError("El usuario no tiene una aseguradora asociada. Complete el onboarding primero.")
-
         siniestro = SiniestroModel(
             id=str(uuid.uuid4()),
             aseguradora_id=aseguradora_id,

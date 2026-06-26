@@ -10,7 +10,7 @@ import uuid
 def _to_domain(obj: SiniestroTable) -> SiniestroModel:
     return SiniestroModel(
         id=str(obj.id),
-        aseguradora_id=str(obj.aseguradora_id),
+        aseguradora_id=str(obj.aseguradora_id) if obj.aseguradora_id else None,
         cliente_id=str(obj.cliente_id),
         ajustador_id=str(obj.ajustador_id) if obj.ajustador_id else None,
         taller_id=str(obj.taller_id) if obj.taller_id else None,

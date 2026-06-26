@@ -8,7 +8,7 @@ class SiniestroTable(Base):
     __tablename__ = "siniestros"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    aseguradora_id = Column(UUID(as_uuid=True), nullable=False)
+    aseguradora_id = Column(UUID(as_uuid=True), nullable=True)
     cliente_id = Column(UUID(as_uuid=True), nullable=False)
     ajustador_id = Column(UUID(as_uuid=True), nullable=True)
     taller_id = Column(UUID(as_uuid=True), nullable=True)

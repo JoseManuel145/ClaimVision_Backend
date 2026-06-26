@@ -28,7 +28,7 @@ class SiniestroResponseDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
-    aseguradora_id: str
+    aseguradora_id: Optional[str] = None
     cliente_id: str
     ajustador_id: Optional[str] = None
     taller_id: Optional[str] = None
