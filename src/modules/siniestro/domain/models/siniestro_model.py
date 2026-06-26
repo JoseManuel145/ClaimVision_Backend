@@ -5,10 +5,10 @@ from src.shared.domain.models import EstatusSiniestro
 @dataclass
 class SiniestroModel:
     id: str
-    aseguradora_id: str | None = None
     cliente_id: str
     ajustador_id: str | None
     taller_id: str | None
+    aseguradora_id: str | None = None
     estatus: str
     vehiculo_marca: str
     vehiculo_modelo: str
