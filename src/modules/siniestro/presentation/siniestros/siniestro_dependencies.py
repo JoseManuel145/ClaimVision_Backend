@@ -38,9 +38,18 @@ def get_taller_checker(session: Session = Depends(get_session)) -> TallerChecker
     repo = TallerRepository(session)
     return TallerCheckerAdapter(repo)
 
+def get_cliente_checker(session: Session = Depends(get_session)):
+    from src.modules.cliente.infra.db.repositories.cliente_repository import ClienteRepository
+    from src.modules.siniestro.infra.adapters.cliente_checker_adapter import ClienteCheckerAdapter
+    repo = ClienteRepository(session)
+    return ClienteCheckerAdapter(repo)
+
 # Casos de Uso
-def inicializar_siniestro_service(repo: SiniestroRepository = Depends(get_siniestro_repo)) -> InicializarSiniestro:
-    return InicializarSiniestro(repo)
+def inicializar_siniestro_service(
+    repo: SiniestroRepository = Depends(get_siniestro_repo),
+    cliente_checker=Depends(get_cliente_checker)
+) -> InicializarSiniestro:
+    return InicializarSiniestro(repo, cliente_checker)
 
 def subir_imagen_siniestro_service(
     repo_img: ImagenSiniestroRepository = Depends(get_imagen_siniestro_repo),
