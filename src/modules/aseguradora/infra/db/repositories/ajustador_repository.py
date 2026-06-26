@@ -38,7 +38,7 @@ class AjustadorRepository(AjustadorRepositoryPort):
     def save(self, ajustador: AjustadorModel) -> AjustadorModel:
         model = AjustadorTable(
             id=uuid.UUID(ajustador.id) if ajustador.id else uuid.uuid4(),
-            usuario_id=uuid.UUID(ajustador.usuario_id),
+            usuario_id=uuid.UUID(ajustador.usuario_id) if ajustador.usuario_id else None,
             cedula_profesional=ajustador.cedula_profesional,
             geolocalizacion_actual=_format_wkt(ajustador.geolocalizacion_actual),
             activo_para_servicio=ajustador.activo_para_servicio,

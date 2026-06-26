@@ -41,12 +41,15 @@ class PeritajeAjustadorRepository(PeritajeAjustadorRepositoryPort):
         self.db = db
 
     def guardar_peritaje(self, peritaje: PeritajeAjustadorModel) -> PeritajeAjustadorModel:
-        # Check if exists
-        stmt = select(PeritajeAjustadorTable).where(PeritajeAjustadorTable.siniestro_id == uuid.UUID(peritaje.siniestro_id))
+        if not peritaje.siniestro_id:
+            raise ValueError("siniestro_id es requerido para guardar el peritaje")
+
+        siniestro_uuid = uuid.UUID(peritaje.siniestro_id)
+        stmt = select(PeritajeAjustadorTable).where(PeritajeAjustadorTable.siniestro_id == siniestro_uuid)
         existing = self.db.execute(stmt).scalars().first()
 
         if existing:
-            existing.ajustador_id = uuid.UUID(peritaje.ajustador_id)
+            existing.ajustador_id = uuid.UUID(peritaje.ajustador_id) if peritaje.ajustador_id else None
             existing.costo_definitivo_ajustador = peritaje.costo_definitivo_ajustador
             existing.firma_digital_ajustador = peritaje.firma_digital_ajustador
             existing.observaciones_campo = peritaje.observaciones_campo
@@ -74,8 +77,8 @@ class PeritajeAjustadorRepository(PeritajeAjustadorRepositoryPort):
             return _peritaje_to_domain(existing)
         else:
             new_peritaje = PeritajeAjustadorTable(
-                siniestro_id=uuid.UUID(peritaje.siniestro_id),
-                ajustador_id=uuid.UUID(peritaje.ajustador_id),
+                siniestro_id=uuid.UUID(peritaje.siniestro_id) if peritaje.siniestro_id else None,
+                ajustador_id=uuid.UUID(peritaje.ajustador_id) if peritaje.ajustador_id else None,
                 costo_definitivo_ajustador=peritaje.costo_definitivo_ajustador,
                 firma_digital_ajustador=peritaje.firma_digital_ajustador,
                 observaciones_campo=peritaje.observaciones_campo
@@ -99,6 +102,8 @@ class PeritajeAjustadorRepository(PeritajeAjustadorRepositoryPort):
             return _peritaje_to_domain(new_peritaje)
 
     def obtener_peritaje_por_siniestro(self, siniestro_id: str) -> Optional[PeritajeAjustadorModel]:
+        if not siniestro_id:
+            return None
         stmt = select(PeritajeAjustadorTable).where(
             PeritajeAjustadorTable.siniestro_id == uuid.UUID(siniestro_id),
             PeritajeAjustadorTable.deleted_at.is_(None)

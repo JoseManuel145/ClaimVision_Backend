@@ -9,8 +9,13 @@ class UsuarioRepository(UsuarioRepositoryPort):
     def __init__(self, db: Session):
         self.db = db
 
+    def _uuid_or_raise(self, id: str) -> uuid.UUID:
+        if not id:
+            raise ValueError("id es requerido")
+        return uuid.UUID(id)
+
     def get_by_id(self, id: str) -> dict | None:
-        user = self.db.query(UserTable).filter(UserTable.id == uuid.UUID(id)).first()
+        user = self.db.query(UserTable).filter(UserTable.id == self._uuid_or_raise(id)).first()
         if not user:
             return None
         return {
@@ -20,7 +25,7 @@ class UsuarioRepository(UsuarioRepositoryPort):
         }
 
     def bloquear_por_arco(self, id: str) -> None:
-        stmt = update(UserTable).where(UserTable.id == uuid.UUID(id)).values(
+        stmt = update(UserTable).where(UserTable.id == self._uuid_or_raise(id)).values(
             estatus_arco=EstadoUsuario.BLOQUEADO_ARCO.value,
             nombre_completo_cifrado="[BLOQUEADO_ARCO]",
             telefono_cifrado="[BLOQUEADO_ARCO]"
@@ -29,10 +34,8 @@ class UsuarioRepository(UsuarioRepositoryPort):
         self.db.commit()
 
     def desbloquear_por_arco(self, id: str) -> None:
-        stmt = update(UserTable).where(UserTable.id == uuid.UUID(id)).values(
+        stmt = update(UserTable).where(UserTable.id == self._uuid_or_raise(id)).values(
             estatus_arco=EstadoUsuario.ACTIVO.value,
-            # No se pueden recuperar los datos cifrados con esta función tan simple si fueron sobrescritos por "[BLOQUEADO_ARCO]".
-            # En un entorno real se recuperarían usando la llave simétrica.
         )
         self.db.execute(stmt)
         self.db.commit()

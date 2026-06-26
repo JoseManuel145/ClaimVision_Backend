@@ -1,0 +1,2518 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ClaimVision-API",
+    "description": "API del proyecto ClaimVision — Sistema de gesti\u00f3n de siniestros automotrices multi-tenant. Arquitectura hexagonal, autenticaci\u00f3n por JWT Bearer Token, multi-tenencia por aseguradora_id.",
+    "version": "0.5.0",
+    "contact": {
+      "name": "Soporte ClaimVision",
+      "email": "soporte@claimvision.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Desarrollo local"
+    },
+    {
+      "url": "https://api.claimvision.com",
+      "description": "Producci\u00f3n"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Root"],
+        "summary": "Health Check",
+        "description": "Verifica que la API est\u00e9 operativa.",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "API operativa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "Status": { "type": "string", "example": "OK" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Registrar usuario",
+        "description": "Registra un nuevo usuario en el sistema. No requiere autenticaci\u00f3n.",
+        "operationId": "authRegister",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserRegister" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario registrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Iniciar sesi\u00f3n",
+        "description": "Autentica un usuario con email y contrase\u00f1a. Devuelve un token JWT.",
+        "operationId": "authLogin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequestDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autenticaci\u00f3n exitosa",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponseDTO" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Obtener usuario actual",
+        "description": "Devuelve los datos del usuario autenticado mediante el token JWT.",
+        "operationId": "authMe",
+        "security": [{ "HTTPBearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Datos del usuario autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "usuario_id": { "type": "string", "format": "uuid" },
+                    "email": { "type": "string", "format": "email" },
+                    "rol": { "type": "string" },
+                    "aseguradora_id": { "type": "string", "nullable": true }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/auth/recovery/request": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Solicitar c\u00f3digo de recuperaci\u00f3n",
+        "description": "Genera y env\u00eda un c\u00f3digo de recuperaci\u00f3n al correo electr\u00f3nico del usuario.",
+        "operationId": "authRecoveryRequest",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "email" },
+            "description": "Correo electr\u00f3nico del usuario"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "C\u00f3digo generado y enviado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "usuario_id": { "type": "string" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/auth/recovery/verify": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Verificar c\u00f3digo de recuperaci\u00f3n",
+        "description": "Verifica que el c\u00f3digo de recuperaci\u00f3n sea v\u00e1lido para un usuario.",
+        "operationId": "authRecoveryVerify",
+        "parameters": [
+          {
+            "name": "usuario_id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del usuario"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "C\u00f3digo de verificaci\u00f3n"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "C\u00f3digo verificado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "usuario_id": { "type": "string" },
+                    "verified": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/auth/recovery/reset": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Restablecer contrase\u00f1a",
+        "description": "Restablece la contrase\u00f1a de un usuario despu\u00e9s de verificar el c\u00f3digo de recuperaci\u00f3n.",
+        "operationId": "authRecoveryReset",
+        "parameters": [
+          {
+            "name": "usuario_id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del usuario"
+          },
+          {
+            "name": "new_password",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "minLength": 8 },
+            "description": "Nueva contrase\u00f1a"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contrase\u00f1a restablecida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Contrase\u00f1a restablecida exitosamente" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/auth/consentimiento": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Enviar consentimiento",
+        "description": "Registra el consentimiento del usuario (aviso de privacidad, biometr\u00eda, transferencia a talleres). Requiere autenticaci\u00f3n.",
+        "operationId": "authConsentimiento",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ConsentRequestDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Consentimiento registrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Consentimiento registrado exitosamente" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/cliente/onboarding/ocr": {
+      "post": {
+        "tags": ["Cliente"],
+        "summary": "Extraer datos por OCR",
+        "description": "Sube c\u00e9dula y p\u00f3liza para extraer datos mediante OCR. Requiere autenticaci\u00f3n.",
+        "operationId": "clienteOcrExtraction",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["cedula", "poliza"],
+                "properties": {
+                  "cedula": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Archivo de imagen de la c\u00e9dula"
+                  },
+                  "poliza": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Archivo de imagen de la p\u00f3liza"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Datos extra\u00eddos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "numero_poliza": { "type": "string" },
+                    "vigencia_poliza": { "type": "string", "format": "date" },
+                    "curp_rfc": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/cliente/onboarding/confirmar-datos": {
+      "post": {
+        "tags": ["Cliente"],
+        "summary": "Confirmar datos de onboarding",
+        "description": "Confirma y guarda de forma cifrada los datos extra\u00eddos del onboarding. Requiere autenticaci\u00f3n.",
+        "operationId": "clienteConfirmarDatos",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ConfirmDataRequestDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Datos confirmados y guardados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Datos de onboarding confirmados y guardados de forma segura." }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/admin/aseguradoras": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Registrar aseguradora",
+        "description": "Registra una nueva aseguradora en la plataforma. Requiere rol Administrador_Global.",
+        "operationId": "adminRegistrarAseguradora",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AseguradoraRequestDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Aseguradora registrada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AseguradoraResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Listar aseguradoras",
+        "description": "Lista las aseguradoras registradas con paginaci\u00f3n. Requiere rol Administrador_Global.",
+        "operationId": "adminListAseguradoras",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "default": 1 },
+            "description": "N\u00famero de p\u00e1gina (inicia en 1)"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "description": "Registros por p\u00e1gina (m\u00e1x. 100)"
+          },
+          {
+            "name": "include_deleted",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean", "default": false },
+            "description": "Incluir aseguradoras desincorporadas"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de aseguradoras",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaginatedResponse_AseguradoraResponseDTO_" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/admin/aseguradoras/desincorporadas": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Listar aseguradoras desincorporadas",
+        "description": "Lista \u00fanicamente las aseguradoras desincorporadas (con deleted_at no nulo). Requiere rol Administrador_Global.",
+        "operationId": "adminListAseguradorasDesincorporadas",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "default": 1 },
+            "description": "N\u00famero de p\u00e1gina (inicia en 1)"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "description": "Registros por p\u00e1gina (m\u00e1x. 100)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de aseguradoras desincorporadas",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaginatedResponse_AseguradoraResponseDTO_" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/admin/aseguradoras/{aseguradora_id}": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Obtener aseguradora por ID",
+        "description": "Obtiene los detalles de una aseguradora espec\u00edfica. Requiere rol Administrador_Global.",
+        "operationId": "adminGetAseguradora",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "aseguradora_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID de la aseguradora"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles de la aseguradora",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AseguradoraResponseDTO" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Actualizar aseguradora",
+        "description": "Actualiza los datos de una aseguradora existente. Requiere rol Administrador_Global.",
+        "operationId": "adminActualizarAseguradora",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "aseguradora_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID de la aseguradora"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateAseguradoraDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Aseguradora actualizada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AseguradoraResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Admin"],
+        "summary": "Desincorporar aseguradora",
+        "description": "Desincorpora (soft-delete) una aseguradora. Requiere rol Administrador_Global.",
+        "operationId": "adminDesincorporarAseguradora",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "aseguradora_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID de la aseguradora"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aseguradora desincorporada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AseguradoraResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/admin/aseguradoras/{aseguradora_id}/operadores": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Crear operador de aseguradora",
+        "description": "Crea un usuario operador para una aseguradora espec\u00edfica. Requiere rol Administrador_Global.",
+        "operationId": "adminCrearOperador",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "aseguradora_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID de la aseguradora"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OperadorAseguradoraRequestDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Operador creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "usuario_id": { "type": "string" },
+                    "nombre": { "type": "string" },
+                    "email": { "type": "string", "format": "email" },
+                    "rol": { "type": "string", "example": "Operador_Aseguradora" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/admin/aseguradoras/{aseguradora_id}/verificar": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Verificar aseguradora",
+        "description": "Cambia el estado de una aseguradora a verificado. Requiere rol Administrador_Global.",
+        "operationId": "adminVerificarAseguradora",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "aseguradora_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID de la aseguradora"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aseguradora verificada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AseguradoraResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/admin/aseguradoras/{aseguradora_id}/suscripcion": {
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Actualizar suscripci\u00f3n",
+        "description": "Actualiza el plan de suscripci\u00f3n de una aseguradora. Requiere rol Administrador_Global.",
+        "operationId": "adminActualizarSuscripcion",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "aseguradora_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID de la aseguradora"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateSuscripcionDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Suscripci\u00f3n actualizada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AseguradoraResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/admin/usuarios/{usuario_id}/bloqueo-arco": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Aplicar bloqueo ARCO",
+        "description": "Aplica bloqueo por derechos ARCO a un usuario. Requiere rol Administrador_Global.",
+        "operationId": "adminBloqueoArco",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "usuario_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del usuario a bloquear"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario bloqueado por ARCO",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Usuario bloqueado y datos cifrados exitosamente por derechos ARCO." }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/admin/auditoria/logs": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Consultar auditor\u00eda",
+        "description": "Obtiene los logs de auditor\u00eda del sistema con paginaci\u00f3n. Requiere rol Administrador_Global.",
+        "operationId": "adminConsultarAuditoria",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "default": 1 },
+            "description": "N\u00famero de p\u00e1gina (inicia en 1)"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "description": "Registros por p\u00e1gina (m\u00e1x. 100)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logs de auditor\u00eda paginados",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaginatedResponse_AuditResponse_" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/ajustadores": {
+      "post": {
+        "tags": ["Aseguradora - Ajustadores"],
+        "summary": "Crear ajustador",
+        "description": "Crea un nuevo ajustador asociado a la aseguradora del operador autenticado. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraCreateAjustador",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AjustadorCreateDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ajustador creado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AjustadorResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "get": {
+        "tags": ["Aseguradora - Ajustadores"],
+        "summary": "Listar ajustadores",
+        "description": "Lista los ajustadores de la aseguradora del operador autenticado. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraListAjustadores",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "default": 0 },
+            "description": "Desplazamiento para paginaci\u00f3n"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "description": "L\u00edmite de registros"
+          },
+          {
+            "name": "activo_para_servicio",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean", "nullable": true },
+            "description": "Filtrar por disponibilidad de servicio"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de ajustadores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/AjustadorResponseDTO" }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/ajustadores/{id}": {
+      "get": {
+        "tags": ["Aseguradora - Ajustadores"],
+        "summary": "Obtener ajustador",
+        "description": "Obtiene los detalles de un ajustador espec\u00edfico. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraGetAjustador",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del ajustador"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles del ajustador",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AjustadorResponseDTO" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "put": {
+        "tags": ["Aseguradora - Ajustadores"],
+        "summary": "Actualizar ajustador",
+        "description": "Actualiza los datos de un ajustador (c\u00e9dula profesional, disponibilidad). Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraUpdateAjustador",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del ajustador"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AjustadorUpdateDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ajustador actualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AjustadorResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Aseguradora - Ajustadores"],
+        "summary": "Eliminar ajustador",
+        "description": "Elimina (soft-delete) un ajustador. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraDeleteAjustador",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del ajustador"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ajustador eliminado (sin contenido)"
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/talleres": {
+      "post": {
+        "tags": ["Aseguradora - Talleres"],
+        "summary": "Crear taller",
+        "description": "Crea un nuevo taller asociado a la aseguradora del operador autenticado. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraCreateTaller",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TallerCreateDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Taller creado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TallerResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "get": {
+        "tags": ["Aseguradora - Talleres"],
+        "summary": "Listar talleres",
+        "description": "Lista los talleres de la aseguradora del operador autenticado. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraListTalleres",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "default": 0 },
+            "description": "Desplazamiento para paginaci\u00f3n"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "description": "L\u00edmite de registros"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de talleres",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/TallerResponseDTO" }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/talleres/{id}": {
+      "get": {
+        "tags": ["Aseguradora - Talleres"],
+        "summary": "Obtener taller",
+        "description": "Obtiene los detalles de un taller espec\u00edfico. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraGetTaller",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del taller"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles del taller",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TallerResponseDTO" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "put": {
+        "tags": ["Aseguradora - Talleres"],
+        "summary": "Actualizar taller",
+        "description": "Actualiza los datos de un taller existente. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraUpdateTaller",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del taller"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TallerUpdateDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Taller actualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TallerResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "delete": {
+        "tags": ["Aseguradora - Talleres"],
+        "summary": "Eliminar taller",
+        "description": "Elimina (soft-delete) un taller. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraDeleteTaller",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del taller"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Taller eliminado (sin contenido)"
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/talleres/{id}/operadores": {
+      "post": {
+        "tags": ["Aseguradora - Talleres"],
+        "summary": "Crear operador de taller",
+        "description": "Crea un usuario operador para un taller espec\u00edfico. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraCrearOperadorTaller",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del taller"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OperadorTallerRequestDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Operador de taller creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "usuario_id": { "type": "string" },
+                    "nombre": { "type": "string" },
+                    "email": { "type": "string", "format": "email" },
+                    "rol": { "type": "string", "example": "Operador_Taller" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/clientes": {
+      "get": {
+        "tags": ["Aseguradora - Clientes"],
+        "summary": "Listar clientes",
+        "description": "Lista los clientes de la aseguradora del operador autenticado. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraListClientes",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "default": 0 },
+            "description": "Desplazamiento para paginaci\u00f3n"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "description": "L\u00edmite de registros"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de clientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/ClienteResponseDTO" }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      },
+      "post": {
+        "tags": ["Aseguradora - Clientes"],
+        "summary": "Crear cliente",
+        "description": "Crea un nuevo cliente asociado a la aseguradora del operador autenticado. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraCreateCliente",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ClienteCreateDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cliente creado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ClienteResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/clientes/{id}": {
+      "get": {
+        "tags": ["Aseguradora - Clientes"],
+        "summary": "Obtener cliente",
+        "description": "Obtiene los detalles de un cliente espec\u00edfico. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraGetCliente",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del cliente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalles del cliente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ClienteResponseDTO" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/siniestros": {
+      "get": {
+        "tags": ["Aseguradora - Siniestros"],
+        "summary": "Listar siniestros (aseguradora)",
+        "description": "Lista los siniestros de la aseguradora del operador autenticado. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraListSiniestros",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "default": 0 },
+            "description": "Desplazamiento para paginaci\u00f3n"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "description": "L\u00edmite de registros"
+          },
+          {
+            "name": "estatus",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "nullable": true },
+            "description": "Filtrar por estatus del siniestro"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de siniestros",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/SiniestroResponseDTO" }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/siniestros/{id}/asignar-ajustador": {
+      "post": {
+        "tags": ["Aseguradora - Siniestros"],
+        "summary": "Asignar ajustador a siniestro",
+        "description": "Asigna un ajustador a un siniestro. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraAsignarAjustador",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AsignarAjustadorDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ajustador asignado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SiniestroResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/siniestros/{id}/enviar-taller": {
+      "post": {
+        "tags": ["Aseguradora - Siniestros"],
+        "summary": "Enviar siniestro a taller",
+        "description": "Asigna un siniestro a un taller para reparaci\u00f3n. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraEnviarTaller",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EnviarTallerDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Siniestro enviado a taller",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SiniestroResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/siniestros/{id}/autorizar-entrega": {
+      "post": {
+        "tags": ["Aseguradora - Siniestros"],
+        "summary": "Autorizar entrega de veh\u00edculo",
+        "description": "Autoriza la entrega del veh\u00edculo al cliente despu\u00e9s de la reparaci\u00f3n. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraAutorizarEntrega",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entrega autorizada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SiniestroResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/usuarios/{id}/bloqueo-arco": {
+      "post": {
+        "tags": ["Aseguradora - Usuarios"],
+        "summary": "Aplicar bloqueo ARCO (aseguradora)",
+        "description": "Aplica bloqueo por derechos ARCO a un usuario de la aseguradora. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraBloqueoArco",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del usuario a bloquear"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bloqueo ARCO aplicado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Bloqueo ARCO aplicado exitosamente" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/aseguradora/v1/aseguradora/usuarios/{id}/desbloqueo-arco": {
+      "post": {
+        "tags": ["Aseguradora - Usuarios"],
+        "summary": "Aplicar desbloqueo ARCO",
+        "description": "Desbloquea a un usuario previamente bloqueado por derechos ARCO. Requiere rol Operador_Aseguradora.",
+        "operationId": "aseguradoraDesbloqueoArco",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del usuario a desbloquear"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Desbloqueo ARCO aplicado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Desbloqueo ARCO aplicado exitosamente" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/siniestros/inicializar": {
+      "post": {
+        "tags": ["Siniestros"],
+        "summary": "Inicializar siniestro",
+        "description": "Crea un nuevo reporte de siniestro. El usuario autenticado (cliente) es el reportante.",
+        "operationId": "siniestrosInicializar",
+        "security": [{ "HTTPBearer": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SiniestroInicializarDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Siniestro creado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SiniestroResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/siniestros/{id}": {
+      "put": {
+        "tags": ["Siniestros"],
+        "summary": "Editar siniestro",
+        "description": "Actualiza los datos de un siniestro existente. El usuario debe tener permisos sobre el siniestro.",
+        "operationId": "siniestrosEditar",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SiniestroUpdateDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Siniestro actualizado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SiniestroResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/siniestros/{id}/imagenes": {
+      "post": {
+        "tags": ["Siniestros"],
+        "summary": "Subir imagen de siniestro",
+        "description": "Sube una imagen asociada a un siniestro. Requiere autenticaci\u00f3n.",
+        "operationId": "siniestrosSubirImagen",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Archivo de imagen del siniestro"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Imagen subida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ImagenSiniestroResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/siniestros/asignados": {
+      "get": {
+        "tags": ["Peritaje"],
+        "summary": "Listar siniestros asignados",
+        "description": "Lista los siniestros asignados al ajustador autenticado. Requiere rol Ajustador.",
+        "operationId": "peritajeListAsignados",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 0, "default": 0 },
+            "description": "Desplazamiento para paginaci\u00f3n"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 },
+            "description": "L\u00edmite de registros"
+          },
+          {
+            "name": "estatus",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "nullable": true },
+            "description": "Filtrar por estatus del siniestro"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de siniestros asignados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/SiniestroResponseDTO" }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/siniestros/{id}/peritaje": {
+      "put": {
+        "tags": ["Peritaje"],
+        "summary": "Guardar/actualizar peritaje",
+        "description": "Guarda o actualiza el peritaje de un siniestro. Requiere rol Ajustador.",
+        "operationId": "peritajeGuardar",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PeritajeUpsertRequestDTO" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Peritaje guardado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PeritajeResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/siniestros/{id}/confirmar": {
+      "post": {
+        "tags": ["Peritaje"],
+        "summary": "Confirmar peritaje",
+        "description": "Confirma el peritaje de un siniestro y avanza su estatus. Requiere rol Ajustador.",
+        "operationId": "peritajeConfirmar",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Peritaje confirmado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SiniestroResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/taller/expedientes": {
+      "get": {
+        "tags": ["Taller - Expedientes"],
+        "summary": "Listar expedientes",
+        "description": "Lista los expedientes (siniestros) asignados al taller del operador autenticado. Requiere rol Operador_Taller.",
+        "operationId": "tallerListExpedientes",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 0 },
+            "description": "Desplazamiento para paginaci\u00f3n"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 20 },
+            "description": "L\u00edmite de registros"
+          },
+          {
+            "name": "estatus",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "nullable": true },
+            "description": "Filtrar por estatus del expediente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de expedientes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/SiniestroTecnicoDTO" }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/taller/expedientes/{id}": {
+      "get": {
+        "tags": ["Taller - Expedientes"],
+        "summary": "Obtener expediente",
+        "description": "Obtiene el detalle completo de un expediente (siniestro, peritaje y cotizaci\u00f3n). Requiere rol Operador_Taller.",
+        "operationId": "tallerGetExpediente",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro/expediente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle del expediente",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ExpedienteTecnicoResponseDTO" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/taller/expedientes/{id}/concluir": {
+      "post": {
+        "tags": ["Taller - Expedientes"],
+        "summary": "Concluir expediente",
+        "description": "Marca un expediente como trabajo concluido. Requiere rol Operador_Taller.",
+        "operationId": "tallerConcluirExpediente",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro/expediente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expediente concluido",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponseDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    },
+    "/api/taller/expedientes/{id}/presupuesto": {
+      "post": {
+        "tags": ["Taller - Presupuestos"],
+        "summary": "Guardar presupuesto",
+        "description": "Guarda el presupuesto de reparaci\u00f3n de un expediente y genera el PDF. Requiere rol Operador_Taller.",
+        "operationId": "tallerGuardarPresupuesto",
+        "security": [{ "HTTPBearer": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "ID del siniestro/expediente"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/GuardarPresupuestoRequestDTO" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Presupuesto guardado y PDF generado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CotizacionTallerDTO" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/ValidationError" },
+          "500": { "$ref": "#/components/responses/InternalServerError" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT de autenticaci\u00f3n. Obtener mediante POST /api/auth/login o POST /api/auth/register."
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Solicitud inv\u00e1lida",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "detail": "Error en los datos proporcionados"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "No autenticado — Token JWT ausente o inv\u00e1lido",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "detail": "Not authenticated"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "No autorizado — El rol del usuario no tiene permisos para este recurso",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "detail": "Requiere rol de Administrador Global"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Recurso no encontrado",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "detail": "Recurso no encontrado"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Error de validaci\u00f3n — Par\u00e1metros inv\u00e1lidos en la solicitud",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "detail": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "loc": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Ubicaci\u00f3n del error"
+                      },
+                      "msg": { "type": "string", "description": "Mensaje del error" },
+                      "type": { "type": "string", "description": "Tipo del error" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Error interno del servidor",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" },
+            "example": {
+              "detail": "Error interno del servidor"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "detail": {
+            "oneOf": [
+              { "type": "string" },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "loc": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "msg": { "type": "string" },
+                    "type": { "type": "string" }
+                  }
+                }
+              }
+            ],
+            "description": "Mensaje de error o lista de errores de validaci\u00f3n"
+          }
+        },
+        "required": ["detail"]
+      },
+      "UserRegister": {
+        "type": "object",
+        "required": ["nombre", "email", "password"],
+        "properties": {
+          "nombre": { "type": "string", "description": "Nombre completo del usuario" },
+          "email": { "type": "string", "format": "email", "description": "Correo electr\u00f3nico del usuario" },
+          "password": { "type": "string", "minLength": 8, "description": "Contrase\u00f1a del usuario" }
+        }
+      },
+      "LoginRequestDTO": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email", "description": "Correo electr\u00f3nico del usuario" },
+          "password": { "type": "string", "description": "Contrase\u00f1a del usuario" }
+        }
+      },
+      "LoginResponseDTO": {
+        "type": "object",
+        "required": ["token", "usuario_id", "email", "rol"],
+        "properties": {
+          "token": { "type": "string", "description": "Token JWT de acceso" },
+          "usuario_id": { "type": "string", "format": "uuid", "description": "ID del usuario autenticado" },
+          "email": { "type": "string", "format": "email", "description": "Correo electr\u00f3nico del usuario" },
+          "rol": { "type": "string", "description": "Rol del usuario (Cliente, Operador_Aseguradora, Ajustador, Operador_Taller, Administrador_Global)" },
+          "aseguradora_id": { "type": "string", "nullable": true, "description": "ID de la aseguradora asociada (null para Administrador_Global o Cliente)" }
+        }
+      },
+      "ConsentRequestDTO": {
+        "type": "object",
+        "required": ["aviso_privacidad", "biometria", "transferencia_talleres"],
+        "properties": {
+          "aviso_privacidad": { "type": "boolean", "description": "Acepta el aviso de privacidad" },
+          "biometria": { "type": "boolean", "description": "Consiente el uso de datos biom\u00e9tricos" },
+          "transferencia_talleres": { "type": "boolean", "description": "Autoriza la transferencia de datos a talleres" }
+        }
+      },
+      "ConfirmDataRequestDTO": {
+        "type": "object",
+        "required": ["numero_poliza", "vigencia_poliza", "curp_rfc"],
+        "properties": {
+          "numero_poliza": { "type": "string", "description": "N\u00famero de p\u00f3liza del seguro" },
+          "vigencia_poliza": { "type": "string", "format": "date", "description": "Fecha de vigencia de la p\u00f3liza" },
+          "curp_rfc": { "type": "string", "description": "CURP o RFC del cliente" }
+        }
+      },
+      "AseguradoraRequestDTO": {
+        "type": "object",
+        "required": ["nombre", "rfc", "dominio_correo", "plan_suscripcion", "contacto_legal_email"],
+        "properties": {
+          "nombre": { "type": "string", "description": "Nombre de la aseguradora" },
+          "rfc": { "type": "string", "description": "RFC de la aseguradora" },
+          "dominio_correo": { "type": "string", "description": "Dominio de correo corporativo" },
+          "plan_suscripcion": { "type": "string", "description": "Plan de suscripci\u00f3n (Basic, Pro, Enterprise)" },
+          "contacto_legal_email": { "type": "string", "format": "email", "description": "Correo de contacto legal" }
+        }
+      },
+      "AseguradoraResponseDTO": {
+        "type": "object",
+        "required": ["id", "nombre", "rfc", "dominio_correo", "plan_suscripcion", "limite_peritajes_mes", "peritajes_consumidos_mes", "estatus_comercial", "contacto_legal_email", "version", "created_at", "updated_at"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "description": "ID \u00fanico de la aseguradora" },
+          "nombre": { "type": "string", "description": "Nombre de la aseguradora" },
+          "rfc": { "type": "string", "description": "RFC de la aseguradora" },
+          "dominio_correo": { "type": "string", "description": "Dominio de correo corporativo" },
+          "plan_suscripcion": { "type": "string", "description": "Plan de suscripci\u00f3n activo" },
+          "limite_peritajes_mes": { "type": "integer", "description": "L\u00edmite de peritajes mensuales seg\u00fan el plan" },
+          "peritajes_consumidos_mes": { "type": "integer", "description": "Peritajes consumidos en el mes actual" },
+          "estatus_comercial": { "type": "string", "description": "Estatus comercial (Activo, Suspendido, Cancelado)" },
+          "contacto_legal_email": { "type": "string", "format": "email", "description": "Correo de contacto legal" },
+          "version": { "type": "integer", "description": "Versi\u00f3n para control de concurrencia optimista" },
+          "created_at": { "type": "string", "format": "date-time", "description": "Fecha de creaci\u00f3n" },
+          "updated_at": { "type": "string", "format": "date-time", "description": "Fecha de \u00faltima actualizaci\u00f3n" },
+          "deleted_at": { "type": "string", "format": "date-time", "nullable": true, "description": "Fecha de eliminaci\u00f3n (soft-delete)" }
+        }
+      },
+      "OperadorAseguradoraRequestDTO": {
+        "type": "object",
+        "required": ["nombre", "email", "password"],
+        "properties": {
+          "nombre": { "type": "string", "description": "Nombre del operador" },
+          "email": { "type": "string", "format": "email", "description": "Correo electr\u00f3nico del operador" },
+          "password": { "type": "string", "minLength": 8, "description": "Contrase\u00f1a temporal del operador" }
+        }
+      },
+      "UpdateSuscripcionDTO": {
+        "type": "object",
+        "required": ["nuevo_plan"],
+        "properties": {
+          "nuevo_plan": { "type": "string", "description": "Nuevo plan de suscripci\u00f3n (Basic, Pro, Enterprise)" }
+        }
+      },
+      "UpdateAseguradoraDTO": {
+        "type": "object",
+        "properties": {
+          "nombre": { "type": "string", "description": "Nombre de la aseguradora" },
+          "rfc": { "type": "string", "description": "RFC de la aseguradora" },
+          "dominio_correo": { "type": "string", "description": "Dominio de correo corporativo" },
+          "contacto_legal_email": { "type": "string", "format": "email", "description": "Correo de contacto legal" }
+        }
+      },
+      "AuditResponse": {
+        "type": "object",
+        "required": ["created_at"],
+        "properties": {
+          "id": { "type": "string", "nullable": true, "description": "ID del log de auditor\u00eda" },
+          "usuario_id": { "type": "string", "nullable": true, "description": "ID del usuario que realiz\u00f3 la acci\u00f3n" },
+          "aseguradora_id": { "type": "string", "nullable": true, "description": "ID de la aseguradora asociada" },
+          "evento_modulo": { "type": "string", "nullable": true, "description": "M\u00f3dulo donde ocurri\u00f3 el evento" },
+          "accion_realizada": { "type": "string", "nullable": true, "description": "Acci\u00f3n realizada" },
+          "direccion_ip": { "type": "string", "nullable": true, "description": "Direcci\u00f3n IP del solicitante" },
+          "user_agent": { "type": "string", "nullable": true, "description": "User-Agent del solicitante" },
+          "metadata_context": { "type": "object", "nullable": true, "description": "Metadatos adicionales del evento" },
+          "created_at": { "type": "string", "format": "date-time", "description": "Fecha de creaci\u00f3n del log" }
+        }
+      },
+      "PaginatedResponse_AseguradoraResponseDTO_": {
+        "type": "object",
+        "required": ["items", "total", "page", "page_size", "total_pages"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AseguradoraResponseDTO" },
+            "description": "Lista de elementos de la p\u00e1gina actual"
+          },
+          "total": { "type": "integer", "description": "Total de elementos" },
+          "page": { "type": "integer", "description": "N\u00famero de p\u00e1gina actual" },
+          "page_size": { "type": "integer", "description": "Elementos por p\u00e1gina" },
+          "total_pages": { "type": "integer", "description": "Total de p\u00e1ginas" }
+        }
+      },
+      "PaginatedResponse_AuditResponse_": {
+        "type": "object",
+        "required": ["items", "total", "page", "page_size", "total_pages"],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AuditResponse" },
+            "description": "Lista de elementos de la p\u00e1gina actual"
+          },
+          "total": { "type": "integer", "description": "Total de elementos" },
+          "page": { "type": "integer", "description": "N\u00famero de p\u00e1gina actual" },
+          "page_size": { "type": "integer", "description": "Elementos por p\u00e1gina" },
+          "total_pages": { "type": "integer", "description": "Total de p\u00e1ginas" }
+        }
+      },
+      "AjustadorCreateDTO": {
+        "type": "object",
+        "required": ["nombre", "email", "telefono", "password_temporal", "cedula_profesional"],
+        "properties": {
+          "nombre": { "type": "string", "description": "Nombre del ajustador" },
+          "email": { "type": "string", "format": "email", "description": "Correo electr\u00f3nico del ajustador" },
+          "telefono": { "type": "string", "description": "Tel\u00e9fono del ajustador" },
+          "password_temporal": { "type": "string", "minLength": 8, "description": "Contrase\u00f1a temporal del ajustador" },
+          "cedula_profesional": { "type": "string", "description": "C\u00e9dula profesional del ajustador" }
+        }
+      },
+      "AjustadorUpdateDTO": {
+        "type": "object",
+        "properties": {
+          "cedula_profesional": { "type": "string", "description": "C\u00e9dula profesional del ajustador" },
+          "activo_para_servicio": { "type": "boolean", "description": "Disponible para servicio" }
+        }
+      },
+      "AjustadorResponseDTO": {
+        "type": "object",
+        "required": ["id", "usuario_id", "cedula_profesional", "geolocalizacion_actual", "activo_para_servicio", "version", "created_at", "updated_at"],
+        "properties": {
+          "id": { "type": "string", "description": "ID del registro de ajustador" },
+          "usuario_id": { "type": "string", "description": "ID del usuario asociado" },
+          "cedula_profesional": { "type": "string", "description": "C\u00e9dula profesional" },
+          "geolocalizacion_actual": {
+            "type": "array",
+            "items": { "type": "number", "format": "float" },
+            "minItems": 2,
+            "maxItems": 2,
+            "nullable": true,
+            "description": "Coordenadas [latitud, longitud] actuales del ajustador"
+          },
+          "activo_para_servicio": { "type": "boolean", "description": "Disponible para servicio" },
+          "version": { "type": "integer", "description": "Versi\u00f3n para control de concurrencia" },
+          "created_at": { "type": "string", "format": "date-time", "description": "Fecha de creaci\u00f3n" },
+          "updated_at": { "type": "string", "format": "date-time", "description": "Fecha de \u00faltima actualizaci\u00f3n" },
+          "deleted_at": { "type": "string", "format": "date-time", "nullable": true, "description": "Fecha de eliminaci\u00f3n" }
+        }
+      },
+      "TallerCreateDTO": {
+        "type": "object",
+        "required": ["nombre_comercial", "rfc", "direccion_tecnica", "telefono_contacto"],
+        "properties": {
+          "nombre_comercial": { "type": "string", "description": "Nombre comercial del taller" },
+          "rfc": { "type": "string", "description": "RFC del taller" },
+          "direccion_tecnica": { "type": "string", "description": "Direcci\u00f3n t\u00e9cnica del taller" },
+          "telefono_contacto": { "type": "string", "description": "Tel\u00e9fono de contacto del taller" }
+        }
+      },
+      "TallerUpdateDTO": {
+        "type": "object",
+        "properties": {
+          "nombre_comercial": { "type": "string", "description": "Nombre comercial del taller" },
+          "direccion_tecnica": { "type": "string", "description": "Direcci\u00f3n t\u00e9cnica del taller" },
+          "telefono_contacto": { "type": "string", "description": "Tel\u00e9fono de contacto del taller" }
+        }
+      },
+      "TallerResponseDTO": {
+        "type": "object",
+        "required": ["id", "nombre_comercial", "rfc", "direccion_tecnica", "telefono_contacto", "version", "created_at", "updated_at"],
+        "properties": {
+          "id": { "type": "string", "description": "ID del taller" },
+          "nombre_comercial": { "type": "string", "description": "Nombre comercial del taller" },
+          "rfc": { "type": "string", "description": "RFC del taller" },
+          "direccion_tecnica": { "type": "string", "description": "Direcci\u00f3n t\u00e9cnica" },
+          "telefono_contacto": { "type": "string", "description": "Tel\u00e9fono de contacto" },
+          "version": { "type": "integer", "description": "Versi\u00f3n para control de concurrencia" },
+          "created_at": { "type": "string", "format": "date-time", "description": "Fecha de creaci\u00f3n" },
+          "updated_at": { "type": "string", "format": "date-time", "description": "Fecha de \u00faltima actualizaci\u00f3n" },
+          "deleted_at": { "type": "string", "format": "date-time", "nullable": true, "description": "Fecha de eliminaci\u00f3n" }
+        }
+      },
+      "OperadorTallerRequestDTO": {
+        "type": "object",
+        "required": ["nombre", "email", "password"],
+        "properties": {
+          "nombre": { "type": "string", "minLength": 3, "maxLength": 100, "description": "Nombre del operador" },
+          "email": { "type": "string", "format": "email", "description": "Correo electr\u00f3nico del operador" },
+          "password": { "type": "string", "minLength": 8, "description": "Contrase\u00f1a del operador" },
+          "puesto": { "type": "string", "default": "Operador", "description": "Puesto del operador" }
+        }
+      },
+      "ClienteCreateDTO": {
+        "type": "object",
+        "required": ["nombre", "email", "telefono", "password_temporal"],
+        "properties": {
+          "nombre": { "type": "string", "description": "Nombre del cliente" },
+          "email": { "type": "string", "format": "email", "description": "Correo electr\u00f3nico del cliente" },
+          "telefono": { "type": "string", "description": "Tel\u00e9fono del cliente" },
+          "password_temporal": { "type": "string", "minLength": 8, "description": "Contrase\u00f1a temporal del cliente" }
+        }
+      },
+      "ClienteResponseDTO": {
+        "type": "object",
+        "required": ["id", "usuario_id", "numero_poliza", "vigencia_poliza", "consentimiento_aviso_privacidad", "consentimiento_biometria", "autoriza_transferencia_talleres"],
+        "properties": {
+          "id": { "type": "string", "description": "ID del perfil de cliente" },
+          "usuario_id": { "type": "string", "description": "ID del usuario asociado" },
+          "numero_poliza": { "type": "string", "description": "N\u00famero de p\u00f3liza" },
+          "vigencia_poliza": { "type": "string", "format": "date", "description": "Vigencia de la p\u00f3liza" },
+          "consentimiento_aviso_privacidad": { "type": "boolean", "description": "Acept\u00f3 aviso de privacidad" },
+          "consentimiento_biometria": { "type": "boolean", "description": "Consinti\u00f3 uso de datos biom\u00e9tricos" },
+          "autoriza_transferencia_talleres": { "type": "boolean", "description": "Autoriz\u00f3 transferencia a talleres" },
+          "fecha_consentimiento": { "type": "string", "format": "date-time", "nullable": true, "description": "Fecha del consentimiento" }
+        }
+      },
+      "SiniestroInicializarDTO": {
+        "type": "object",
+        "required": ["vehiculo_marca", "vehiculo_modelo", "vehiculo_anio", "vehiculo_placas", "latitud_siniestro", "longitud_siniestro"],
+        "properties": {
+          "vehiculo_marca": { "type": "string", "description": "Marca del veh\u00edculo" },
+          "vehiculo_modelo": { "type": "string", "description": "Modelo del veh\u00edculo" },
+          "vehiculo_anio": { "type": "integer", "description": "A\u00f1o del veh\u00edculo" },
+          "vehiculo_placas": { "type": "string", "description": "Placas del veh\u00edculo" },
+          "vehiculo_vin": { "type": "string", "nullable": true, "description": "N\u00famero VIN del veh\u00edculo" },
+          "latitud_siniestro": { "type": "number", "format": "double", "description": "Latitud de la ubicaci\u00f3n del siniestro" },
+          "longitud_siniestro": { "type": "number", "format": "double", "description": "Longitud de la ubicaci\u00f3n del siniestro" },
+          "narracion_texto": { "type": "string", "nullable": true, "description": "Narraci\u00f3n textual del siniestro" }
+        }
+      },
+      "SiniestroUpdateDTO": {
+        "type": "object",
+        "properties": {
+          "vehiculo_marca": { "type": "string", "description": "Marca del veh\u00edculo" },
+          "vehiculo_modelo": { "type": "string", "description": "Modelo del veh\u00edculo" },
+          "vehiculo_anio": { "type": "integer", "description": "A\u00f1o del veh\u00edculo" },
+          "vehiculo_placas": { "type": "string", "description": "Placas del veh\u00edculo" },
+          "vehiculo_vin": { "type": "string", "nullable": true, "description": "N\u00famero VIN" },
+          "latitud_siniestro": { "type": "number", "format": "double", "description": "Latitud del siniestro" },
+          "longitud_siniestro": { "type": "number", "format": "double", "description": "Longitud del siniestro" },
+          "narracion_texto": { "type": "string", "nullable": true, "description": "Narraci\u00f3n textual" },
+          "narracion_audio_url": { "type": "string", "format": "uri", "nullable": true, "description": "URL del audio de narraci\u00f3n" },
+          "indicaciones_dano_interno": { "type": "boolean", "nullable": true, "description": "Indica si hay da\u00f1o interno" }
+        }
+      },
+      "SiniestroResponseDTO": {
+        "type": "object",
+        "required": ["id", "aseguradora_id", "cliente_id", "estatus", "vehiculo_marca", "vehiculo_modelo", "vehiculo_anio", "vehiculo_placas", "latitud_siniestro", "longitud_siniestro", "indicaciones_dano_interno", "fecha_siniestro", "created_at"],
+        "properties": {
+          "id": { "type": "string", "description": "ID del siniestro" },
+          "aseguradora_id": { "type": "string", "description": "ID de la aseguradora" },
+          "cliente_id": { "type": "string", "description": "ID del cliente reportante" },
+          "ajustador_id": { "type": "string", "nullable": true, "description": "ID del ajustador asignado" },
+          "taller_id": { "type": "string", "nullable": true, "description": "ID del taller asignado" },
+          "estatus": { "type": "string", "description": "Estatus del siniestro (Reportado_Preliminar, Asignado_A_Ajustador, Peritaje_Validado, Asignado_A_Taller, Trabajo_Concluido, Listo_Para_Entrega, Entregado)" },
+          "vehiculo_marca": { "type": "string", "description": "Marca del veh\u00edculo" },
+          "vehiculo_modelo": { "type": "string", "description": "Modelo del veh\u00edculo" },
+          "vehiculo_anio": { "type": "integer", "description": "A\u00f1o del veh\u00edculo" },
+          "vehiculo_placas": { "type": "string", "description": "Placas del veh\u00edculo" },
+          "vehiculo_vin": { "type": "string", "nullable": true, "description": "N\u00famero VIN" },
+          "latitud_siniestro": { "type": "number", "format": "double", "description": "Latitud del siniestro" },
+          "longitud_siniestro": { "type": "number", "format": "double", "description": "Longitud del siniestro" },
+          "narracion_texto": { "type": "string", "nullable": true, "description": "Narraci\u00f3n textual" },
+          "narracion_audio_url": { "type": "string", "format": "uri", "nullable": true, "description": "URL del audio de narraci\u00f3n" },
+          "indicaciones_dano_interno": { "type": "boolean", "description": "Indica si hay da\u00f1o interno" },
+          "fecha_siniestro": { "type": "string", "format": "date-time", "description": "Fecha del siniestro" },
+          "version": { "type": "integer", "description": "Versi\u00f3n para control de concurrencia" },
+          "created_at": { "type": "string", "format": "date-time", "description": "Fecha de creaci\u00f3n del registro" },
+          "updated_at": { "type": "string", "format": "date-time", "description": "Fecha de \u00faltima actualizaci\u00f3n" },
+          "deleted_at": { "type": "string", "format": "date-time", "nullable": true, "description": "Fecha de eliminaci\u00f3n" }
+        }
+      },
+      "ImagenSiniestroResponseDTO": {
+        "type": "object",
+        "required": ["id", "siniestro_id", "imagen_url", "es_calidad_valida", "created_at"],
+        "properties": {
+          "id": { "type": "string", "description": "ID de la imagen" },
+          "siniestro_id": { "type": "string", "description": "ID del siniestro asociado" },
+          "imagen_url": { "type": "string", "format": "uri", "description": "URL de la imagen almacenada" },
+          "es_calidad_valida": { "type": "boolean", "description": "Indica si la imagen cumple con los requisitos de calidad" },
+          "metadatos_json": { "type": "object", "nullable": true, "description": "Metadatos adicionales de la imagen" },
+          "created_at": { "type": "string", "format": "date-time", "description": "Fecha de subida" }
+        }
+      },
+      "AsignarAjustadorDTO": {
+        "type": "object",
+        "required": ["ajustador_id"],
+        "properties": {
+          "ajustador_id": { "type": "string", "description": "ID del ajustador a asignar" }
+        }
+      },
+      "EnviarTallerDTO": {
+        "type": "object",
+        "required": ["taller_id"],
+        "properties": {
+          "taller_id": { "type": "string", "description": "ID del taller al que se env\u00eda" }
+        }
+      },
+      "DanoAjustadoDTO": {
+        "type": "object",
+        "required": ["zona_vehiculo", "tipo", "severidad", "costo_real_reparacion"],
+        "properties": {
+          "zona_vehiculo": { "type": "string", "description": "Zona del veh\u00edculo da\u00f1ada" },
+          "tipo": { "type": "string", "description": "Tipo de da\u00f1o (Abolladura, Rayadura, Fractura, Rotura_Cristal, Deformacion)" },
+          "severidad": { "type": "string", "description": "Severidad del da\u00f1o (Bajo, Medio, Alto)" },
+          "costo_real_reparacion": { "type": "number", "format": "double", "description": "Costo real de reparaci\u00f3n" },
+          "origen_cambio": { "type": "string", "default": "AJUSTADOR", "description": "Origen del registro" }
+        }
+      },
+      "PeritajeUpsertRequestDTO": {
+        "type": "object",
+        "required": ["costo_definitivo_ajustador", "firma_digital_ajustador", "danos"],
+        "properties": {
+          "costo_definitivo_ajustador": { "type": "number", "format": "double", "description": "Costo definitivo estimado por el ajustador" },
+          "firma_digital_ajustador": { "type": "string", "description": "Firma digital del ajustador (base64)" },
+          "observaciones_campo": { "type": "string", "nullable": true, "description": "Observaciones de campo" },
+          "danos": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DanoAjustadoDTO" },
+            "description": "Lista de da\u00f1os ajustados"
+          }
+        }
+      },
+      "PeritajeResponseDTO": {
+        "type": "object",
+        "required": ["id", "siniestro_id", "ajustador_id", "costo_definitivo_ajustador", "firma_digital_ajustador", "danos", "version", "created_at", "updated_at"],
+        "properties": {
+          "id": { "type": "string", "description": "ID del peritaje" },
+          "siniestro_id": { "type": "string", "description": "ID del siniestro" },
+          "ajustador_id": { "type": "string", "description": "ID del ajustador" },
+          "costo_definitivo_ajustador": { "type": "number", "format": "double", "description": "Costo definitivo estimado" },
+          "firma_digital_ajustador": { "type": "string", "description": "Firma digital del ajustador" },
+          "observaciones_campo": { "type": "string", "nullable": true, "description": "Observaciones de campo" },
+          "danos": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DanoAjustadoResponseDTO" },
+            "description": "Lista de da\u00f1os ajustados"
+          },
+          "version": { "type": "integer", "description": "Versi\u00f3n para control de concurrencia" },
+          "created_at": { "type": "string", "format": "date-time", "description": "Fecha de creaci\u00f3n" },
+          "updated_at": { "type": "string", "format": "date-time", "description": "Fecha de \u00faltima actualizaci\u00f3n" }
+        }
+      },
+      "DanoAjustadoResponseDTO": {
+        "allOf": [
+          { "$ref": "#/components/schemas/DanoAjustadoDTO" },
+          {
+            "type": "object",
+            "required": ["id"],
+            "properties": {
+              "id": { "type": "string", "description": "ID del da\u00f1o ajustado" }
+            }
+          }
+        ]
+      },
+      "SiniestroTecnicoDTO": {
+        "type": "object",
+        "required": ["id", "estatus", "vehiculo_marca", "vehiculo_modelo", "vehiculo_anio", "indicaciones_dano_interno", "fecha_siniestro"],
+        "properties": {
+          "id": { "type": "string", "description": "ID del siniestro" },
+          "estatus": { "type": "string", "description": "Estatus del siniestro" },
+          "vehiculo_marca": { "type": "string", "description": "Marca del veh\u00edculo" },
+          "vehiculo_modelo": { "type": "string", "description": "Modelo del veh\u00edculo" },
+          "vehiculo_anio": { "type": "integer", "description": "A\u00f1o del veh\u00edculo" },
+          "vehiculo_vin": { "type": "string", "nullable": true, "description": "N\u00famero VIN" },
+          "narracion_texto": { "type": "string", "nullable": true, "description": "Narraci\u00f3n textual" },
+          "indicaciones_dano_interno": { "type": "boolean", "description": "Indica da\u00f1o interno" },
+          "fecha_siniestro": { "type": "string", "format": "date-time", "description": "Fecha del siniestro" }
+        }
+      },
+      "PeritajeAjustadorTecnicoDTO": {
+        "type": "object",
+        "properties": {
+          "observaciones_campo": { "type": "string", "nullable": true, "description": "Observaciones de campo del ajustador" },
+          "danos_ajustados": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "zona_vehiculo": { "type": "string", "description": "Zona del veh\u00edculo" },
+                "tipo": { "type": "string", "description": "Tipo de da\u00f1o" },
+                "severidad": { "type": "string", "description": "Severidad del da\u00f1o" }
+              }
+            },
+            "description": "Lista de da\u00f1os ajustados (vista t\u00e9cnica)"
+          }
+        }
+      },
+      "CotizacionTallerDTO": {
+        "type": "object",
+        "required": ["monto_mano_obra", "monto_refacciones", "monto_total", "desglose_pdf_url", "estatus"],
+        "properties": {
+          "monto_mano_obra": { "type": "number", "format": "double", "description": "Monto de mano de obra" },
+          "monto_refacciones": { "type": "number", "format": "double", "description": "Monto de refacciones" },
+          "monto_total": { "type": "number", "format": "double", "description": "Monto total del presupuesto" },
+          "desglose_pdf_url": { "type": "string", "format": "uri", "description": "URL del PDF con el desglose" },
+          "estatus": { "type": "string", "description": "Estatus de la cotizaci\u00f3n (Pendiente_Aprobacion, Aprobada, Rechazada)" },
+          "observaciones_tecnicas": { "type": "string", "nullable": true, "description": "Observaciones t\u00e9cnicas" }
+        }
+      },
+      "ExpedienteTecnicoResponseDTO": {
+        "type": "object",
+        "required": ["siniestro"],
+        "properties": {
+          "siniestro": { "$ref": "#/components/schemas/SiniestroTecnicoDTO", "description": "Datos del siniestro" },
+          "peritaje_ajustador": { "$ref": "#/components/schemas/PeritajeAjustadorTecnicoDTO", "nullable": true, "description": "Peritaje del ajustador" },
+          "cotizacion": { "$ref": "#/components/schemas/CotizacionTallerDTO", "nullable": true, "description": "Cotizaci\u00f3n del taller" }
+        }
+      },
+      "GuardarPresupuestoRequestDTO": {
+        "type": "object",
+        "required": ["monto_mano_obra", "monto_refacciones"],
+        "properties": {
+          "monto_mano_obra": { "type": "number", "format": "double", "description": "Monto de mano de obra" },
+          "monto_refacciones": { "type": "number", "format": "double", "description": "Monto de refacciones" },
+          "observaciones_tecnicas": { "type": "string", "nullable": true, "description": "Observaciones t\u00e9cnicas" }
+        }
+      },
+      "MessageResponseDTO": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string", "description": "Mensaje informativo" }
+        }
+      }
+    }
+  }
+}

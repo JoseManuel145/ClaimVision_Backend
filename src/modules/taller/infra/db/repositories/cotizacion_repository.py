@@ -28,11 +28,15 @@ class CotizacionRepository(CotizacionRepositoryPort):
         self.db = db
 
     def save(self, cotizacion: CotizacionTallerModel) -> CotizacionTallerModel:
-        stmt = select(CotizacionTallerTable).where(CotizacionTallerTable.siniestro_id == uuid.UUID(cotizacion.siniestro_id))
+        if not cotizacion.siniestro_id:
+            raise ValueError("siniestro_id es requerido")
+
+        siniestro_uuid = uuid.UUID(cotizacion.siniestro_id)
+        stmt = select(CotizacionTallerTable).where(CotizacionTallerTable.siniestro_id == siniestro_uuid)
         existing = self.db.execute(stmt).scalars().first()
 
         if existing:
-            existing.taller_id = uuid.UUID(cotizacion.taller_id)
+            existing.taller_id = uuid.UUID(cotizacion.taller_id) if cotizacion.taller_id else None
             existing.monto_mano_obra = cotizacion.monto_mano_obra
             existing.monto_refacciones = cotizacion.monto_refacciones
             existing.monto_total = cotizacion.monto_total
@@ -45,8 +49,8 @@ class CotizacionRepository(CotizacionRepositoryPort):
             return _to_domain(existing)
         else:
             new_cot = CotizacionTallerTable(
-                siniestro_id=uuid.UUID(cotizacion.siniestro_id),
-                taller_id=uuid.UUID(cotizacion.taller_id),
+                siniestro_id=uuid.UUID(cotizacion.siniestro_id) if cotizacion.siniestro_id else None,
+                taller_id=uuid.UUID(cotizacion.taller_id) if cotizacion.taller_id else None,
                 monto_mano_obra=cotizacion.monto_mano_obra,
                 monto_refacciones=cotizacion.monto_refacciones,
                 monto_total=cotizacion.monto_total,
@@ -60,6 +64,8 @@ class CotizacionRepository(CotizacionRepositoryPort):
             return _to_domain(new_cot)
 
     def get_by_siniestro(self, siniestro_id: str) -> Optional[CotizacionTallerModel]:
+        if not siniestro_id:
+            return None
         stmt = select(CotizacionTallerTable).where(CotizacionTallerTable.siniestro_id == uuid.UUID(siniestro_id), CotizacionTallerTable.deleted_at.is_(None))
         result = self.db.execute(stmt).scalars().first()
         if not result:
@@ -67,6 +73,8 @@ class CotizacionRepository(CotizacionRepositoryPort):
         return _to_domain(result)
 
     def update_estatus(self, id: str, estatus: str) -> CotizacionTallerModel:
+        if not id:
+            raise ValueError("id es requerido")
         stmt = update(CotizacionTallerTable).where(CotizacionTallerTable.id == uuid.UUID(id)).values(
             estatus=estatus
         ).returning(CotizacionTallerTable)

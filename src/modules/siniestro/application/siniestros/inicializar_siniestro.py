@@ -11,6 +11,9 @@ class InicializarSiniestro:
         self.repo = repo
 
     def execute(self, cliente_id: str, aseguradora_id: str, dto: SiniestroInicializarDTO) -> SiniestroModel:
+        if not aseguradora_id:
+            raise ValueError("El usuario no tiene una aseguradora asociada. Complete el onboarding primero.")
+
         siniestro = SiniestroModel(
             id=str(uuid.uuid4()),
             aseguradora_id=aseguradora_id,

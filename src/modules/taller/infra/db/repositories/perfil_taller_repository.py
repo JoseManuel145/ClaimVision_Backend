@@ -10,6 +10,8 @@ class PerfilTallerRepository(PerfilTallerRepositoryPort):
         self.db = db
 
     def get_taller_id_by_usuario(self, usuario_id: str) -> Optional[str]:
+        if not usuario_id:
+            return None
         stmt = select(PerfilTallerUsuariosTable.taller_id).where(
             PerfilTallerUsuariosTable.usuario_id == uuid.UUID(usuario_id),
             PerfilTallerUsuariosTable.deleted_at.is_(None)
@@ -20,6 +22,8 @@ class PerfilTallerRepository(PerfilTallerRepositoryPort):
         return str(result)
 
     def add_usuario_a_taller(self, usuario_id: str, taller_id: str, puesto: str = "Operador") -> None:
+        if not usuario_id or not taller_id:
+            raise ValueError("usuario_id y taller_id son requeridos")
         from datetime import datetime, timezone
         nuevo_perfil = PerfilTallerUsuariosTable(
             id=uuid.uuid4(),

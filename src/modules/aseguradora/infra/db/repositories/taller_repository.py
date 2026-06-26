@@ -48,6 +48,8 @@ class TallerRepository(TallerRepositoryPort):
         return _to_domain(r) if r else None
 
     def list_by_aseguradora(self, aseguradora_id: str, offset: int = 0, limit: int = 20) -> Tuple[List[TallerModel], int]:
+        if not aseguradora_id:
+            return [], 0
         aseg_uuid = uuid.UUID(aseguradora_id)
         base = select(TallerTable).join(ConvenioAseguradoraTallerTable, TallerTable.id == ConvenioAseguradoraTallerTable.taller_id)\
             .where(ConvenioAseguradoraTallerTable.aseguradora_id == aseg_uuid, TallerTable.deleted_at.is_(None), ConvenioAseguradoraTallerTable.deleted_at.is_(None))
@@ -82,6 +84,8 @@ class TallerRepository(TallerRepositoryPort):
         self.db.commit()
 
     def vincular_taller_aseguradora(self, taller_id: str, aseguradora_id: str) -> None:
+        if not taller_id or not aseguradora_id:
+            raise ValueError("taller_id y aseguradora_id son requeridos")
         model = ConvenioAseguradoraTallerTable(
             aseguradora_id=uuid.UUID(aseguradora_id),
             taller_id=uuid.UUID(taller_id),

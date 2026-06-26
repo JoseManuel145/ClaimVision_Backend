@@ -46,7 +46,7 @@ class AuthRepository(AuthPort):
         return _to_domain(model)
 
     def get_by_id(self, usuario_id: str) -> User | None:
-        stmt = select(UserTable).where(UserTable.usuario_id == usuario_id)
+        stmt = select(UserTable).where(UserTable.id == usuario_id)
         r = self.db.execute(stmt).scalar()
         if r is None:
             return None
@@ -62,7 +62,7 @@ class AuthRepository(AuthPort):
     def update_password(self, usuario_id: str, password_hash: str) -> None:
         stmt = (
             update(UserTable)
-            .where(UserTable.usuario_id == usuario_id)
+            .where(UserTable.id == usuario_id)
             .values(password_hash=password_hash)
         )
 
@@ -74,7 +74,7 @@ class AuthRepository(AuthPort):
         self.db.commit()
 
     def verify_user(self, usuario_id: str) -> None:
-        stmt = select(UserTable).where(UserTable.usuario_id == usuario_id)
+        stmt = select(UserTable).where(UserTable.id == usuario_id)
         r = self.db.execute(stmt).scalar()
         if r is None:
             raise NotFoundError("User not found")

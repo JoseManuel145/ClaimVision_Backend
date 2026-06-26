@@ -39,8 +39,8 @@ class SiniestroRepository(SiniestroRepositoryPort):
     def save(self, siniestro: SiniestroModel) -> SiniestroModel:
         model = SiniestroTable(
             id=uuid.UUID(siniestro.id) if siniestro.id else uuid.uuid4(),
-            aseguradora_id=uuid.UUID(siniestro.aseguradora_id),
-            cliente_id=uuid.UUID(siniestro.cliente_id),
+            aseguradora_id=uuid.UUID(siniestro.aseguradora_id) if siniestro.aseguradora_id else None,
+            cliente_id=uuid.UUID(siniestro.cliente_id) if siniestro.cliente_id else None,
             ajustador_id=uuid.UUID(siniestro.ajustador_id) if siniestro.ajustador_id else None,
             taller_id=uuid.UUID(siniestro.taller_id) if siniestro.taller_id else None,
             estatus=siniestro.estatus,
@@ -71,8 +71,11 @@ class SiniestroRepository(SiniestroRepositoryPort):
         return _to_domain(r) if r else None
 
     def list_by_aseguradora(self, aseguradora_id: str, offset: int = 0, limit: int = 20, estatus: str | None = None) -> Tuple[List[SiniestroModel], int]:
-        base_query = select(SiniestroTable).where(SiniestroTable.aseguradora_id == aseguradora_id, SiniestroTable.deleted_at.is_(None))
-        count_query = select(func.count()).select_from(SiniestroTable).where(SiniestroTable.aseguradora_id == aseguradora_id, SiniestroTable.deleted_at.is_(None))
+        aseg_uuid = uuid.UUID(aseguradora_id) if aseguradora_id else None
+        if not aseg_uuid:
+            return [], 0
+        base_query = select(SiniestroTable).where(SiniestroTable.aseguradora_id == aseg_uuid, SiniestroTable.deleted_at.is_(None))
+        count_query = select(func.count()).select_from(SiniestroTable).where(SiniestroTable.aseguradora_id == aseg_uuid, SiniestroTable.deleted_at.is_(None))
         
         if estatus is not None:
             base_query = base_query.where(SiniestroTable.estatus == estatus)
@@ -116,7 +119,9 @@ class SiniestroRepository(SiniestroRepositoryPort):
         return self.get_by_id(siniestro_id)
 
     def list_by_ajustador(self, ajustador_id: str, offset: int = 0, limit: int = 20, estatus: str | None = None) -> Tuple[List[SiniestroModel], int]:
-        ajustador_uuid = uuid.UUID(ajustador_id)
+        ajustador_uuid = uuid.UUID(ajustador_id) if ajustador_id else None
+        if not ajustador_uuid:
+            return [], 0
         base_query = select(SiniestroTable).where(SiniestroTable.ajustador_id == ajustador_uuid, SiniestroTable.deleted_at.is_(None))
         count_query = select(func.count()).select_from(SiniestroTable).where(SiniestroTable.ajustador_id == ajustador_uuid, SiniestroTable.deleted_at.is_(None))
         
@@ -131,7 +136,9 @@ class SiniestroRepository(SiniestroRepositoryPort):
         return [_to_domain(r) for r in results], total
 
     def list_by_taller(self, taller_id: str, offset: int = 0, limit: int = 20, estatus: str | None = None) -> Tuple[List[SiniestroModel], int]:
-        taller_uuid = uuid.UUID(taller_id)
+        taller_uuid = uuid.UUID(taller_id) if taller_id else None
+        if not taller_uuid:
+            return [], 0
         base_query = select(SiniestroTable).where(SiniestroTable.taller_id == taller_uuid, SiniestroTable.deleted_at.is_(None))
         count_query = select(func.count()).select_from(SiniestroTable).where(SiniestroTable.taller_id == taller_uuid, SiniestroTable.deleted_at.is_(None))
         

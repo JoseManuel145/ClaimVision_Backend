@@ -30,7 +30,7 @@ class ClienteRepository(ClienteRepositoryPort):
     def save(self, cliente: ClienteModel) -> ClienteModel:
         model = PerfilClienteTable(
             id=uuid.UUID(cliente.id) if cliente.id else uuid.uuid4(),
-            usuario_id=uuid.UUID(cliente.usuario_id),
+            usuario_id=uuid.UUID(cliente.usuario_id) if cliente.usuario_id else None,
             numero_poliza=cliente.numero_poliza,
             vigencia_poliza=cliente.vigencia_poliza,
             curp_rfc_cifrado=cliente.curp_rfc_cifrado,

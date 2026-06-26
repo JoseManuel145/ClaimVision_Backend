@@ -26,7 +26,7 @@ class ImagenSiniestroRepository(ImagenSiniestroRepositoryPort):
     def save(self, imagen: ImagenSiniestroModel) -> ImagenSiniestroModel:
         model = ImagenSiniestroTable(
             id=uuid.UUID(imagen.id) if imagen.id else uuid.uuid4(),
-            siniestro_id=uuid.UUID(imagen.siniestro_id),
+            siniestro_id=uuid.UUID(imagen.siniestro_id) if imagen.siniestro_id else None,
             imagen_url=imagen.imagen_url,
             es_calidad_valida=imagen.es_calidad_valida,
             metadatos_json=imagen.metadatos_json,
