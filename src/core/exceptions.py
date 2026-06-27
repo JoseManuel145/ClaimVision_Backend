@@ -1,7 +1,12 @@
 from typing import Any, Optional
 
-from fastapi import HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse, Response
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from src.core.logging import get_logger
+
+logger = get_logger("http")
 
 
 # Errores comunes como subclases de HTTPException para lanzar directamente
@@ -133,4 +138,28 @@ __all__ = [
     "created_response",
     "accepted_response",
     "no_content_response",
+    "register_exception_handlers",
 ]
+
+def register_exception_handlers(app: FastAPI):
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        logger.error(f"Error no manejado: {str(exc)}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Ocurrió un error interno en el servidor."}
+        )
+
+    @app.exception_handler(StarletteHTTPException)
+    async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"error": exc.detail}
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        return JSONResponse(
+            status_code=422,
+            content={"error": "Error de validación en la solicitud.", "details": exc.errors()}
+        )

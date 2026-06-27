@@ -1,11 +1,13 @@
 import uvicorn
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from src.core.config import settings
-from src.core.routers import api_router
+
 from src.core.logging import setup_logging
+from src.core.middlewares import register_middlewares
+from src.core.exceptions import register_exception_handlers
+from src.core.routers import api_router
 
 setup_logging()
+
 app = FastAPI(
     title="ClaimVision-API",
     description="API del proyecto ClaimVision, en constante actualizacion y mejoria",
@@ -14,14 +16,13 @@ app = FastAPI(
     version="0.5.0"
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Configurar middlewares transversales (CORS, Logging)
+register_middlewares(app)
 
+# Configurar manejadores de excepciones (Formateo de errores)
+register_exception_handlers(app)
+
+# Registrar todas las rutas de los módulos
 app.include_router(api_router, prefix="/api")
 
 @app.get("/", tags=["Root"])
