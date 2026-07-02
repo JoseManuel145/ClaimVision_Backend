@@ -112,3 +112,19 @@ class PeritajeAjustadorRepository(PeritajeAjustadorRepositoryPort):
         if not result:
             return None
         return _peritaje_to_domain(result)
+
+    def obtener_por_id(self, peritaje_id: str) -> Optional[PeritajeAjustadorModel]:
+        if not peritaje_id:
+            return None
+        stmt = select(PeritajeAjustadorTable).where(
+            PeritajeAjustadorTable.id == uuid.UUID(peritaje_id),
+            PeritajeAjustadorTable.deleted_at.is_(None)
+        )
+        result = self.db.execute(stmt).scalars().first()
+        if not result:
+            return None
+        return _peritaje_to_domain(result)
+
+    def get_by_siniestro(self, siniestro_id: str) -> Optional[PeritajeAjustadorModel]:
+        # Alias usado por el módulo taller (get_expediente / presupuesto).
+        return self.obtener_peritaje_por_siniestro(siniestro_id)

@@ -72,6 +72,18 @@ class CotizacionRepository(CotizacionRepositoryPort):
             return None
         return _to_domain(result)
 
+    def get_by_id(self, id: str) -> Optional[CotizacionTallerModel]:
+        if not id:
+            return None
+        stmt = select(CotizacionTallerTable).where(
+            CotizacionTallerTable.id == uuid.UUID(id),
+            CotizacionTallerTable.deleted_at.is_(None)
+        )
+        result = self.db.execute(stmt).scalars().first()
+        if not result:
+            return None
+        return _to_domain(result)
+
     def update_estatus(self, id: str, estatus: str) -> CotizacionTallerModel:
         if not id:
             raise ValueError("id es requerido")

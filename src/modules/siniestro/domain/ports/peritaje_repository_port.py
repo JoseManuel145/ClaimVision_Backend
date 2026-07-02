@@ -9,3 +9,11 @@ class PeritajeAjustadorRepositoryPort:
     def obtener_peritaje_por_siniestro(self, siniestro_id: str) -> Optional[PeritajeAjustadorModel]:
         """Obtiene el peritaje de un ajustador dado el ID del siniestro."""
         pass
+
+    def obtener_por_id(self, peritaje_id: str) -> Optional[PeritajeAjustadorModel]:
+        """Obtiene un peritaje por su ID."""
+        pass
+
+    def get_by_siniestro(self, siniestro_id: str) -> Optional[PeritajeAjustadorModel]:
+        """Alias de `obtener_peritaje_por_siniestro` (usado por el módulo taller)."""
+        pass

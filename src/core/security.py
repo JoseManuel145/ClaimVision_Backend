@@ -66,3 +66,28 @@ def get_current_user(
             detail="Credenciales inválidas o expiradas",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+def require_roles(*roles: str):
+    """
+    Factory de dependencia para RBAC. Devuelve una dependencia que valida que el
+    usuario autenticado tenga uno de los `roles` permitidos (valores del enum
+    `rol_usuario`). `Administrador_Global` siempre pasa (acceso global multi-tenant).
+
+    Uso:
+        get_cliente = require_roles("Cliente")
+        @router.get(..., dependencies=[Depends(get_cliente)])
+        # o para usar el usuario:
+        def endpoint(user: AuthenticatedUser = Depends(get_cliente)): ...
+    """
+    allowed = set(roles)
+
+    def _dependency(user: AuthenticatedUser = Depends(get_current_user)) -> AuthenticatedUser:
+        if user.rol == "Administrador_Global" or user.rol in allowed:
+            return user
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Acceso denegado. Rol requerido: {', '.join(sorted(allowed))}.",
+        )
+
+    return _dependency

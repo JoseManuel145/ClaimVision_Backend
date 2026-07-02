@@ -5,8 +5,11 @@ from src.modules.admin.presentation.routes import router as admin_router
 from src.modules.aseguradora.presentation.router import router as aseguradora_router
 from src.modules.siniestro.presentation.router import router as siniestro_router
 from src.modules.taller.presentation.router import router as taller_router
+from src.core.v1_router import v1_router
 
 api_router = APIRouter()
+# Superficie canónica versionada (sección 0 del spec): /api/v1/<rol>/...
+api_router.include_router(v1_router, prefix="/v1")
 api_router.include_router(auth_router, prefix="/auth", tags=["Auth"])
 api_router.include_router(cliente_router, prefix="/cliente", tags=["Cliente"])
 api_router.include_router(admin_router, prefix="/admin", tags=["Admin"])

@@ -11,6 +11,9 @@ class SiniestroInicializarDTO(BaseModel):
     latitud_siniestro: float
     longitud_siniestro: float
     narracion_texto: Optional[str] = None
+    narracion_audio_url: Optional[str] = None
+    indicaciones_dano_interno: bool = False
+    fecha_siniestro: Optional[datetime] = None
 
 class SiniestroUpdateDTO(BaseModel):
     vehiculo_marca: Optional[str] = None
