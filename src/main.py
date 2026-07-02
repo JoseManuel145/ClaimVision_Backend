@@ -13,7 +13,7 @@ app = FastAPI(
     description="API del proyecto ClaimVision, en constante actualizacion y mejoria",
     docs_url="/docs",
     redoc_url="/redoc",
-    version="0.5.0"
+    version="1.5.0"
 )
 
 # Configurar middlewares transversales (CORS, Logging)

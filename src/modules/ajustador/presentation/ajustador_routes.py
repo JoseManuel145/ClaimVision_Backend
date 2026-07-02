@@ -23,7 +23,7 @@ from src.modules.ajustador.presentation.ajustador_schemas import (
 )
 from src.modules.ajustador.presentation import ajustador_dependencies as deps
 
-router = APIRouter(prefix="/ajustador", tags=["v1 · Ajustador"])
+router = APIRouter()
 
 get_ajustador = require_roles("Ajustador")
 EVENTO = "ajustador"

@@ -15,7 +15,7 @@ from src.modules.taller.presentation.v1.taller_v1_schemas import (
 )
 from src.modules.taller.presentation.v1 import taller_v1_dependencies as deps
 
-router = APIRouter(prefix="/taller", tags=["v1 · Taller"])
+router = APIRouter()
 
 get_taller = require_roles("Operador_Taller")
 EVENTO = "taller"

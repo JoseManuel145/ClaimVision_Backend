@@ -1,6 +1,8 @@
 from fastapi import Depends
 from src.core.database import get_session
+from sqlalchemy.orm import Session
 from src.modules.aseguradora.infra.db.repositories.cliente_repository import ClienteRepository
+from src.modules.aseguradora.infra.adapters.cliente_adapter import ClienteAdapter
 from src.modules.aseguradora.application.clientes.list_clientes import ListClientes
 from src.modules.aseguradora.application.clientes.get_cliente import GetCliente
 from src.modules.aseguradora.application.clientes.create_cliente import CreateClienteByAseguradora
@@ -8,17 +10,23 @@ from src.modules.auth.infra.db.repositories.auth_repository import AuthRepositor
 from src.modules.auth.infra.security.password_service import PasswordService
 from src.modules.cliente.infra.db.repositories.cliente_repository import ClienteRepository as ClienteModuleRepository
 
-def cliente_repo(session=Depends(get_session)) -> ClienteRepository:
-    return ClienteRepository(session)
 
-def list_clientes_service(repo: ClienteRepository = Depends(cliente_repo)) -> ListClientes:
-    return ListClientes(repo)
+def _adapter(session: Session = Depends(get_session)) -> ClienteAdapter:
+    return ClienteAdapter(
+        auth_repo=AuthRepository(session),
+        cliente_repo=ClienteRepository(session),
+        cliente_module_repo=ClienteModuleRepository(session),
+        password_service=PasswordService(),
+    )
 
-def get_cliente_service(repo: ClienteRepository = Depends(cliente_repo)) -> GetCliente:
-    return GetCliente(repo)
 
-def create_cliente_service(session=Depends(get_session)) -> CreateClienteByAseguradora:
-    auth_repo = AuthRepository(session)
-    cliente_module_repo = ClienteModuleRepository(session)
-    password_service = PasswordService()
-    return CreateClienteByAseguradora(auth_repo, cliente_module_repo, password_service)
+def create_cliente_service(module: ClienteAdapter = Depends(_adapter)) -> CreateClienteByAseguradora:
+    return CreateClienteByAseguradora(module)
+
+
+def list_clientes_service(module: ClienteAdapter = Depends(_adapter)) -> ListClientes:
+    return ListClientes(module)
+
+
+def get_cliente_service(module: ClienteAdapter = Depends(_adapter)) -> GetCliente:
+    return GetCliente(module)

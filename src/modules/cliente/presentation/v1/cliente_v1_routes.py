@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 
 from src.core.security import require_roles
 from src.modules.auth.domain.models import AuthenticatedUser
@@ -26,11 +26,54 @@ from src.modules.cliente.presentation.v1.cliente_v1_dependencies import (
     get_perfil_cliente_service,
     confirm_consent_service,
 )
+from src.modules.cliente.presentation.schemas import ConfirmDataRequestDTO
+from src.modules.cliente.presentation.dependencies import (
+    process_ocr_service,
+    confirm_data_service,
+)
 
-router = APIRouter(prefix="/cliente", tags=["v1 · Cliente"])
+router = APIRouter()
 
 get_cliente = require_roles("Cliente")
 EVENTO = "cliente.siniestros"
+
+
+# ── Onboarding ──────────────────────────────────────────────────────────
+
+@router.post("/onboarding/ocr")
+async def ocr_extraction(
+    cedula: UploadFile = File(...),
+    poliza: UploadFile = File(...),
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc=Depends(process_ocr_service),
+):
+    """§1 · Extraer datos de cédula y póliza mediante OCR."""
+    try:
+        cedula_bytes = await cedula.read()
+        poliza_bytes = await poliza.read()
+        return await uc.execute(cedula_bytes, poliza_bytes)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post("/onboarding/confirmar-datos")
+async def confirmar_datos(
+    data: ConfirmDataRequestDTO,
+    request: Request,
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc=Depends(confirm_data_service),
+    audit: AuditLogger = Depends(get_audit_logger),
+):
+    """§1 · Confirmar y guardar datos extraídos del onboarding."""
+    try:
+        uc.execute(usuario_id=user.usuario_id, data=data)
+        audit.record(
+            evento_modulo="cliente.onboarding", accion="confirmar_datos",
+            usuario=user, request=request,
+        )
+        return {"message": "Datos de onboarding confirmados y guardados de forma segura."}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post("/siniestros", response_model=SiniestroResponseDTO, status_code=status.HTTP_201_CREATED)

@@ -6,7 +6,6 @@ se cablean con repositorios en memoria vía `app.dependency_overrides`.
 import base64
 import os
 
-# --- Variables de entorno mínimas para que `Settings()` cargue (no hay .env en CI) ---
 os.environ.setdefault("DATABASE_URL", "sqlite://")
 os.environ.setdefault("SUPABASE_URL", "http://localhost")
 os.environ.setdefault("SUPABASE_KEY", "dummy")
@@ -24,36 +23,33 @@ os.environ.setdefault("LOG_LEVEL", "WARNING")
 os.environ.setdefault("ORIGINS", '["*"]')
 os.environ.setdefault("FIREBASE_CREDENTIALS_PATH", "none")
 
-import pytest  # noqa: E402
-from starlette.testclient import TestClient  # noqa: E402
+import pytest
+from starlette.testclient import TestClient
 
-from src.main import app  # noqa: E402
-from src.core.security import get_current_user  # noqa: E402
-from src.modules.auth.domain.models import AuthenticatedUser  # noqa: E402
+from src.main import app
+from src.core.security import get_current_user
+from src.modules.auth.domain.models import AuthenticatedUser
 
 
 class NoopAudit:
-    """AuditLogger de pruebas: no escribe nada."""
-
     def record(self, *args, **kwargs) -> None:
         return None
 
 
-def make_cliente_user() -> AuthenticatedUser:
+def make_user(usuario_id="user-1", email="test@demo.mx", rol="Cliente", aseguradora_id="aseg-1") -> AuthenticatedUser:
     return AuthenticatedUser(
-        usuario_id="user-1",
-        email="cliente@demo.mx",
-        rol="Cliente",
-        aseguradora_id="aseg-1",
+        usuario_id=usuario_id,
+        email=email,
+        rol=rol,
+        aseguradora_id=aseguradora_id,
     )
 
 
 @pytest.fixture
 def client():
-    """TestClient con autenticación y auditoría neutralizadas por defecto."""
     from src.shared.audit.audit_logger import get_audit_logger
 
-    app.dependency_overrides[get_current_user] = make_cliente_user
+    app.dependency_overrides[get_current_user] = make_user
     app.dependency_overrides[get_audit_logger] = lambda: NoopAudit()
     with TestClient(app) as c:
         yield c

@@ -7,6 +7,7 @@ from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
 
 from src.modules.siniestro.presentation.siniestros.siniestro_dto import (
     SiniestroResponseDTO,
+    SiniestroUpdateDTO,
     ImagenSiniestroResponseDTO,
 )
 from src.modules.siniestro.presentation.peritaje.peritaje_dto import PeritajeResponseDTO
@@ -22,11 +23,12 @@ from src.modules.aseguradora.presentation.v1.aseguradora_v1_schemas import (
 from src.modules.aseguradora.presentation.v1 import aseguradora_v1_dependencies as deps
 from src.modules.siniestro.presentation.siniestros.siniestro_dependencies import (
     asignar_ajustador_service,
+    editar_siniestro_service,
     enviar_taller_service,
 )
 from src.modules.aseguradora.presentation.v1.aseguradora_v1_dependencies import autorizar_entrega_service
 
-router = APIRouter(prefix="/aseguradora", tags=["v1 · Aseguradora"])
+router = APIRouter()
 
 get_operador = require_roles("Operador_Aseguradora")
 EVENTO = "aseguradora"
@@ -69,6 +71,23 @@ def detalle_siniestro(
         cotizacion=CotizacionV1DTO.model_validate(cotizacion) if cotizacion else None,
         peritaje_ia=None,
     )
+
+
+# ── Editar siniestro ────────────────────────────────────────────────────
+@router.put("/siniestros/{id}", response_model=SiniestroResponseDTO)
+def editar_siniestro(
+    id: str,
+    dto: SiniestroUpdateDTO,
+    request: Request,
+    user: AuthenticatedUser = Depends(get_operador),
+    uc=Depends(editar_siniestro_service),
+    audit: AuditLogger = Depends(get_audit_logger),
+):
+    """§3 · Editar datos de un siniestro existente."""
+    siniestro = uc.execute(siniestro_id=id, usuario_id=user.usuario_id, rol=user.rol, dto=dto)
+    audit.record(evento_modulo=EVENTO, accion="editar_siniestro", usuario=user, request=request,
+                 metadata={"siniestro_id": id})
+    return siniestro
 
 
 # ── Acciones de flujo (realineadas a /api/v1) ──────────────────────────

@@ -1,13 +1,9 @@
-from src.modules.aseguradora.domain.ports.taller_repository_port import TallerRepositoryPort
-from src.core.exceptions import NotFoundError
+from src.modules.taller.domain.ports.taller_module_port import TallerModulePort
+
 
 class DeleteTaller:
-    def __init__(self, repo: TallerRepositoryPort):
-        self.repo = repo
+    def __init__(self, taller_module: TallerModulePort):
+        self.taller_module = taller_module
 
     def execute(self, id: str, aseguradora_id: str) -> None:
-        taller = self.repo.get_by_id(id)
-        if not taller:
-            raise NotFoundError("Taller no encontrado")
-        
-        self.repo.desvincular_taller_aseguradora(id, aseguradora_id)
+        return self.taller_module.eliminar(id, aseguradora_id)

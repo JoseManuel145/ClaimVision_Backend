@@ -1,0 +1,94 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import EmailStr
+
+from src.core.security import get_current_user
+from src.modules.auth.domain.models import AuthenticatedUser
+from src.modules.auth.presentation import dependencies as deps
+from src.modules.auth.presentation.schemas import (
+    ConsentRequestDTO,
+    LoginRequestDTO,
+    LoginResponseDTO,
+    UserRegister,
+)
+from src.modules.auth.application.login_user import LoginUser
+from src.modules.auth.application.register_user import RegisterUser
+from src.modules.auth.application.generate_code import GenerateRecoveryCode
+from src.modules.auth.application.send_recovery_code import SendRecoveryCode
+from src.modules.auth.application.verify_code import VerifyRecoveryCode
+from src.modules.auth.application.verify_user import VerifyUser
+from src.modules.auth.application.reset_password import ResetPassword
+from src.modules.auth.application.confirm_consent import ConfirmConsent
+
+router = APIRouter()
+
+
+@router.post("/register", response_model=LoginResponseDTO, status_code=status.HTTP_201_CREATED)
+async def register(
+    data: UserRegister,
+    usecase: RegisterUser = Depends(deps.register_user_service),
+):
+    return await usecase.execute(data)
+
+
+@router.post("/login", response_model=LoginResponseDTO, status_code=status.HTTP_200_OK)
+async def login(
+    data: LoginRequestDTO,
+    usecase: LoginUser = Depends(deps.login_user_service),
+):
+    try:
+        return await usecase.execute(data.email, data.password)
+    except PermissionError as pe:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ve))
+
+
+@router.get("/me", status_code=status.HTTP_200_OK)
+async def me(
+    user: AuthenticatedUser = Depends(get_current_user),
+):
+    return user
+
+
+@router.post("/recovery/request", status_code=status.HTTP_200_OK)
+async def request_recovery(
+    email: EmailStr,
+    generate_uc: GenerateRecoveryCode = Depends(deps.generate_recovery_code_service),
+    send_uc: SendRecoveryCode = Depends(deps.send_recovery_code_service),
+):
+    code = await generate_uc.execute(email)
+    return await send_uc.execute(email, code)
+
+
+@router.post("/recovery/verify", status_code=status.HTTP_200_OK)
+async def verify_code(
+    usuario_id: str,
+    code: str,
+    usecase_code: VerifyRecoveryCode = Depends(deps.verify_recovery_code_service),
+    usecase_auth: VerifyUser = Depends(deps.verify_user_service),
+):
+    if await usecase_code.execute(usuario_id, code):
+        return await usecase_auth.execute(usuario_id)
+    return None
+
+
+@router.post("/recovery/reset", status_code=status.HTTP_200_OK)
+async def reset_password(
+    usuario_id: str,
+    new_password: str,
+    usecase: ResetPassword = Depends(deps.reset_password_service),
+):
+    return await usecase.execute(usuario_id, new_password)
+
+
+@router.post("/consentimiento", status_code=status.HTTP_200_OK)
+async def submit_consentimiento(
+    data: ConsentRequestDTO,
+    user: AuthenticatedUser = Depends(get_current_user),
+    usecase: ConfirmConsent = Depends(deps.confirm_consent_service),
+):
+    try:
+        usecase.execute(usuario_id=user.usuario_id, data=data)
+        return {"message": "Consentimiento registrado exitosamente"}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
