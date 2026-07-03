@@ -9,7 +9,7 @@ from src.modules.siniestro.application.siniestros.registrar_imagen import Regist
 from src.modules.cliente.application.get_perfil_cliente import GetPerfilCliente
 from src.modules.cliente.application.confirm_data import ConfirmData
 from src.modules.auth.application.confirm_consent import ConfirmConsent
-from src.modules.cliente.presentation.v1 import cliente_v1_dependencies as deps
+from src.modules.cliente.presentation import cliente_v1_dependencies as deps
 from src.modules.cliente.presentation.dependencies import confirm_data_service, process_ocr_service
 from src.core.security import get_current_user
 from src.modules.auth.domain.models import AuthenticatedUser

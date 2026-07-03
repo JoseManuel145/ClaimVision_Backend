@@ -12,13 +12,13 @@ from src.modules.siniestro.presentation.siniestros.siniestro_dto import (
     ImagenSiniestroResponseDTO,
 )
 from src.modules.auth.presentation.schemas import ConsentRequestDTO
-from src.modules.cliente.presentation.v1.cliente_v1_schemas import (
+from src.modules.cliente.presentation.cliente_v1_schemas import (
     RegistrarImagenRequest,
     ConsentimientosRequest,
     PerfilClienteResponse,
     SiniestroDetalleClienteDTO,
 )
-from src.modules.cliente.presentation.v1.cliente_v1_dependencies import (
+from src.modules.cliente.presentation.cliente_v1_dependencies import (
     reportar_siniestro_service,
     list_siniestros_cliente_service,
     get_siniestro_cliente_service,

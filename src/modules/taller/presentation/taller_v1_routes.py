@@ -7,13 +7,13 @@ from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
 
 from src.modules.siniestro.presentation.siniestros.siniestro_dto import SiniestroResponseDTO
 from src.modules.siniestro.presentation.peritaje.peritaje_dto import PeritajeResponseDTO
-from src.modules.taller.presentation.v1.taller_v1_schemas import (
+from src.modules.taller.presentation.taller_v1_schemas import (
     CotizacionV1DTO,
     TallerExpedienteDTO,
     CrearCotizacionRequest,
     EditarCotizacionRequest,
 )
-from src.modules.taller.presentation.v1 import taller_v1_dependencies as deps
+from src.modules.taller.presentation import taller_v1_dependencies as deps
 
 router = APIRouter()
 

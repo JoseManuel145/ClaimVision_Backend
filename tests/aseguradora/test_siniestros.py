@@ -15,7 +15,7 @@ from src.modules.aseguradora.application.siniestros.bandeja import (
 from src.modules.aseguradora.application.cotizaciones.aprobar_rechazar import (
     AprobarCotizacion, RechazarCotizacion,
 )
-from src.modules.aseguradora.presentation.v1 import aseguradora_v1_dependencies as adeps
+from src.modules.aseguradora.presentation.siniestros import siniestro_dependencies as adeps
 from src.modules.siniestro.presentation.siniestros import siniestro_dependencies as sdeps
 
 from tests.fakes.siniestro import (

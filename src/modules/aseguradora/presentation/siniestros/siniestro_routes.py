@@ -11,22 +11,19 @@ from src.modules.siniestro.presentation.siniestros.siniestro_dto import (
     ImagenSiniestroResponseDTO,
 )
 from src.modules.siniestro.presentation.peritaje.peritaje_dto import PeritajeResponseDTO
-from src.modules.taller.presentation.v1.taller_v1_schemas import CotizacionV1DTO
+from src.modules.taller.presentation.taller_v1_schemas import CotizacionV1DTO
 from src.modules.aseguradora.presentation.siniestros.siniestro_dto import (
     AsignarAjustadorDTO,
     EnviarTallerDTO,
-)
-from src.modules.aseguradora.presentation.v1.aseguradora_v1_schemas import (
     RechazarCotizacionRequest,
     SiniestroDetalleAseguradoraDTO,
 )
-from src.modules.aseguradora.presentation.v1 import aseguradora_v1_dependencies as deps
+from src.modules.aseguradora.presentation.siniestros import siniestro_dependencies as deps
 from src.modules.siniestro.presentation.siniestros.siniestro_dependencies import (
     asignar_ajustador_service,
     editar_siniestro_service,
     enviar_taller_service,
 )
-from src.modules.aseguradora.presentation.v1.aseguradora_v1_dependencies import autorizar_entrega_service
 
 router = APIRouter()
 
@@ -34,7 +31,6 @@ get_operador = require_roles("Operador_Aseguradora")
 EVENTO = "aseguradora"
 
 
-# ── Bandeja de siniestros ──────────────────────────────────────────────
 @router.get("/siniestros", response_model=Page[SiniestroResponseDTO])
 def listar_siniestros(
     page: int = Query(1, ge=1),
@@ -46,7 +42,6 @@ def listar_siniestros(
     user: AuthenticatedUser = Depends(get_operador),
     uc=Depends(deps.list_siniestros_service),
 ):
-    """§3 · Bandeja de siniestros del tenant (filtros + búsqueda + paginación)."""
     items, total = uc.execute(
         user.aseguradora_id, offset_from_page(page, page_size), page_size,
         estatus, ajustador_id, taller_id, q,
@@ -61,7 +56,6 @@ def detalle_siniestro(
     user: AuthenticatedUser = Depends(get_operador),
     uc=Depends(deps.get_siniestro_service),
 ):
-    """§3 · Detalle completo (siniestro + imágenes + peritaje + cotización)."""
     siniestro, imagenes, peritaje, cotizacion = uc.execute(id, user.aseguradora_id)
     base = SiniestroResponseDTO.model_validate(siniestro)
     return SiniestroDetalleAseguradoraDTO(
@@ -73,7 +67,6 @@ def detalle_siniestro(
     )
 
 
-# ── Editar siniestro ────────────────────────────────────────────────────
 @router.put("/siniestros/{id}", response_model=SiniestroResponseDTO)
 def editar_siniestro(
     id: str,
@@ -83,14 +76,12 @@ def editar_siniestro(
     uc=Depends(editar_siniestro_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    """§3 · Editar datos de un siniestro existente."""
     siniestro = uc.execute(siniestro_id=id, usuario_id=user.usuario_id, rol=user.rol, dto=dto)
     audit.record(evento_modulo=EVENTO, accion="editar_siniestro", usuario=user, request=request,
                  metadata={"siniestro_id": id})
     return siniestro
 
 
-# ── Acciones de flujo (realineadas a /api/v1) ──────────────────────────
 @router.post("/siniestros/{id}/asignar-ajustador", response_model=SiniestroResponseDTO)
 def asignar_ajustador(
     id: str,
@@ -100,7 +91,6 @@ def asignar_ajustador(
     uc=Depends(asignar_ajustador_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    """§3 · → estatus = Asignado_A_Ajustador."""
     siniestro = uc.execute(id, dto.ajustador_id, user.aseguradora_id)
     audit.record(evento_modulo=EVENTO, accion="asignar_ajustador", usuario=user, request=request,
                  metadata={"siniestro_id": id, "ajustador_id": dto.ajustador_id})
@@ -116,7 +106,6 @@ def enviar_taller(
     uc=Depends(enviar_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    """§3 · → estatus = Asignado_A_Taller."""
     siniestro = uc.execute(id, dto.taller_id, user.aseguradora_id)
     audit.record(evento_modulo=EVENTO, accion="enviar_taller", usuario=user, request=request,
                  metadata={"siniestro_id": id, "taller_id": dto.taller_id})
@@ -128,17 +117,15 @@ def autorizar_entrega(
     id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(autorizar_entrega_service),
+    uc=Depends(deps.autorizar_entrega_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    """§3 · → estatus = Entregado."""
     siniestro = uc.execute(id, user.aseguradora_id)
     audit.record(evento_modulo=EVENTO, accion="autorizar_entrega", usuario=user, request=request,
                  metadata={"siniestro_id": id})
     return siniestro
 
 
-# ── Decisión de cotizaciones ───────────────────────────────────────────
 @router.post("/cotizaciones/{id}/aprobar", response_model=CotizacionV1DTO)
 def aprobar_cotizacion(
     id: str,
@@ -147,7 +134,6 @@ def aprobar_cotizacion(
     uc=Depends(deps.aprobar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    """§3 · estatus_cotizacion = Aprobada."""
     cot = uc.execute(id, user.aseguradora_id)
     audit.record(evento_modulo=EVENTO, accion="aprobar_cotizacion", usuario=user, request=request,
                  metadata={"cotizacion_id": id})
@@ -163,7 +149,6 @@ def rechazar_cotizacion(
     uc=Depends(deps.rechazar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    """§3 · estatus_cotizacion = Rechazada (motivo se guarda en auditoría)."""
     cot = uc.execute(id, user.aseguradora_id, dto.motivo)
     audit.record(evento_modulo=EVENTO, accion="rechazar_cotizacion", usuario=user, request=request,
                  metadata={"cotizacion_id": id, "motivo": dto.motivo})

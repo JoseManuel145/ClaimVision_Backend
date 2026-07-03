@@ -1,6 +1,25 @@
+"""Router canónico `/api/v1` con prefijos por rol."""
 from fastapi import APIRouter
-from src.core.v1_router import v1_router
+
+from src.modules.cliente.presentation.cliente_v1_routes import router as cliente_v1_router
+from src.modules.ajustador.presentation.ajustador_v1_routes import router as ajustador_v1_router
+from src.modules.taller.presentation.taller_v1_routes import router as taller_v1_router
+from src.modules.aseguradora.presentation.siniestros.siniestro_routes import router as aseguradora_router
+from src.modules.aseguradora.presentation.ajustadores.ajustador_routes import router as ajustador_crud_router
+from src.modules.aseguradora.presentation.clientes.cliente_routes import router as cliente_crud_router
+from src.modules.aseguradora.presentation.talleres.taller_routes import router as taller_crud_router
+from src.modules.aseguradora.presentation.usuarios.usuario_routes import router as usuario_crud_router
+from src.modules.admin.presentation.admin_v1_routes import router as admin_v1_router
+from src.modules.auth.presentation.auth_v1_routes import router as auth_v1_router
 
 api_router = APIRouter()
-# Superficie canónica versionada (sección 0 del spec): /api/v1/<rol>/...
-api_router.include_router(v1_router, prefix="/v1")
+api_router.include_router(cliente_v1_router, prefix="/v1/cliente", tags=["v1 · Cliente"])
+api_router.include_router(ajustador_v1_router, prefix="/v1/ajustador", tags=["v1 · Ajustador"])
+api_router.include_router(taller_v1_router, prefix="/v1/taller", tags=["v1 · Taller"])
+api_router.include_router(aseguradora_router, prefix="/v1/aseguradora", tags=["v1 · Aseguradora"])
+api_router.include_router(ajustador_crud_router, prefix="/v1/aseguradora/crud/ajustadores", tags=["v1 · Aseguradora CRUD"])
+api_router.include_router(cliente_crud_router, prefix="/v1/aseguradora/crud/clientes", tags=["v1 · Aseguradora CRUD"])
+api_router.include_router(taller_crud_router, prefix="/v1/aseguradora/crud/talleres", tags=["v1 · Aseguradora CRUD"])
+api_router.include_router(usuario_crud_router, prefix="/v1/aseguradora/crud/usuarios", tags=["v1 · Aseguradora CRUD"])
+api_router.include_router(admin_v1_router, prefix="/v1/admin", tags=["v1 · Admin"])
+api_router.include_router(auth_v1_router, prefix="/v1/auth", tags=["v1 · Auth"])
