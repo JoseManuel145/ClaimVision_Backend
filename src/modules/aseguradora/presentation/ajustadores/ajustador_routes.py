@@ -10,6 +10,11 @@ from src.modules.aseguradora.presentation.ajustadores.ajustador_dto import (
     AjustadorUpdateDTO,
     AjustadorResponseDTO,
 )
+from src.modules.aseguradora.application.ajustadores.create_ajustador import CreateAjustador
+from src.modules.aseguradora.application.ajustadores.list_ajustadores import ListAjustadores
+from src.modules.aseguradora.application.ajustadores.get_ajustador import GetAjustador
+from src.modules.aseguradora.application.ajustadores.update_ajustador import UpdateAjustador
+from src.modules.aseguradora.application.ajustadores.delete_ajustador import DeleteAjustador
 from src.modules.aseguradora.presentation.ajustadores import ajustador_dependencies
 
 router = APIRouter()
@@ -23,7 +28,7 @@ def crear_ajustador(
     dto: AjustadorCreateDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(ajustador_dependencies.create_ajustador_service),
+    uc: CreateAjustador = Depends(ajustador_dependencies.create_ajustador_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     resultado = uc.execute(user.aseguradora_id, dto)
@@ -41,7 +46,7 @@ def listar_ajustadores(
     page_size: int = Query(20, ge=1, le=100),
     activo_para_servicio: bool | None = Query(None),
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(ajustador_dependencies.list_ajustadores_service),
+    uc: ListAjustadores = Depends(ajustador_dependencies.list_ajustadores_service),
 ):
     items, total = uc.execute(user.aseguradora_id, offset_from_page(page, page_size), page_size, activo_para_servicio)
     data = [AjustadorResponseDTO.model_validate(i) for i in items]
@@ -52,7 +57,7 @@ def listar_ajustadores(
 def obtener_ajustador(
     id: str,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(ajustador_dependencies.get_ajustador_service),
+    uc: GetAjustador = Depends(ajustador_dependencies.get_ajustador_service),
 ):
     return uc.execute(id)
 
@@ -63,7 +68,7 @@ def actualizar_ajustador(
     dto: AjustadorUpdateDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(ajustador_dependencies.update_ajustador_service),
+    uc: UpdateAjustador = Depends(ajustador_dependencies.update_ajustador_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     resultado = uc.execute(id, dto.cedula_profesional, dto.activo_para_servicio)
@@ -80,7 +85,7 @@ def eliminar_ajustador(
     id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(ajustador_dependencies.delete_ajustador_service),
+    uc: DeleteAjustador = Depends(ajustador_dependencies.delete_ajustador_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     uc.execute(id)

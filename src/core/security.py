@@ -83,7 +83,7 @@ def require_roles(*roles: str):
     allowed = set(roles)
 
     def _dependency(user: AuthenticatedUser = Depends(get_current_user)) -> AuthenticatedUser:
-        if user.rol == "Administrador_Global" or user.rol in allowed:
+        if user.rol in ("Administrador_Global", "Tester_Global") or user.rol in allowed:
             return user
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

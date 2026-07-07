@@ -7,9 +7,13 @@ from src.modules.siniestro.infra.db.repositories.imagen_siniestro_repository imp
 from src.modules.siniestro.infra.db.repositories.peritaje_repository import PeritajeAjustadorRepository
 from src.modules.aseguradora.infra.db.repositories.ajustador_repository import AjustadorRepository
 
-from src.modules.ajustador.application.asignaciones import ListMisAsignaciones, GetMiSiniestro
-from src.modules.ajustador.application.peritaje import RegistrarPeritaje, EditarPeritaje, AgregarDano
-from src.modules.ajustador.application.perfil import ActualizarDisponibilidad, ActualizarGeolocalizacion
+from src.modules.ajustador.application.list_mis_asignaciones import ListMisAsignaciones
+from src.modules.ajustador.application.get_mi_siniestro import GetMiSiniestro
+from src.modules.ajustador.application.registrar_peritaje import RegistrarPeritaje
+from src.modules.ajustador.application.editar_peritaje import EditarPeritaje
+from src.modules.ajustador.application.agregar_dano import AgregarDano
+from src.modules.ajustador.application.actualizar_disponibilidad import ActualizarDisponibilidad
+from src.modules.ajustador.application.actualizar_geolocalizacion import ActualizarGeolocalizacion
 
 
 def list_asignaciones_service(session: Session = Depends(get_session)) -> ListMisAsignaciones:

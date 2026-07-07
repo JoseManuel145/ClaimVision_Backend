@@ -13,6 +13,12 @@ from src.modules.taller.presentation.taller_v1_schemas import (
     CrearCotizacionRequest,
     EditarCotizacionRequest,
 )
+from src.modules.taller.application.expedientes.list_expedientes import ListExpedientesTallerUseCase
+from src.modules.taller.application.expedientes.get_expediente import GetExpedienteTallerUseCase
+from src.modules.taller.application.expedientes.concluir_expediente import ConcluirExpedienteUseCase
+from src.modules.taller.application.expedientes.marcar_listo_entrega import MarcarListoEntrega
+from src.modules.taller.application.crear_cotizacion import CrearCotizacion
+from src.modules.taller.application.editar_cotizacion import EditarCotizacion
 from src.modules.taller.presentation import taller_v1_dependencies as deps
 
 router = APIRouter()
@@ -27,7 +33,7 @@ def listar_ordenes(
     page_size: int = Query(20, ge=1, le=100),
     estatus: str | None = Query(None),
     user: AuthenticatedUser = Depends(get_taller),
-    uc=Depends(deps.list_ordenes_service),
+    uc: ListExpedientesTallerUseCase = Depends(deps.list_ordenes_service),
 ):
     """§6 · Órdenes del taller (Asignado_A_Taller / en proceso)."""
     items, total = uc.execute(user.usuario_id, offset_from_page(page, page_size), page_size, estatus)
@@ -39,7 +45,7 @@ def listar_ordenes(
 def detalle_orden(
     id: str,
     user: AuthenticatedUser = Depends(get_taller),
-    uc=Depends(deps.get_orden_service),
+    uc: GetExpedienteTallerUseCase = Depends(deps.get_orden_service),
 ):
     """§6 · Expediente técnico (siniestro + peritaje validado + cotización)."""
     exp = uc.execute(siniestro_id=id, usuario_id=user.usuario_id)
@@ -57,7 +63,7 @@ def crear_cotizacion(
     dto: CrearCotizacionRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_taller),
-    uc=Depends(deps.crear_cotizacion_service),
+    uc: CrearCotizacion = Depends(deps.crear_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§6 · Crea cotización → estatus_cotizacion = Pendiente_Aprobacion."""
@@ -78,7 +84,7 @@ def editar_cotizacion(
     dto: EditarCotizacionRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_taller),
-    uc=Depends(deps.editar_cotizacion_service),
+    uc: EditarCotizacion = Depends(deps.editar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§6 · Edita cotización mientras siga Pendiente_Aprobacion."""
@@ -98,7 +104,7 @@ def concluir_trabajo(
     id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_taller),
-    uc=Depends(deps.concluir_trabajo_service),
+    uc: ConcluirExpedienteUseCase = Depends(deps.concluir_trabajo_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§6 · → estatus = Trabajo_Concluido (requiere cotización aprobada)."""
@@ -113,7 +119,7 @@ def listo_entrega(
     id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_taller),
-    uc=Depends(deps.listo_entrega_service),
+    uc: MarcarListoEntrega = Depends(deps.listo_entrega_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§6 · → estatus = Listo_Para_Entrega."""

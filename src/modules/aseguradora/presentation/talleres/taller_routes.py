@@ -11,6 +11,12 @@ from src.modules.aseguradora.presentation.talleres.taller_dto import (
     TallerResponseDTO,
     OperadorTallerRequestDTO,
 )
+from src.modules.aseguradora.application.talleres.create_taller import CreateTaller
+from src.modules.aseguradora.application.talleres.list_talleres import ListTalleres
+from src.modules.aseguradora.application.talleres.get_taller import GetTaller
+from src.modules.aseguradora.application.talleres.update_taller import UpdateTaller
+from src.modules.aseguradora.application.talleres.delete_taller import DeleteTaller
+from src.modules.aseguradora.application.talleres.create_taller_user import CreateOperadorTallerUseCase
 from src.modules.aseguradora.presentation.talleres import taller_dependencies
 
 router = APIRouter()
@@ -24,7 +30,7 @@ def crear_taller(
     dto: TallerCreateDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(taller_dependencies.create_taller_service),
+    uc: CreateTaller = Depends(taller_dependencies.create_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     resultado = uc.execute(user.aseguradora_id, dto.nombre_comercial, dto.rfc, dto.direccion_tecnica, dto.telefono_contacto)
@@ -41,7 +47,7 @@ def listar_talleres(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(taller_dependencies.list_talleres_service),
+    uc: ListTalleres = Depends(taller_dependencies.list_talleres_service),
 ):
     items, total = uc.execute(user.aseguradora_id, offset_from_page(page, page_size), page_size)
     data = [TallerResponseDTO.model_validate(i) for i in items]
@@ -52,7 +58,7 @@ def listar_talleres(
 def obtener_taller(
     id: str,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(taller_dependencies.get_taller_service),
+    uc: GetTaller = Depends(taller_dependencies.get_taller_service),
 ):
     return uc.execute(id)
 
@@ -63,7 +69,7 @@ def actualizar_taller(
     dto: TallerUpdateDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(taller_dependencies.update_taller_service),
+    uc: UpdateTaller = Depends(taller_dependencies.update_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     resultado = uc.execute(id, dto.nombre_comercial, dto.direccion_tecnica, dto.telefono_contacto)
@@ -80,7 +86,7 @@ def eliminar_taller(
     id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(taller_dependencies.delete_taller_service),
+    uc: DeleteTaller = Depends(taller_dependencies.delete_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     uc.execute(id, user.aseguradora_id)
@@ -97,7 +103,7 @@ def crear_operador_taller(
     dto: OperadorTallerRequestDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(taller_dependencies.crear_operador_taller_service),
+    uc: CreateOperadorTallerUseCase = Depends(taller_dependencies.crear_operador_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     resultado = uc.execute(user.aseguradora_id, user.usuario_id, id, dto)

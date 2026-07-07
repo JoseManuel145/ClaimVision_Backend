@@ -21,6 +21,13 @@ from src.modules.ajustador.presentation.ajustador_schemas import (
     AjustadorPerfilResponse,
     DanoRequest,
 )
+from src.modules.ajustador.application.list_mis_asignaciones import ListMisAsignaciones
+from src.modules.ajustador.application.get_mi_siniestro import GetMiSiniestro
+from src.modules.ajustador.application.registrar_peritaje import RegistrarPeritaje
+from src.modules.ajustador.application.editar_peritaje import EditarPeritaje
+from src.modules.ajustador.application.agregar_dano import AgregarDano
+from src.modules.ajustador.application.actualizar_disponibilidad import ActualizarDisponibilidad
+from src.modules.ajustador.application.actualizar_geolocalizacion import ActualizarGeolocalizacion
 from src.modules.ajustador.presentation import ajustador_dependencies as deps
 
 router = APIRouter()
@@ -43,7 +50,7 @@ def listar_asignaciones(
     page_size: int = Query(20, ge=1, le=100),
     estatus: str | None = Query(None),
     user: AuthenticatedUser = Depends(get_ajustador),
-    uc=Depends(deps.list_asignaciones_service),
+    uc: ListMisAsignaciones = Depends(deps.list_asignaciones_service),
 ):
     """§5 · Siniestros asignados a mí (paginado)."""
     items, total = uc.execute(user.usuario_id, offset_from_page(page, page_size), page_size, estatus)
@@ -55,7 +62,7 @@ def listar_asignaciones(
 def detalle_siniestro(
     id: str,
     user: AuthenticatedUser = Depends(get_ajustador),
-    uc=Depends(deps.get_siniestro_service),
+    uc: GetMiSiniestro = Depends(deps.get_siniestro_service),
 ):
     """§5 · Detalle + imágenes + peritaje del ajustador (peritaje_ia lo poblará §7)."""
     siniestro, imagenes, peritaje = uc.execute(user.usuario_id, id)
@@ -74,7 +81,7 @@ def registrar_peritaje(
     dto: PeritajeUpsertRequestDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_ajustador),
-    uc=Depends(deps.registrar_peritaje_service),
+    uc: RegistrarPeritaje = Depends(deps.registrar_peritaje_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Crea el peritaje y valida el siniestro → estatus = Peritaje_Validado."""
@@ -99,7 +106,7 @@ def editar_peritaje(
     dto: EditarPeritajeRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_ajustador),
-    uc=Depends(deps.editar_peritaje_service),
+    uc: EditarPeritaje = Depends(deps.editar_peritaje_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Edita el borrador del peritaje (antes de validar)."""
@@ -120,7 +127,7 @@ def agregar_dano(
     dto: DanoRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_ajustador),
-    uc=Depends(deps.agregar_dano_service),
+    uc: AgregarDano = Depends(deps.agregar_dano_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Agrega un daño manual al peritaje."""
@@ -135,7 +142,7 @@ def actualizar_disponibilidad(
     dto: DisponibilidadRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_ajustador),
-    uc=Depends(deps.disponibilidad_service),
+    uc: ActualizarDisponibilidad = Depends(deps.disponibilidad_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Activa/desactiva mi disponibilidad para servicio."""
@@ -149,7 +156,7 @@ def actualizar_disponibilidad(
 def actualizar_geolocalizacion(
     dto: GeolocalizacionRequest,
     user: AuthenticatedUser = Depends(get_ajustador),
-    uc=Depends(deps.geolocalizacion_service),
+    uc: ActualizarGeolocalizacion = Depends(deps.geolocalizacion_service),
 ):
     """§5 · Actualiza mi geolocalización (geography Point)."""
     aj = uc.execute(user.usuario_id, dto.latitud, dto.longitud)

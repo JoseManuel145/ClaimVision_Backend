@@ -9,12 +9,10 @@ from src.modules.siniestro.application.siniestros.asignar_ajustador import Asign
 from src.modules.siniestro.application.siniestros.enviar_taller import EnviarTaller
 from src.modules.siniestro.application.siniestros.editar_siniestro import EditarSiniestro
 from src.modules.aseguradora.application.siniestros.autorizar_entrega_v1 import AutorizarEntregaV1
-from src.modules.aseguradora.application.siniestros.bandeja import (
-    ListSiniestrosAseguradora, GetSiniestroAseguradora,
-)
-from src.modules.aseguradora.application.cotizaciones.aprobar_rechazar import (
-    AprobarCotizacion, RechazarCotizacion,
-)
+from src.modules.aseguradora.application.siniestros.list_siniestros_aseguradora import ListSiniestrosAseguradora
+from src.modules.aseguradora.application.siniestros.get_siniestro_aseguradora import GetSiniestroAseguradora
+from src.modules.aseguradora.application.cotizaciones.aprobar_cotizacion import AprobarCotizacion
+from src.modules.aseguradora.application.cotizaciones.rechazar_cotizacion import RechazarCotizacion
 from src.modules.aseguradora.presentation.siniestros import siniestro_dependencies as adeps
 from src.modules.siniestro.presentation.siniestros import siniestro_dependencies as sdeps
 

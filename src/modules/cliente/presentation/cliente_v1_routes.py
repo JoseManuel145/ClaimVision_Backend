@@ -27,6 +27,14 @@ from src.modules.cliente.presentation.cliente_v1_dependencies import (
     confirm_consent_service,
 )
 from src.modules.cliente.presentation.schemas import ConfirmDataRequestDTO
+from src.modules.cliente.application.process_ocr import ProcessOcr
+from src.modules.cliente.application.confirm_data import ConfirmData
+from src.modules.siniestro.application.siniestros.inicializar_siniestro import InicializarSiniestro
+from src.modules.siniestro.application.siniestros.list_siniestros_cliente import ListSiniestrosCliente
+from src.modules.siniestro.application.siniestros.get_siniestro_cliente import GetSiniestroCliente
+from src.modules.siniestro.application.siniestros.registrar_imagen import RegistrarImagenSiniestro
+from src.modules.cliente.application.get_perfil_cliente import GetPerfilCliente
+from src.modules.auth.application.confirm_consent import ConfirmConsent
 from src.modules.cliente.presentation.dependencies import (
     process_ocr_service,
     confirm_data_service,
@@ -45,7 +53,7 @@ async def ocr_extraction(
     cedula: UploadFile = File(...),
     poliza: UploadFile = File(...),
     user: AuthenticatedUser = Depends(get_cliente),
-    uc=Depends(process_ocr_service),
+    uc: ProcessOcr = Depends(process_ocr_service),
 ):
     """§1 · Extraer datos de cédula y póliza mediante OCR."""
     try:
@@ -61,7 +69,7 @@ async def confirmar_datos(
     data: ConfirmDataRequestDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_cliente),
-    uc=Depends(confirm_data_service),
+    uc: ConfirmData = Depends(confirm_data_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§1 · Confirmar y guardar datos extraídos del onboarding."""
@@ -81,7 +89,7 @@ def reportar_siniestro(
     dto: SiniestroInicializarDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_cliente),
-    uc=Depends(reportar_siniestro_service),
+    uc: InicializarSiniestro = Depends(reportar_siniestro_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§4 · Reporte preliminar → estatus = Reportado_Preliminar."""
@@ -99,7 +107,7 @@ def listar_mis_siniestros(
     page_size: int = Query(20, ge=1, le=100),
     estatus: str | None = Query(None),
     user: AuthenticatedUser = Depends(get_cliente),
-    uc=Depends(list_siniestros_cliente_service),
+    uc: ListSiniestrosCliente = Depends(list_siniestros_cliente_service),
 ):
     """§4 · Mis siniestros (paginado)."""
     items, total = uc.execute(user.usuario_id, offset_from_page(page, page_size), page_size, estatus)
@@ -111,7 +119,7 @@ def listar_mis_siniestros(
 def detalle_siniestro(
     id: str,
     user: AuthenticatedUser = Depends(get_cliente),
-    uc=Depends(get_siniestro_cliente_service),
+    uc: GetSiniestroCliente = Depends(get_siniestro_cliente_service),
 ):
     """§4 · Seguimiento (detalle + imágenes + timeline de estatus)."""
     siniestro, imagenes = uc.execute(user.usuario_id, id)
@@ -133,7 +141,7 @@ def registrar_imagen(
     dto: RegistrarImagenRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_cliente),
-    uc=Depends(registrar_imagen_service),
+    uc: RegistrarImagenSiniestro = Depends(registrar_imagen_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§4 · Registra una imagen ya subida (vía URL prefirmada §8)."""
@@ -148,7 +156,7 @@ def registrar_imagen(
 @router.get("/perfil", response_model=PerfilClienteResponse)
 def get_perfil(
     user: AuthenticatedUser = Depends(get_cliente),
-    uc=Depends(get_perfil_cliente_service),
+    uc: GetPerfilCliente = Depends(get_perfil_cliente_service),
 ):
     """§4 · Perfil del cliente (numero_poliza, vigencia_poliza, consentimientos)."""
     return uc.execute(user.usuario_id)
@@ -159,7 +167,7 @@ def actualizar_consentimientos(
     dto: ConsentimientosRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_cliente),
-    uc=Depends(confirm_consent_service),
+    uc: ConfirmConsent = Depends(confirm_consent_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§4 · Registra consentimientos LFPDPPP → setea fecha_consentimiento."""

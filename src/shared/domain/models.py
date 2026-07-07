@@ -7,6 +7,7 @@ class Rol(Enum):
     AJUSTADOR = "Ajustador"
     TALLER = "Operador_Taller"
     CLIENTE = "Cliente"
+    TESTER = "Tester_Global"
 
 class EstadoUsuario(Enum):
     ACTIVO = "Activo"

@@ -6,9 +6,13 @@ from src.core.security import get_current_user
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.modules.siniestro.domain.models.peritaje_model import PeritajeAjustadorModel
 
-from src.modules.ajustador.application.asignaciones import ListMisAsignaciones, GetMiSiniestro
-from src.modules.ajustador.application.peritaje import RegistrarPeritaje, EditarPeritaje, AgregarDano
-from src.modules.ajustador.application.perfil import ActualizarDisponibilidad, ActualizarGeolocalizacion
+from src.modules.ajustador.application.list_mis_asignaciones import ListMisAsignaciones
+from src.modules.ajustador.application.get_mi_siniestro import GetMiSiniestro
+from src.modules.ajustador.application.registrar_peritaje import RegistrarPeritaje
+from src.modules.ajustador.application.editar_peritaje import EditarPeritaje
+from src.modules.ajustador.application.agregar_dano import AgregarDano
+from src.modules.ajustador.application.actualizar_disponibilidad import ActualizarDisponibilidad
+from src.modules.ajustador.application.actualizar_geolocalizacion import ActualizarGeolocalizacion
 from src.modules.ajustador.presentation import ajustador_dependencies as deps
 
 from tests.fakes.ajustador import FakeAjustadorRepo, default_ajustador

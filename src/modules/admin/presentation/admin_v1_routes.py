@@ -13,6 +13,16 @@ from src.modules.admin.presentation.schemas import (
     AuditResponse,
     OperadorAseguradoraRequestDTO,
 )
+from src.modules.admin.application.registrar_aseguradora import RegistrarAseguradoraUseCase
+from src.modules.admin.application.crear_operador_aseguradora import CrearOperadorAseguradoraUseCase
+from src.modules.admin.application.list_aseguradoras import ListAseguradoras
+from src.modules.admin.application.get_aseguradora_by_id import GetAseguradoraById
+from src.modules.admin.application.actualizar_aseguradora import ActualizarAseguradoraUseCase
+from src.modules.admin.application.verificar_aseguradora import VerificarAseguradoraUseCase
+from src.modules.admin.application.actualizar_suscripcion import ActualizarSuscripcionUseCase
+from src.modules.admin.application.desincorporar_aseguradora import DesincorporarAseguradoraUseCase
+from src.modules.admin.application.aplicar_bloqueo_arco import AplicarBloqueoArcoUseCase
+from src.modules.admin.application.consultar_auditoria import ConsultarAuditoriaUseCase
 from src.modules.admin.presentation import dependencies as deps
 
 router = APIRouter()
@@ -29,7 +39,7 @@ def registrar_aseguradora(
     data: AseguradoraRequestDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.registrar_aseguradora_service),
+    uc: RegistrarAseguradoraUseCase = Depends(deps.registrar_aseguradora_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Registrar una nueva aseguradora en la plataforma."""
@@ -48,7 +58,7 @@ def crear_operador_aseguradora(
     data: OperadorAseguradoraRequestDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.crear_operador_aseguradora_service),
+    uc: CrearOperadorAseguradoraUseCase = Depends(deps.crear_operador_aseguradora_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Crear un operador para una aseguradora específica."""
@@ -67,7 +77,7 @@ def listar_aseguradoras(
     page_size: int = Query(20, ge=1, le=100),
     include_deleted: bool = Query(False, description="Incluir aseguradoras desincorporadas"),
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.list_aseguradoras_service),
+    uc: ListAseguradoras = Depends(deps.list_aseguradoras_service),
 ):
     """§5 · Listar aseguradoras registradas (paginado, con filtro de baja)."""
     offset = offset_from_page(page, page_size)
@@ -81,7 +91,7 @@ def listar_aseguradoras_desincorporadas(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.list_aseguradoras_service),
+    uc: ListAseguradoras = Depends(deps.list_aseguradoras_service),
 ):
     """§5 · Listar únicamente aseguradoras desincorporadas (baja lógica)."""
     offset = offset_from_page(page, page_size)
@@ -95,7 +105,7 @@ def listar_aseguradoras_desincorporadas(
 def obtener_aseguradora(
     aseguradora_id: str,
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.get_aseguradora_by_id_service),
+    uc: GetAseguradoraById = Depends(deps.get_aseguradora_by_id_service),
 ):
     """§5 · Obtener detalle de una aseguradora por ID."""
     try:
@@ -110,7 +120,7 @@ def actualizar_aseguradora(
     data: UpdateAseguradoraDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.actualizar_aseguradora_service),
+    uc: ActualizarAseguradoraUseCase = Depends(deps.actualizar_aseguradora_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Actualizar datos de una aseguradora existente."""
@@ -131,7 +141,7 @@ def verificar_aseguradora(
     aseguradora_id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.verificar_aseguradora_service),
+    uc: VerificarAseguradoraUseCase = Depends(deps.verificar_aseguradora_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Marcar aseguradora como verificada."""
@@ -153,7 +163,7 @@ def actualizar_suscripcion(
     data: UpdateSuscripcionDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.actualizar_suscripcion_service),
+    uc: ActualizarSuscripcionUseCase = Depends(deps.actualizar_suscripcion_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Actualizar plan de suscripción de una aseguradora."""
@@ -174,7 +184,7 @@ def desincorporar_aseguradora(
     aseguradora_id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.desincorporar_aseguradora_service),
+    uc: DesincorporarAseguradoraUseCase = Depends(deps.desincorporar_aseguradora_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§5 · Desincorporar (baja lógica) una aseguradora de la plataforma."""
@@ -197,7 +207,7 @@ def aplicar_bloqueo_arco(
     usuario_id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.aplicar_bloqueo_arco_service),
+    uc: AplicarBloqueoArcoUseCase = Depends(deps.aplicar_bloqueo_arco_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§6 · Aplicar bloqueo ARCO a un usuario (cifra sus datos personales)."""
@@ -220,7 +230,7 @@ def consultar_auditoria(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     user: AuthenticatedUser = Depends(get_admin),
-    uc=Depends(deps.consultar_auditoria_service),
+    uc: ConsultarAuditoriaUseCase = Depends(deps.consultar_auditoria_service),
 ):
     """§6 · Consultar logs de auditoría (paginado)."""
     try:

@@ -9,6 +9,9 @@ from src.modules.aseguradora.presentation.clientes.cliente_dto import (
     ClienteCreateDTO,
     ClienteResponseDTO,
 )
+from src.modules.aseguradora.application.clientes.create_cliente import CreateClienteByAseguradora
+from src.modules.aseguradora.application.clientes.list_clientes import ListClientes
+from src.modules.aseguradora.application.clientes.get_cliente import GetCliente
 from src.modules.aseguradora.presentation.clientes import cliente_dependencies
 
 router = APIRouter()
@@ -22,7 +25,7 @@ def crear_cliente(
     dto: ClienteCreateDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(cliente_dependencies.create_cliente_service),
+    uc: CreateClienteByAseguradora = Depends(cliente_dependencies.create_cliente_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     cliente = uc.execute(user.aseguradora_id, dto)
@@ -39,7 +42,7 @@ def listar_clientes(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(cliente_dependencies.list_clientes_service),
+    uc: ListClientes = Depends(cliente_dependencies.list_clientes_service),
 ):
     items, total = uc.execute(user.aseguradora_id, offset_from_page(page, page_size), page_size)
     data = [ClienteResponseDTO.model_validate(i) for i in items]
@@ -50,6 +53,6 @@ def listar_clientes(
 def obtener_cliente(
     id: str,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(cliente_dependencies.get_cliente_service),
+    uc: GetCliente = Depends(cliente_dependencies.get_cliente_service),
 ):
     return uc.execute(id)

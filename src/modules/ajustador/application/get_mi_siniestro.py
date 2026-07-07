@@ -1,4 +1,3 @@
-"""Casos de uso del ajustador: bandeja de asignaciones y detalle."""
 from typing import List, Optional, Tuple
 
 from src.modules.siniestro.domain.models.siniestro_model import SiniestroModel
@@ -8,27 +7,8 @@ from src.modules.siniestro.domain.ports.siniestro_repository_port import Siniest
 from src.modules.siniestro.domain.ports.imagen_siniestro_repository_port import ImagenSiniestroRepositoryPort
 from src.modules.siniestro.domain.ports.peritaje_repository_port import PeritajeAjustadorRepositoryPort
 from src.modules.aseguradora.domain.ports.ajustador_repository_port import AjustadorRepositoryPort
-from src.core.exceptions import NotFoundError, ForbiddenError, BusinessRuleError
-
-
-def resolver_ajustador_id(ajustador_repo: AjustadorRepositoryPort, usuario_id: str) -> str:
-    """Traduce el `usuario_id` del token al id del perfil `ajustadores`."""
-    ajustador = ajustador_repo.get_by_usuario_id(usuario_id)
-    if not ajustador:
-        raise BusinessRuleError("El usuario no tiene un perfil de ajustador.")
-    return ajustador.id
-
-
-class ListMisAsignaciones:
-    def __init__(self, ajustador_repo: AjustadorRepositoryPort, siniestro_repo: SiniestroRepositoryPort):
-        self.ajustador_repo = ajustador_repo
-        self.siniestro_repo = siniestro_repo
-
-    def execute(
-        self, usuario_id: str, offset: int = 0, limit: int = 20, estatus: str | None = None
-    ) -> Tuple[List[SiniestroModel], int]:
-        ajustador_id = resolver_ajustador_id(self.ajustador_repo, usuario_id)
-        return self.siniestro_repo.list_by_ajustador(ajustador_id, offset, limit, estatus)
+from src.modules.ajustador.application._helpers import resolver_ajustador_id
+from src.core.exceptions import NotFoundError, ForbiddenError
 
 
 class GetMiSiniestro:
@@ -56,6 +36,4 @@ class GetMiSiniestro:
 
         imagenes = self.imagen_repo.get_by_siniestro_id(siniestro_id)
         peritaje = self.peritaje_repo.obtener_peritaje_por_siniestro(siniestro_id)
-        # NOTA: peritajes_ia + danos_detectados_ia los genera el motor IA (§7, P2);
-        # aún no hay tabla/repositorio, por eso el detalle expone `peritaje_ia = None`.
         return siniestro, imagenes, peritaje

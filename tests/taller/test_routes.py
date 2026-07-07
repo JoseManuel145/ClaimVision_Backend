@@ -9,7 +9,8 @@ from src.modules.taller.application.expedientes.list_expedientes import ListExpe
 from src.modules.taller.application.expedientes.get_expediente import GetExpedienteTallerUseCase
 from src.modules.taller.application.expedientes.concluir_expediente import ConcluirExpedienteUseCase
 from src.modules.taller.application.expedientes.marcar_listo_entrega import MarcarListoEntrega
-from src.modules.taller.application.cotizaciones_v1 import CrearCotizacion, EditarCotizacion
+from src.modules.taller.application.crear_cotizacion import CrearCotizacion
+from src.modules.taller.application.editar_cotizacion import EditarCotizacion
 from src.modules.taller.presentation import taller_v1_dependencies as deps
 
 from tests.fakes.siniestro import FakeSiniestroRepo, FakePeritajeRepo, FakeCotizacionRepo, make_siniestro, make_cotizacion, make_peritaje

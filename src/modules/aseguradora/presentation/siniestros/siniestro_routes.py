@@ -18,7 +18,15 @@ from src.modules.aseguradora.presentation.siniestros.siniestro_dto import (
     RechazarCotizacionRequest,
     SiniestroDetalleAseguradoraDTO,
 )
+from src.modules.aseguradora.application.siniestros.list_siniestros_aseguradora import ListSiniestrosAseguradora
+from src.modules.aseguradora.application.siniestros.get_siniestro_aseguradora import GetSiniestroAseguradora
+from src.modules.aseguradora.application.siniestros.autorizar_entrega_v1 import AutorizarEntregaV1
+from src.modules.aseguradora.application.cotizaciones.aprobar_cotizacion import AprobarCotizacion
+from src.modules.aseguradora.application.cotizaciones.rechazar_cotizacion import RechazarCotizacion
 from src.modules.aseguradora.presentation.siniestros import siniestro_dependencies as deps
+from src.modules.siniestro.application.siniestros.asignar_ajustador import AsignarAjustador
+from src.modules.siniestro.application.siniestros.editar_siniestro import EditarSiniestro
+from src.modules.siniestro.application.siniestros.enviar_taller import EnviarTaller
 from src.modules.siniestro.presentation.siniestros.siniestro_dependencies import (
     asignar_ajustador_service,
     editar_siniestro_service,
@@ -40,7 +48,7 @@ def listar_siniestros(
     taller_id: str | None = Query(None),
     q: str | None = Query(None, description="Búsqueda por placas/marca/modelo"),
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(deps.list_siniestros_service),
+    uc: ListSiniestrosAseguradora = Depends(deps.list_siniestros_service),
 ):
     items, total = uc.execute(
         user.aseguradora_id, offset_from_page(page, page_size), page_size,
@@ -54,7 +62,7 @@ def listar_siniestros(
 def detalle_siniestro(
     id: str,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(deps.get_siniestro_service),
+    uc: GetSiniestroAseguradora = Depends(deps.get_siniestro_service),
 ):
     siniestro, imagenes, peritaje, cotizacion = uc.execute(id, user.aseguradora_id)
     base = SiniestroResponseDTO.model_validate(siniestro)
@@ -73,7 +81,7 @@ def editar_siniestro(
     dto: SiniestroUpdateDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(editar_siniestro_service),
+    uc: EditarSiniestro = Depends(editar_siniestro_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     siniestro = uc.execute(siniestro_id=id, usuario_id=user.usuario_id, rol=user.rol, dto=dto)
@@ -88,7 +96,7 @@ def asignar_ajustador(
     dto: AsignarAjustadorDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(asignar_ajustador_service),
+    uc: AsignarAjustador = Depends(asignar_ajustador_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     siniestro = uc.execute(id, dto.ajustador_id, user.aseguradora_id)
@@ -103,7 +111,7 @@ def enviar_taller(
     dto: EnviarTallerDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(enviar_taller_service),
+    uc: EnviarTaller = Depends(enviar_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     siniestro = uc.execute(id, dto.taller_id, user.aseguradora_id)
@@ -117,7 +125,7 @@ def autorizar_entrega(
     id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(deps.autorizar_entrega_service),
+    uc: AutorizarEntregaV1 = Depends(deps.autorizar_entrega_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     siniestro = uc.execute(id, user.aseguradora_id)
@@ -131,7 +139,7 @@ def aprobar_cotizacion(
     id: str,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(deps.aprobar_cotizacion_service),
+    uc: AprobarCotizacion = Depends(deps.aprobar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     cot = uc.execute(id, user.aseguradora_id)
@@ -146,7 +154,7 @@ def rechazar_cotizacion(
     dto: RechazarCotizacionRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
-    uc=Depends(deps.rechazar_cotizacion_service),
+    uc: RechazarCotizacion = Depends(deps.rechazar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     cot = uc.execute(id, user.aseguradora_id, dto.motivo)
