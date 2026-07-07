@@ -1,5 +1,6 @@
 """Pruebas de §4 Cliente (`/api/v1/cliente/...`) — siniestros + onboarding."""
 import pytest
+from concurrent.futures import ThreadPoolExecutor
 
 from src.main import app
 from src.modules.siniestro.application.siniestros.inicializar_siniestro import InicializarSiniestro
@@ -167,3 +168,142 @@ def test_onboarding_rol_no_cliente_rechazado(wired):
         "numero_poliza": "POL-999", "vigencia_poliza": "2030-12-31", "curp_rfc": "CURP",
     })
     assert r.status_code == 403
+
+
+# ── Tests complejos ─────────────────────────────────────────────────────
+
+def test_reportar_siniestro_faltan_campos_obligatorios(wired):
+    """422 si faltan campos obligatorios en el reporte."""
+    r = wired["client"].post(f"{BASE}/siniestros", json={})
+    assert r.status_code == 422
+
+    r = wired["client"].post(f"{BASE}/siniestros", json={
+        "vehiculo_marca": "Toyota", "vehiculo_modelo": "Corolla",
+    })
+    assert r.status_code == 422
+
+
+def test_reportar_siniestro_valores_extremos(wired):
+    """Acepta strings largos, SQL injection, años extremos."""
+    sql_injection = "ABC-123'; DROP TABLE siniestros; --"
+    marca_larga = "X" * 500
+    r = wired["client"].post(f"{BASE}/siniestros", json={
+        "vehiculo_marca": marca_larga,
+        "vehiculo_modelo": "Modelo",
+        "vehiculo_anio": 9999,
+        "vehiculo_placas": sql_injection,
+        "latitud_siniestro": 90.0,
+        "longitud_siniestro": 180.0,
+    })
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["vehiculo_marca"] == marca_larga
+    assert body["vehiculo_placas"] == sql_injection
+    assert body["estatus"] == "Reportado_Preliminar"
+
+
+def test_reportar_siniestro_idempotente(wired):
+    """Mismo payload dos veces → 201 ambos, IDs distintos."""
+    r1 = wired["client"].post(f"{BASE}/siniestros", json=REPORTE)
+    assert r1.status_code == 201
+    r2 = wired["client"].post(f"{BASE}/siniestros", json=REPORTE)
+    assert r2.status_code == 201
+    assert r1.json()["id"] != r2.json()["id"]
+
+
+def test_listar_siniestros_paginacion_extrema(wired):
+    """Paginación con valores límite válidos funciona; inválidos dan 422."""
+    wired["client"].post(f"{BASE}/siniestros", json=REPORTE)
+
+    for page, ps, expected in [(0, 10, 422), (-1, 10, 422), (1, 0, 422), (1, 9999, 422), (1, 1, 200), (1, 100, 200)]:
+        r = wired["client"].get(f"{BASE}/siniestros?page={page}&page_size={ps}")
+        assert r.status_code == expected, f"page={page} page_size={ps} — {r.text}"
+
+
+def test_listar_siniestros_filtro_estatus(wired):
+    """Filtrar por estatus existente e inexistente."""
+    r = wired["client"].post(f"{BASE}/siniestros", json=REPORTE)
+    sid = r.json()["id"]
+
+    r = wired["client"].get(f"{BASE}/siniestros?estatus=Reportado_Preliminar")
+    assert r.status_code == 200
+    ids = [s["id"] for s in r.json()["data"]]
+    assert sid in ids
+
+    r = wired["client"].get(f"{BASE}/siniestros?estatus=Entregado")
+    assert len(r.json()["data"]) == 0
+
+
+def test_listar_siniestros_sin_resultados(wired):
+    """Página más allá del total debe devolver lista vacía."""
+    r = wired["client"].get(f"{BASE}/siniestros?page=999&page_size=10")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["data"] == []
+    assert body["total"] == 0
+
+
+def test_detalle_siniestro_inexistente_404(wired):
+    """UUID que no existe debe devolver 404."""
+    r = wired["client"].get(f"{BASE}/siniestros/00000000-0000-0000-0000-000000000000")
+    assert r.status_code == 404
+
+
+def test_registrar_imagen_url_invalida(wired):
+    """URL vacía debe ser aceptada o rechazada elegantemente."""
+    sid = wired["client"].post(f"{BASE}/siniestros", json=REPORTE).json()["id"]
+    r = wired["client"].post(f"{BASE}/siniestros/{sid}/imagenes", json={"imagen_url": ""})
+    assert r.status_code in (201, 422), r.text
+
+
+def test_perfil_sin_onboarding_404(wired):
+    """Cliente sin perfil → 404 elegante."""
+    app.dependency_overrides[get_current_user] = lambda: AuthenticatedUser(
+        usuario_id="user-sin-perfil", email="noprofile@x.mx", rol="Cliente", aseguradora_id="aseg-1"
+    )
+    r = wired["client"].get(f"{BASE}/perfil")
+    assert r.status_code == 404
+
+
+def test_confirmar_datos_onboarding_duplicado(wired):
+    """Confirmar datos dos veces es seguro (idempotente)."""
+    payload = {"numero_poliza": "POL-DUP", "vigencia_poliza": "2030-12-31", "curp_rfc": "CURPDUP"}
+    r1 = wired["client"].post(f"{BASE}/onboarding/confirmar-datos", json=payload)
+    assert r1.status_code == 200
+    r2 = wired["client"].post(f"{BASE}/onboarding/confirmar-datos", json=payload)
+    assert r2.status_code == 200
+    assert wired["cli_repo"].profile.numero_poliza == "POL-DUP"
+
+
+def test_consentimientos_sin_aviso_privacidad(wired):
+    """Rechazar consentimiento sin aviso de privacidad → 409."""
+    r = wired["client"].patch(f"{BASE}/consentimientos", json={
+        "consentimiento_aviso_privacidad": False,
+        "consentimiento_biometria": False,
+        "autoriza_transferencia_talleres": False,
+    })
+    assert r.status_code == 409
+
+
+def test_tester_global_bypass_cliente(wired):
+    """Tester_Global accede a todos los endpoints de cliente."""
+    app.dependency_overrides[get_current_user] = lambda: AuthenticatedUser(
+        usuario_id="user-tester", email="tester@x.mx", rol="Tester_Global", aseguradora_id="aseg-1"
+    )
+    cli_repo_tester = FakeClienteRepo(default_cliente_profile())
+    cli_repo_tester.profile.usuario_id = "user-tester"
+    app.dependency_overrides[deps.get_perfil_cliente_service] = lambda: GetPerfilCliente(cli_repo_tester)
+
+    checker_tester = FakeClienteChecker({"user-tester": "perfil-tester"})
+    sin_repo_tester = FakeSiniestroRepo()
+    app.dependency_overrides[deps.list_siniestros_cliente_service] = lambda: ListSiniestrosCliente(sin_repo_tester, checker_tester)
+    app.dependency_overrides[deps.reportar_siniestro_service] = lambda: InicializarSiniestro(sin_repo_tester, checker_tester)
+
+    r_perfil = wired["client"].get(f"{BASE}/perfil")
+    assert r_perfil.status_code == 200, r_perfil.text
+
+    r_list = wired["client"].get(f"{BASE}/siniestros")
+    assert r_list.status_code == 200, r_list.text
+
+    r_create = wired["client"].post(f"{BASE}/siniestros", json=REPORTE)
+    assert r_create.status_code == 201, r_create.text

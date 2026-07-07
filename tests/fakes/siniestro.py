@@ -86,7 +86,9 @@ class FakePeritajeRepo:
     def guardar_peritaje(self, peritaje: PeritajeAjustadorModel) -> PeritajeAjustadorModel:
         existing = self.by_siniestro.get(peritaje.siniestro_id)
         if existing:
-            peritaje.id = existing.id
+            if existing.id != peritaje.id:
+                from src.core.exceptions import BusinessRuleError
+                raise BusinessRuleError("Ya existe un peritaje para este siniestro.")
             peritaje.version = existing.version + 1
         if peritaje.created_at is None:
             peritaje.created_at = datetime.utcnow()
