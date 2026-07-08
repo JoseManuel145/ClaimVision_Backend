@@ -3025,6 +3025,454 @@
         }
       }
     },
+    "/api/v1/admin/usuarios": {
+      "get": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Listar Usuarios",
+        "description": "Listar usuarios con paginación y filtros.",
+        "operationId": "listar_usuarios_api_v1_admin_usuarios_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "rol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar por rol",
+              "title": "Rol"
+            },
+            "description": "Filtrar por rol"
+          },
+          {
+            "name": "estatus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar por estatus_arco",
+              "title": "Estatus"
+            },
+            "description": "Filtrar por estatus_arco"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Buscar por email o nombre",
+              "title": "Search"
+            },
+            "description": "Buscar por email o nombre"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_UsuarioResponseDTO_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Crear Usuario",
+        "description": "Crear un nuevo usuario con cualquier rol.",
+        "operationId": "crear_usuario_api_v1_admin_usuarios_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUsuarioRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponseDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/usuarios/{usuario_id}": {
+      "get": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Obtener Usuario",
+        "description": "Obtener detalle de un usuario por ID.",
+        "operationId": "obtener_usuario_api_v1_admin_usuarios__usuario_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "usuario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Usuario Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponseDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Actualizar Usuario",
+        "description": "Actualizar datos de un usuario existente.",
+        "operationId": "actualizar_usuario_api_v1_admin_usuarios__usuario_id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "usuario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Usuario Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUsuarioRequestDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponseDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Eliminar Usuario",
+        "description": "Baja lógica de un usuario (valida que no tenga siniestros activos).",
+        "operationId": "eliminar_usuario_api_v1_admin_usuarios__usuario_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "usuario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Usuario Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioResponseDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/talleres": {
+      "get": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Listar Talleres Admin",
+        "description": "Listar todos los talleres del sistema (sin filtro por aseguradora).",
+        "operationId": "listar_talleres_admin_api_v1_admin_talleres_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_TallerAdminResponseDTO_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/talleres/{taller_id}": {
+      "get": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Obtener Taller Admin",
+        "description": "Obtener detalle de un taller con aseguradoras vinculadas.",
+        "operationId": "obtener_taller_admin_api_v1_admin_talleres__taller_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "taller_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Taller Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TallerAdminResponseDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/dashboard/resumen": {
+      "get": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Obtener Dashboard Resumen",
+        "description": "KPIs globales del sistema.",
+        "operationId": "obtener_dashboard_resumen_api_v1_admin_dashboard_resumen_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardResumenDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "tags": [
@@ -4068,6 +4516,57 @@
         ],
         "title": "CrearCotizacionRequest"
       },
+      "CreateUsuarioRequestDTO": {
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "rol": {
+            "type": "string",
+            "title": "Rol"
+          },
+          "aseguradora_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aseguradora Id"
+          },
+          "telefono": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nombre",
+          "email",
+          "password",
+          "rol"
+        ],
+        "title": "CreateUsuarioRequestDTO"
+      },
       "DanoAjustadoDTO": {
         "properties": {
           "zona_vehiculo": {
@@ -4138,6 +4637,60 @@
           "id"
         ],
         "title": "DanoAjustadoResponseDTO"
+      },
+      "DashboardResumenDTO": {
+        "properties": {
+          "total_siniestros": {
+            "type": "integer",
+            "title": "Total Siniestros"
+          },
+          "siniestros_por_estatus": {
+            "items": {
+              "$ref": "#/components/schemas/EstatusCountDTO"
+            },
+            "type": "array",
+            "title": "Siniestros Por Estatus",
+            "default": []
+          },
+          "siniestros_por_mes": {
+            "items": {
+              "$ref": "#/components/schemas/SiniestrosPorMesDTO"
+            },
+            "type": "array",
+            "title": "Siniestros Por Mes",
+            "default": []
+          },
+          "usuarios_activos": {
+            "type": "integer",
+            "title": "Usuarios Activos"
+          },
+          "total_aseguradoras": {
+            "type": "integer",
+            "title": "Total Aseguradoras"
+          },
+          "aseguradoras_activas": {
+            "type": "integer",
+            "title": "Aseguradoras Activas"
+          },
+          "total_talleres": {
+            "type": "integer",
+            "title": "Total Talleres"
+          },
+          "talleres_pendientes": {
+            "type": "integer",
+            "title": "Talleres Pendientes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_siniestros",
+          "usuarios_activos",
+          "total_aseguradoras",
+          "aseguradoras_activas",
+          "total_talleres",
+          "talleres_pendientes"
+        ],
+        "title": "DashboardResumenDTO"
       },
       "DisponibilidadRequest": {
         "properties": {
@@ -4264,6 +4817,24 @@
           "taller_id"
         ],
         "title": "EnviarTallerDTO"
+      },
+      "EstatusCountDTO": {
+        "properties": {
+          "estatus": {
+            "type": "string",
+            "title": "Estatus"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "estatus",
+          "count"
+        ],
+        "title": "EstatusCountDTO"
       },
       "GeolocalizacionRequest": {
         "properties": {
@@ -4612,6 +5183,37 @@
         ],
         "title": "Page[SiniestroResponseDTO]"
       },
+      "Page_TallerAdminResponseDTO_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TallerAdminResponseDTO"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[TallerAdminResponseDTO]"
+      },
       "Page_TallerResponseDTO_": {
         "properties": {
           "data": {
@@ -4642,6 +5244,37 @@
           "page_size"
         ],
         "title": "Page[TallerResponseDTO]"
+      },
+      "Page_UsuarioResponseDTO_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/UsuarioResponseDTO"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[UsuarioResponseDTO]"
       },
       "PerfilClienteResponse": {
         "properties": {
@@ -5688,6 +6321,89 @@
         "type": "object",
         "title": "SiniestroUpdateDTO"
       },
+      "SiniestrosPorMesDTO": {
+        "properties": {
+          "mes": {
+            "type": "string",
+            "title": "Mes"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mes",
+          "count"
+        ],
+        "title": "SiniestrosPorMesDTO"
+      },
+      "TallerAdminResponseDTO": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "nombre_comercial": {
+            "type": "string",
+            "title": "Nombre Comercial"
+          },
+          "rfc": {
+            "type": "string",
+            "title": "Rfc"
+          },
+          "direccion_tecnica": {
+            "type": "string",
+            "title": "Direccion Tecnica"
+          },
+          "telefono_contacto": {
+            "type": "string",
+            "title": "Telefono Contacto"
+          },
+          "aseguradoras_vinculadas": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Aseguradoras Vinculadas",
+            "default": []
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nombre_comercial",
+          "rfc",
+          "direccion_tecnica",
+          "telefono_contacto",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TallerAdminResponseDTO"
+      },
       "TallerCreateDTO": {
         "properties": {
           "nombre_comercial": {
@@ -6060,6 +6776,79 @@
         ],
         "title": "UpdateSuscripcionDTO"
       },
+      "UpdateUsuarioRequestDTO": {
+        "properties": {
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "rol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rol"
+          },
+          "aseguradora_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aseguradora Id"
+          },
+          "telefono": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono"
+          }
+        },
+        "type": "object",
+        "title": "UpdateUsuarioRequestDTO"
+      },
       "UserRegister": {
         "properties": {
           "nombre": {
@@ -6083,6 +6872,79 @@
           "password"
         ],
         "title": "UserRegister"
+      },
+      "UsuarioResponseDTO": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "nombre_completo_cifrado": {
+            "type": "string",
+            "title": "Nombre Completo Cifrado"
+          },
+          "telefono_cifrado": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono Cifrado"
+          },
+          "rol": {
+            "type": "string",
+            "title": "Rol"
+          },
+          "estatus_arco": {
+            "type": "string",
+            "title": "Estatus Arco"
+          },
+          "aseguradora_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aseguradora Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "nombre_completo_cifrado",
+          "rol",
+          "estatus_arco",
+          "created_at"
+        ],
+        "title": "UsuarioResponseDTO"
       },
       "ValidationError": {
         "properties": {

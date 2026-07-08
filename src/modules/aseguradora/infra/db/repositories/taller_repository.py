@@ -47,6 +47,13 @@ class TallerRepository(TallerRepositoryPort):
         r = self.db.execute(stmt).scalar_one_or_none()
         return _to_domain(r) if r else None
 
+    def list_all(self, offset: int = 0, limit: int = 20) -> Tuple[List[TallerModel], int]:
+        count_stmt = select(func.count()).select_from(TallerTable).where(TallerTable.deleted_at.is_(None))
+        total = self.db.execute(count_stmt).scalar() or 0
+        stmt = select(TallerTable).where(TallerTable.deleted_at.is_(None)).order_by(TallerTable.created_at.desc()).offset(offset).limit(limit)
+        results = self.db.execute(stmt).scalars().all()
+        return [_to_domain(r) for r in results], total
+
     def list_by_aseguradora(self, aseguradora_id: str, offset: int = 0, limit: int = 20) -> Tuple[List[TallerModel], int]:
         if not aseguradora_id:
             return [], 0

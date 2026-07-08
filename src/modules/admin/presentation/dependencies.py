@@ -19,6 +19,19 @@ from src.modules.admin.application.aplicar_bloqueo_arco import AplicarBloqueoArc
 from src.modules.admin.application.verificar_aseguradora import VerificarAseguradoraUseCase
 from src.modules.admin.application.consultar_auditoria import ConsultarAuditoriaUseCase
 
+# ── Nuevos use cases ──────────────────────────────────────────────────
+from src.modules.admin.application.list_usuarios import ListUsuarios
+from src.modules.admin.application.get_usuario import GetUsuario
+from src.modules.admin.application.create_usuario import CreateUsuario
+from src.modules.admin.application.update_usuario import UpdateUsuario
+from src.modules.admin.application.delete_usuario import DeleteUsuario
+from src.modules.admin.application.list_talleres_admin import ListTalleresAdmin
+from src.modules.admin.application.get_taller_admin import GetTallerAdmin
+from src.modules.admin.application.get_dashboard_resumen import GetDashboardResumen
+# taller repo (reused from aseguradora module)
+from src.modules.aseguradora.infra.db.repositories.taller_repository import TallerRepository
+
+
 def registrar_aseguradora_service(session=Depends(get_session)):
     repo = AseguradoraRepository(session)
     audit_repo = AuditLogRepository(session)
@@ -69,4 +82,44 @@ def crear_operador_aseguradora_service(session=Depends(get_session)):
     auth_repo = AuthRepository(session)
     password_port = PasswordService()
     return CrearOperadorAseguradoraUseCase(aseguradora_repo, audit_repo, auth_repo, password_port)
+
+# ── Nuevos servicios ──────────────────────────────────────────────────
+
+def list_usuarios_service(session=Depends(get_session)):
+    return ListUsuarios(AdminUserRepository(session))
+
+def get_usuario_service(session=Depends(get_session)):
+    return GetUsuario(AdminUserRepository(session))
+
+def create_usuario_service(session=Depends(get_session)):
+    return CreateUsuario(
+        AdminUserRepository(session),
+        AuditLogRepository(session),
+        AuthRepository(session),
+        PasswordService(),
+    )
+
+def update_usuario_service(session=Depends(get_session)):
+    return UpdateUsuario(
+        AdminUserRepository(session),
+        AuditLogRepository(session),
+        AuthRepository(session),
+        PasswordService(),
+    )
+
+def delete_usuario_service(session=Depends(get_session)):
+    return DeleteUsuario(
+        AdminUserRepository(session),
+        AuditLogRepository(session),
+        session,
+    )
+
+def list_talleres_admin_service(session=Depends(get_session)):
+    return ListTalleresAdmin(TallerRepository(session))
+
+def get_taller_admin_service(session=Depends(get_session)):
+    return GetTallerAdmin(TallerRepository(session))
+
+def get_dashboard_resumen_service(session=Depends(get_session)):
+    return GetDashboardResumen(session)
 

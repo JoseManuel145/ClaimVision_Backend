@@ -44,6 +44,14 @@ Prefijo: `/api/v1/admin`
 | `PUT` | `/api/v1/admin/aseguradoras/{aseguradora_id}/suscripcion` | Actualizar suscripción de la aseguradora |
 | `DELETE` | `/api/v1/admin/aseguradoras/{aseguradora_id}` | Desincorporar (baja lógica) una aseguradora |
 | `POST` | `/api/v1/admin/usuarios/{usuario_id}/bloqueo-arco` | Aplicar bloqueo ARCO a un usuario |
+| `GET` | `/api/v1/admin/usuarios` | Listar usuarios (paginado, filtros por rol/estatus/search) |
+| `GET` | `/api/v1/admin/usuarios/{usuario_id}` | Obtener detalle de un usuario |
+| `POST` | `/api/v1/admin/usuarios` | Crear usuario con cualquier rol |
+| `PUT` | `/api/v1/admin/usuarios/{usuario_id}` | Actualizar datos de un usuario |
+| `DELETE` | `/api/v1/admin/usuarios/{usuario_id}` | Baja lógica de un usuario (valida siniestros activos) |
+| `GET` | `/api/v1/admin/talleres` | Listar todos los talleres (sin filtro por aseguradora) |
+| `GET` | `/api/v1/admin/talleres/{taller_id}` | Obtener detalle de taller con aseguradoras vinculadas |
+| `GET` | `/api/v1/admin/dashboard/resumen` | KPIs globales del sistema |
 | `GET` | `/api/v1/admin/auditoria/logs` | Consultar logs de auditoría (paginado) |
 
 ### Cliente
@@ -133,12 +141,12 @@ Prefijo: `/api/v1/aseguradora`
 | Grupo | Endpoints |
 |-------|----------|
 | Auth | 7 |
-| Admin | 11 |
+| Admin | 19 |
 | Cliente | 8 |
 | Ajustador | 7 |
 | Taller | 6 |
 | Aseguradora (Siniestros) | 8 |
 | Aseguradora (CRUD) | 16 |
-| **Subtotal** | **63** |
+| **Subtotal** | **71** |
 | Health | 1 |
-| **Total** | **64** |
+| **Total** | **72** |
