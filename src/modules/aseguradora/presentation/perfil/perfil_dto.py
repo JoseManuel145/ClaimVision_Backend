@@ -1,3 +1,4 @@
+from typing import Optional
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
@@ -16,3 +17,13 @@ class PerfilAseguradoraDTO(BaseModel):
     contacto_legal_email: str
     created_at: datetime
     updated_at: datetime
+
+
+class PerfilAseguradoraUpdateDTO(BaseModel):
+    nombre: Optional[str] = None
+    rfc: Optional[str] = None
+    dominio_correo: Optional[str] = None
+    contacto_legal_email: Optional[str] = None
+    operador_nombre: Optional[str] = None
+    operador_email: Optional[str] = None
+    operador_telefono: Optional[str] = None

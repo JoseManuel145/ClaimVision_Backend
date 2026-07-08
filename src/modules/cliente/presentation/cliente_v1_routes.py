@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
+from sqlalchemy.orm import Session
 
+from src.core.database import get_session
 from src.core.security import require_roles
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.shared.presentation.pagination import Page, offset_from_page
 from src.shared.domain.transitions import construir_timeline
 from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
+from src.shared.domain.services.encryption_service import encrypt_fields
+from src.modules.auth.infra.db.tables.user_table import UserTable
 
 from src.modules.siniestro.presentation.siniestros.siniestro_dto import (
     SiniestroInicializarDTO,
@@ -15,6 +19,7 @@ from src.modules.auth.presentation.schemas import ConsentRequestDTO
 from src.modules.cliente.presentation.cliente_v1_schemas import (
     RegistrarImagenRequest,
     ConsentimientosRequest,
+    PerfilClienteUpdateRequest,
     PerfilClienteResponse,
     SiniestroDetalleClienteDTO,
 )
@@ -153,13 +158,55 @@ def registrar_imagen(
     return imagen
 
 
+def _perfil_completo(db: Session, user: AuthenticatedUser, perfil_cliente) -> PerfilClienteResponse:
+    data = PerfilClienteResponse.model_validate(perfil_cliente)
+    try:
+        from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
+        user_data = AuthRepository(db).get_by_id(user.usuario_id)
+        if user_data:
+            data.nombre = user_data.nombre
+            data.email = user_data.email
+            data.telefono = user_data.telefono
+    except Exception:
+        pass
+    return data
+
+
 @router.get("/perfil", response_model=PerfilClienteResponse)
 def get_perfil(
     user: AuthenticatedUser = Depends(get_cliente),
     uc: GetPerfilCliente = Depends(get_perfil_cliente_service),
+    db: Session = Depends(get_session),
 ):
     """§4 · Perfil del cliente (numero_poliza, vigencia_poliza, consentimientos)."""
-    return uc.execute(user.usuario_id)
+    perfil = uc.execute(user.usuario_id)
+    return _perfil_completo(db, user, perfil)
+
+
+@router.put("/perfil", response_model=PerfilClienteResponse)
+def actualizar_perfil(
+    dto: PerfilClienteUpdateRequest,
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc: GetPerfilCliente = Depends(get_perfil_cliente_service),
+    db: Session = Depends(get_session),
+):
+    """§4 · Actualiza datos personales del cliente (nombre, email, teléfono)."""
+    from sqlalchemy import update as sa_update
+
+    user_update = {}
+    if dto.nombre is not None:
+        user_update["nombre_completo"] = dto.nombre
+    if dto.email is not None:
+        user_update["email"] = dto.email
+    if dto.telefono is not None:
+        user_update["telefono"] = dto.telefono
+    if user_update:
+        encrypted = encrypt_fields(user_update)
+        db.execute(sa_update(UserTable).where(UserTable.id == user.usuario_id).values(**encrypted))
+        db.commit()
+
+    perfil = uc.execute(user.usuario_id)
+    return _perfil_completo(db, user, perfil)
 
 
 @router.patch("/consentimientos", status_code=status.HTTP_200_OK)

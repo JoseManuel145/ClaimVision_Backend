@@ -19,11 +19,14 @@ from src.modules.siniestro.presentation.peritaje.peritaje_dto import (
 from src.modules.ajustador.presentation.ajustador_schemas import (
     SiniestroDetalleAjustadorDTO,
     EditarPeritajeRequest,
+    AjustadorPerfilUpdateRequest,
     DisponibilidadRequest,
     GeolocalizacionRequest,
     AjustadorPerfilResponse,
     DanoRequest,
 )
+from src.shared.domain.services.encryption_service import encrypt_fields
+from src.modules.auth.infra.db.tables.user_table import UserTable
 from src.modules.aseguradora.infra.db.repositories.ajustador_repository import AjustadorRepository
 from src.modules.ajustador.application.list_mis_asignaciones import ListMisAsignaciones
 from src.modules.ajustador.application.get_mi_siniestro import GetMiSiniestro
@@ -60,6 +63,32 @@ def get_perfil(
     aj = repo.get_by_usuario_id(user.usuario_id)
     if not aj:
         raise NotFoundError("Perfil de ajustador no encontrado.")
+    return _perfil_dto(aj)
+
+
+@router.put("/perfil", response_model=AjustadorPerfilResponse)
+def actualizar_perfil(
+    dto: AjustadorPerfilUpdateRequest,
+    user: AuthenticatedUser = Depends(get_ajustador),
+    db: Session = Depends(get_session),
+):
+    """§5 · Actualiza datos personales del ajustador (nombre, email, teléfono)."""
+    from sqlalchemy import update as sa_update
+
+    user_update = {}
+    if dto.nombre is not None:
+        user_update["nombre_completo"] = dto.nombre
+    if dto.email is not None:
+        user_update["email"] = dto.email
+    if dto.telefono is not None:
+        user_update["telefono"] = dto.telefono
+    if user_update:
+        encrypted = encrypt_fields(user_update)
+        db.execute(sa_update(UserTable).where(UserTable.id == user.usuario_id).values(**encrypted))
+        db.commit()
+
+    repo = AjustadorRepository(db)
+    aj = repo.get_by_usuario_id(user.usuario_id)
     return _perfil_dto(aj)
 
 

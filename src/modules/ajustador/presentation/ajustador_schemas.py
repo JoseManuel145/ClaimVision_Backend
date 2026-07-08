@@ -24,6 +24,12 @@ class EditarPeritajeRequest(BaseModel):
     observaciones_campo: Optional[str] = None
 
 
+class AjustadorPerfilUpdateRequest(BaseModel):
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    telefono: Optional[str] = None
+
+
 class DisponibilidadRequest(BaseModel):
     activo_para_servicio: bool
 

@@ -44,6 +44,15 @@ class EditarCotizacionRequest(BaseModel):
     observaciones_tecnicas: Optional[str] = None
 
 
+class TallerPerfilUpdateRequest(BaseModel):
+    nombre_comercial: Optional[str] = None
+    direccion_tecnica: Optional[str] = None
+    telefono_contacto: Optional[str] = None
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    telefono: Optional[str] = None
+
+
 class TallerPerfilResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

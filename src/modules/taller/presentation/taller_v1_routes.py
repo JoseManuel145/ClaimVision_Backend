@@ -10,10 +10,13 @@ from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
 
 from src.modules.siniestro.presentation.siniestros.siniestro_dto import SiniestroResponseDTO
 from src.modules.siniestro.presentation.peritaje.peritaje_dto import PeritajeResponseDTO
+from src.shared.domain.services.encryption_service import encrypt_fields
+from src.modules.auth.infra.db.tables.user_table import UserTable
 from src.modules.taller.presentation.taller_v1_schemas import (
     CotizacionV1DTO,
     TallerExpedienteDTO,
     TallerPerfilResponse,
+    TallerPerfilUpdateRequest,
     CrearCotizacionRequest,
     EditarCotizacionRequest,
 )
@@ -54,6 +57,72 @@ def get_perfil(
     auth_repo = AuthRepository(db)
     user_data = auth_repo.get_by_id(user.usuario_id)
 
+    return TallerPerfilResponse(
+        id=taller.id,
+        nombre_comercial=taller.nombre_comercial,
+        rfc=taller.rfc,
+        direccion_tecnica=taller.direccion_tecnica,
+        telefono_contacto=taller.telefono_contacto,
+        nombre=user_data.nombre if user_data else None,
+        email=user_data.email if user_data else None,
+        telefono=user_data.telefono if user_data else None,
+        version=taller.version,
+        created_at=taller.created_at,
+        updated_at=taller.updated_at,
+    )
+
+
+@router.put("/perfil", response_model=TallerPerfilResponse)
+def actualizar_perfil(
+    dto: TallerPerfilUpdateRequest,
+    user: AuthenticatedUser = Depends(get_taller),
+    db: Session = Depends(get_session),
+):
+    """§6 · Actualiza perfil del taller (datos del taller + datos del operador)."""
+    from src.modules.taller.infra.db.repositories.perfil_taller_repository import PerfilTallerRepository
+    from src.modules.aseguradora.infra.db.repositories.taller_repository import TallerRepository
+    from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
+
+    perfil_repo = PerfilTallerRepository(db)
+    taller_id = perfil_repo.get_taller_id_by_usuario(user.usuario_id)
+    if not taller_id:
+        raise ForbiddenError("El usuario no tiene un perfil de taller asignado.")
+
+    taller_repo = TallerRepository(db)
+    taller = taller_repo.get_by_id(taller_id)
+    if not taller:
+        raise NotFoundError("Taller no encontrado.")
+
+    taller_update = {}
+    if dto.nombre_comercial is not None:
+        taller_update["nombre_comercial"] = dto.nombre_comercial
+    if dto.direccion_tecnica is not None:
+        taller_update["direccion_tecnica"] = dto.direccion_tecnica
+    if dto.telefono_contacto is not None:
+        taller_update["telefono_contacto"] = dto.telefono_contacto
+    if taller_update:
+        from sqlalchemy import update as sa_update
+        from src.modules.aseguradora.infra.db.tables.taller_table import TallerTable
+        db.execute(sa_update(TallerTable).where(TallerTable.id == taller_id).values(**taller_update))
+
+    user_update = {}
+    if dto.nombre is not None:
+        user_update["nombre_completo"] = dto.nombre
+    if dto.email is not None:
+        user_update["email"] = dto.email
+    if dto.telefono is not None:
+        user_update["telefono"] = dto.telefono
+    if user_update:
+        encrypted = encrypt_fields(user_update)
+        db.execute(
+            sa_update(UserTable).where(UserTable.id == user.usuario_id).values(**encrypted)
+        )
+
+    db.commit()
+
+    taller = taller_repo.get_by_id(taller_id)
+    auth_repo = AuthRepository(db)
+    user_data = auth_repo.get_by_id(user.usuario_id)
     return TallerPerfilResponse(
         id=taller.id,
         nombre_comercial=taller.nombre_comercial,

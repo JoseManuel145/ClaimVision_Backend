@@ -19,6 +19,12 @@ class ConsentimientosRequest(BaseModel):
     autoriza_transferencia_talleres: bool
 
 
+class PerfilClienteUpdateRequest(BaseModel):
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    telefono: Optional[str] = None
+
+
 class PerfilClienteResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -30,6 +36,9 @@ class PerfilClienteResponse(BaseModel):
     consentimiento_biometria: bool
     autoriza_transferencia_talleres: bool
     fecha_consentimiento: Optional[datetime] = None
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    telefono: Optional[str] = None
 
 
 class TimelineItemDTO(BaseModel):
