@@ -18,6 +18,7 @@ class FakeUser:
     estado: str = "Activo"
     created_at: datetime = None
     email_verificado: bool = False
+    telefono: Optional[str] = None
 
     def __post_init__(self):
         if isinstance(self.rol, str):
@@ -68,6 +69,16 @@ class FakeAuthRepo:
     def update_password(self, usuario_id: str, password_hash: str) -> None:
         if usuario_id in self.users:
             self.users[usuario_id].password_hash = password_hash
+
+    def update_user_profile(self, usuario_id: str, nombre: str | None = None, email: str | None = None, telefono: str | None = None) -> None:
+        user = self.users.get(usuario_id)
+        if user:
+            if nombre is not None:
+                user.nombre = nombre
+            if email is not None:
+                user.email = email
+            if telefono is not None:
+                user.telefono = telefono
 
     def verify_user(self, usuario_id: str) -> None:
         if usuario_id in self.users:

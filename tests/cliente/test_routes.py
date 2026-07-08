@@ -8,6 +8,7 @@ from src.modules.siniestro.application.siniestros.list_siniestros_cliente import
 from src.modules.siniestro.application.siniestros.get_siniestro_cliente import GetSiniestroCliente
 from src.modules.siniestro.application.siniestros.registrar_imagen import RegistrarImagenSiniestro
 from src.modules.cliente.application.get_perfil_cliente import GetPerfilCliente
+from src.modules.cliente.application.actualizar_perfil_cliente import ActualizarPerfilCliente
 from src.modules.cliente.application.confirm_data import ConfirmData
 from src.modules.auth.application.confirm_consent import ConfirmConsent
 from src.modules.cliente.presentation import cliente_v1_dependencies as deps
@@ -49,9 +50,11 @@ def wired(client):
     app.dependency_overrides[deps.registrar_imagen_service] = lambda: RegistrarImagenSiniestro(img_repo, sin_repo, checker)
     app.dependency_overrides[deps.get_perfil_cliente_service] = lambda: GetPerfilCliente(cli_repo)
     app.dependency_overrides[deps.confirm_consent_service] = lambda: ConfirmConsent(cli_repo, auth_repo)
+    app.dependency_overrides[deps.actualizar_perfil_cliente_service] = lambda: ActualizarPerfilCliente(cli_repo, auth_repo)
+    app.dependency_overrides[deps.get_auth_repo_for_enrichment] = lambda: auth_repo
     app.dependency_overrides[confirm_data_service] = lambda: ConfirmData(cli_repo)
     app.dependency_overrides[process_ocr_service] = lambda: FakeOcrService()
-    return {"client": client, "sin_repo": sin_repo, "img_repo": img_repo, "cli_repo": cli_repo}
+    return {"client": client, "sin_repo": sin_repo, "img_repo": img_repo, "cli_repo": cli_repo, "auth_repo": auth_repo}
 
 
 def test_reportar_siniestro_crea_en_estatus_preliminar(wired):
@@ -137,6 +140,49 @@ def test_rol_no_cliente_rechazado(wired):
         usuario_id="u2", email="taller@x.mx", rol="Operador_Taller", aseguradora_id="aseg-1"
     )
     r = wired["client"].get(f"{BASE}/perfil")
+    assert r.status_code == 403
+
+
+def test_put_perfil_updates_user(wired):
+    r = wired["client"].put(f"{BASE}/perfil", json={
+        "nombre": "Cliente Nuevo",
+        "email": "cli.nuevo@x.mx",
+        "telefono": "555-9999",
+    })
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["numero_poliza"] == "POL-123"
+    assert body["nombre"] == "Cliente Nuevo"
+    assert body["email"] == "cli.nuevo@x.mx"
+    assert body["telefono"] == "555-9999"
+
+    user = wired["auth_repo"].get_by_id("user-1")
+    assert user.nombre == "Cliente Nuevo"
+    assert user.email == "cli.nuevo@x.mx"
+    assert user.telefono == "555-9999"
+
+
+def test_put_perfil_partial_update(wired):
+    r = wired["client"].put(f"{BASE}/perfil", json={"nombre": "Solo Nombre"})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["nombre"] == "Solo Nombre"
+    assert body["numero_poliza"] == "POL-123"
+
+
+def test_put_perfil_empty_body_no_changes(wired):
+    r = wired["client"].put(f"{BASE}/perfil", json={})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["nombre"] == "Cliente"
+    assert body["email"] == "cli@x.mx"
+
+
+def test_put_perfil_rol_no_cliente_rechazado(wired):
+    app.dependency_overrides[get_current_user] = lambda: AuthenticatedUser(
+        usuario_id="u2", email="taller@x.mx", rol="Operador_Taller", aseguradora_id="aseg-1"
+    )
+    r = wired["client"].put(f"{BASE}/perfil", json={"nombre": "X"})
     assert r.status_code == 403
 
 

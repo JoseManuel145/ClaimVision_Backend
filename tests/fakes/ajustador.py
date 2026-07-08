@@ -6,15 +6,30 @@ from src.modules.aseguradora.domain.models.ajustador_model import AjustadorModel
 
 
 class FakeAjustadorRepo:
-    def __init__(self, mapping: dict[str, AjustadorModel]):
+    def __init__(self, mapping: dict[str, AjustadorModel], auth_repo=None):
         self.by_usuario = mapping
         self.by_id = {a.id: a for a in mapping.values()}
+        self.auth_repo = auth_repo
+
+    def _merge_user_data(self, aj: AjustadorModel | None, usuario_id: str) -> AjustadorModel | None:
+        if aj is None or self.auth_repo is None:
+            return aj
+        user = self.auth_repo.get_by_id(usuario_id)
+        if user:
+            aj.nombre = user.nombre
+            aj.email = user.email
+            aj.telefono = user.telefono
+        return aj
 
     def get_by_usuario_id(self, usuario_id: str):
-        return self.by_usuario.get(usuario_id)
+        aj = self.by_usuario.get(usuario_id)
+        return self._merge_user_data(aj, usuario_id)
 
     def get_by_id(self, id: str):
-        return self.by_id.get(id)
+        aj = self.by_id.get(id)
+        if aj is None:
+            return None
+        return self._merge_user_data(aj, aj.usuario_id)
 
     def update(self, ajustador: AjustadorModel) -> AjustadorModel:
         self.by_id[ajustador.id] = ajustador
