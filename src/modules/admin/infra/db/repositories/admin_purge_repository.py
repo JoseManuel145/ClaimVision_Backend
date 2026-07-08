@@ -122,16 +122,29 @@ class AdminPurgeRepository:
                 )
             ).rowcount
 
-            # 13. talleres huérfanos — usamos select() directamente en notin_()
+            # 13. talleres huérfanos — sin convenios con ninguna aseguradora
             talleres_con_convenio_sq = (
                 select(ConvenioAseguradoraTallerTable.taller_id)
                 .where(ConvenioAseguradoraTallerTable.deleted_at.is_(None))
                 .distinct()
             )
-            result["talleres_eliminados"] = self.session.execute(
-                sa_delete(TallerTable).where(
+            talleres_huérfanos_sq = (
+                select(TallerTable.id)
+                .where(
                     TallerTable.deleted_at.is_(None),
                     TallerTable.id.notin_(talleres_con_convenio_sq),
+                )
+            )
+            # Eliminar PTU de talleres huérfanos (evita FK violation)
+            self.session.execute(
+                sa_delete(PerfilTallerUsuariosTable).where(
+                    PerfilTallerUsuariosTable.taller_id.in_(talleres_huérfanos_sq)
+                )
+            )
+            # Eliminar talleres huérfanos
+            result["talleres_eliminados"] = self.session.execute(
+                sa_delete(TallerTable).where(
+                    TallerTable.id.in_(talleres_huérfanos_sq)
                 )
             ).rowcount
 
