@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, Query, Request, status
+from sqlalchemy.orm import Session
 
+from src.core.database import get_session
 from src.core.security import require_roles
+from src.core.exceptions import NotFoundError
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.shared.presentation.pagination import Page, offset_from_page
 from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
@@ -21,6 +24,7 @@ from src.modules.ajustador.presentation.ajustador_schemas import (
     AjustadorPerfilResponse,
     DanoRequest,
 )
+from src.modules.aseguradora.infra.db.repositories.ajustador_repository import AjustadorRepository
 from src.modules.ajustador.application.list_mis_asignaciones import ListMisAsignaciones
 from src.modules.ajustador.application.get_mi_siniestro import GetMiSiniestro
 from src.modules.ajustador.application.registrar_peritaje import RegistrarPeritaje
@@ -40,8 +44,23 @@ def _perfil_dto(aj) -> AjustadorPerfilResponse:
     lat, lng = (aj.geolocalizacion_actual or (None, None))
     return AjustadorPerfilResponse(
         id=aj.id, usuario_id=aj.usuario_id, cedula_profesional=aj.cedula_profesional,
-        activo_para_servicio=aj.activo_para_servicio, latitud=lat, longitud=lng, version=aj.version,
+        activo_para_servicio=aj.activo_para_servicio,
+        nombre=aj.nombre, email=aj.email, telefono=aj.telefono,
+        latitud=lat, longitud=lng, version=aj.version,
     )
+
+
+@router.get("/perfil", response_model=AjustadorPerfilResponse)
+def get_perfil(
+    user: AuthenticatedUser = Depends(get_ajustador),
+    db: Session = Depends(get_session),
+):
+    """§5 · Perfil del ajustador (datos personales + disponibilidad + ubicación)."""
+    repo = AjustadorRepository(db)
+    aj = repo.get_by_usuario_id(user.usuario_id)
+    if not aj:
+        raise NotFoundError("Perfil de ajustador no encontrado.")
+    return _perfil_dto(aj)
 
 
 @router.get("/asignaciones", response_model=Page[SiniestroResponseDTO])

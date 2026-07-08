@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, Query, Request, status
+from sqlalchemy.orm import Session
 
+from src.core.database import get_session
 from src.core.security import require_roles
+from src.core.exceptions import NotFoundError, ForbiddenError
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.shared.presentation.pagination import Page, offset_from_page
 from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
@@ -10,6 +13,7 @@ from src.modules.siniestro.presentation.peritaje.peritaje_dto import PeritajeRes
 from src.modules.taller.presentation.taller_v1_schemas import (
     CotizacionV1DTO,
     TallerExpedienteDTO,
+    TallerPerfilResponse,
     CrearCotizacionRequest,
     EditarCotizacionRequest,
 )
@@ -25,6 +29,44 @@ router = APIRouter()
 
 get_taller = require_roles("Operador_Taller")
 EVENTO = "taller"
+
+
+@router.get("/perfil", response_model=TallerPerfilResponse)
+def get_perfil(
+    user: AuthenticatedUser = Depends(get_taller),
+    db: Session = Depends(get_session),
+):
+    """§6 · Perfil del taller (datos del taller + datos del operador)."""
+    from src.modules.taller.infra.db.repositories.perfil_taller_repository import PerfilTallerRepository
+    from src.modules.aseguradora.infra.db.repositories.taller_repository import TallerRepository
+    from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
+
+    perfil_repo = PerfilTallerRepository(db)
+    taller_id = perfil_repo.get_taller_id_by_usuario(user.usuario_id)
+    if not taller_id:
+        raise ForbiddenError("El usuario no tiene un perfil de taller asignado.")
+
+    taller_repo = TallerRepository(db)
+    taller = taller_repo.get_by_id(taller_id)
+    if not taller:
+        raise NotFoundError("Taller no encontrado.")
+
+    auth_repo = AuthRepository(db)
+    user_data = auth_repo.get_by_id(user.usuario_id)
+
+    return TallerPerfilResponse(
+        id=taller.id,
+        nombre_comercial=taller.nombre_comercial,
+        rfc=taller.rfc,
+        direccion_tecnica=taller.direccion_tecnica,
+        telefono_contacto=taller.telefono_contacto,
+        nombre=user_data.nombre if user_data else None,
+        email=user_data.email if user_data else None,
+        telefono=user_data.telefono if user_data else None,
+        version=taller.version,
+        created_at=taller.created_at,
+        updated_at=taller.updated_at,
+    )
 
 
 @router.get("/ordenes", response_model=Page[SiniestroResponseDTO])

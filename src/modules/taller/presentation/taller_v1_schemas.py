@@ -42,3 +42,19 @@ class EditarCotizacionRequest(BaseModel):
     monto_total: Optional[float] = None
     desglose_pdf_url: Optional[str] = None
     observaciones_tecnicas: Optional[str] = None
+
+
+class TallerPerfilResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    nombre_comercial: str
+    rfc: str
+    direccion_tecnica: str
+    telefono_contacto: str
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    telefono: Optional[str] = None
+    version: int
+    created_at: datetime
+    updated_at: datetime

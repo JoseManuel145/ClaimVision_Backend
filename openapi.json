@@ -397,6 +397,33 @@
         ]
       }
     },
+    "/api/v1/ajustador/perfil": {
+      "get": {
+        "tags": [
+          "v1 · Ajustador"
+        ],
+        "summary": "Get Perfil",
+        "description": "§5 · Perfil del ajustador (datos personales + disponibilidad + ubicación).",
+        "operationId": "get_perfil_api_v1_ajustador_perfil_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AjustadorPerfilResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/ajustador/asignaciones": {
       "get": {
         "tags": [
@@ -779,6 +806,33 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/taller/perfil": {
+      "get": {
+        "tags": [
+          "v1 · Taller"
+        ],
+        "summary": "Get Perfil",
+        "description": "§6 · Perfil del taller (datos del taller + datos del operador).",
+        "operationId": "get_perfil_api_v1_taller_perfil_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TallerPerfilResponse"
                 }
               }
             }
@@ -3909,6 +3963,39 @@
             "type": "boolean",
             "title": "Activo Para Servicio"
           },
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "telefono": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono"
+          },
           "latitud": {
             "anyOf": [
               {
@@ -6856,6 +6943,89 @@
           "created_at"
         ],
         "title": "TallerExpedienteDTO"
+      },
+      "TallerPerfilResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "nombre_comercial": {
+            "type": "string",
+            "title": "Nombre Comercial"
+          },
+          "rfc": {
+            "type": "string",
+            "title": "Rfc"
+          },
+          "direccion_tecnica": {
+            "type": "string",
+            "title": "Direccion Tecnica"
+          },
+          "telefono_contacto": {
+            "type": "string",
+            "title": "Telefono Contacto"
+          },
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "telefono": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nombre_comercial",
+          "rfc",
+          "direccion_tecnica",
+          "telefono_contacto",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TallerPerfilResponse"
       },
       "TallerResponseDTO": {
         "properties": {

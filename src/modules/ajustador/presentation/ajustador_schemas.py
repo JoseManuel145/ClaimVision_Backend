@@ -40,6 +40,9 @@ class AjustadorPerfilResponse(BaseModel):
     usuario_id: str
     cedula_profesional: str
     activo_para_servicio: bool
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    telefono: Optional[str] = None
     latitud: Optional[float] = None
     longitud: Optional[float] = None
     version: int
