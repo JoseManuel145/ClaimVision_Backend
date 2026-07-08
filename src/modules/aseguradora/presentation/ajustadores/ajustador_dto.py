@@ -10,6 +10,9 @@ class AjustadorResponseDTO(BaseModel):
     cedula_profesional: str
     geolocalizacion_actual: Optional[tuple[float, float]]
     activo_para_servicio: bool
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    telefono: Optional[str] = None
     version: int
     created_at: datetime
     updated_at: datetime

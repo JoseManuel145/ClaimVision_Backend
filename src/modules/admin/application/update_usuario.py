@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timezone
 from src.modules.admin.presentation.schemas import UpdateUsuarioRequestDTO
 from src.modules.admin.domain.ports import AdminUserRepositoryPort, AuditLogRepositoryPort
@@ -7,8 +8,8 @@ from src.core.exceptions import NotFoundError, BusinessRuleError
 from src.modules.auth.infra.db.tables.user_table import UserTable
 
 FIELD_MAP = {
-    "nombre": "nombre_completo_cifrado",
-    "telefono": "telefono_cifrado",
+    "nombre": "nombre_completo",
+    "telefono": "telefono",
     "rol": "rol",
     "aseguradora_id": "aseguradora_id",
     "email": "email",
@@ -34,9 +35,9 @@ class UpdateUsuario:
 
         update_data = {}
         if data.nombre is not None:
-            update_data["nombre_completo_cifrado"] = data.nombre
+            update_data[FIELD_MAP["nombre"]] = data.nombre
         if data.telefono is not None:
-            update_data["telefono_cifrado"] = data.telefono
+            update_data[FIELD_MAP["telefono"]] = data.telefono
         if data.rol is not None:
             update_data["rol"] = data.rol
         if data.aseguradora_id is not None:

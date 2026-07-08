@@ -81,8 +81,8 @@ class UsuarioResponseDTO(BaseModel):
 
     id: str
     email: str
-    nombre_completo_cifrado: str
-    telefono_cifrado: Optional[str] = None
+    nombre_completo: str
+    telefono: Optional[str] = None
     rol: str
     estatus_arco: str
     aseguradora_id: Optional[str] = None

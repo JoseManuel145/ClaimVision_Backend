@@ -16,3 +16,6 @@ class ClienteModel:
     created_at: datetime
     updated_at: datetime
     deleted_at: datetime | None = None
+    nombre: str | None = None
+    email: str | None = None
+    telefono: str | None = None

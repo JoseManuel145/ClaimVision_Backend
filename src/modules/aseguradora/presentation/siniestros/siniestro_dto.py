@@ -27,3 +27,6 @@ class SiniestroDetalleAseguradoraDTO(SiniestroResponseDTO):
     peritaje: Optional[PeritajeResponseDTO] = None
     cotizacion: Optional[CotizacionV1DTO] = None
     peritaje_ia: Optional[dict] = None
+    cliente_nombre: Optional[str] = None
+    ajustador_nombre: Optional[str] = None
+    taller_nombre: Optional[str] = None

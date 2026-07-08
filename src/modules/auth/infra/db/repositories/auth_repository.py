@@ -4,17 +4,22 @@ from src.modules.auth.domain.models import User
 from src.modules.auth.domain.ports import AuthPort
 from src.core.exceptions import NotFoundError
 from src.shared.domain.models import EstadoUsuario
+from src.shared.domain.services.encryption_service import encrypt_fields, decrypt_fields
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 from sqlalchemy import update
 
 def _to_domain(obj: UserTable) -> User:
+    decrypted = decrypt_fields({
+        "nombre_completo_cifrado": obj.nombre_completo_cifrado,
+        "telefono_cifrado": obj.telefono_cifrado or "",
+    })
     return User(
         usuario_id=str(obj.id) if obj.id is not None else None,
-        nombre=obj.nombre_completo_cifrado,
+        nombre=decrypted.get("nombre_completo", ""),
         email=obj.email,
         password=obj.password_hash,
-        telefono=obj.telefono_cifrado or "",
+        telefono=decrypted.get("telefono", ""),
         rol=obj.rol.value if hasattr(obj.rol, 'value') else obj.rol,
         estado=obj.estatus_arco.value if hasattr(obj.estatus_arco, 'value') else obj.estatus_arco,
         aseguradora_id=str(obj.aseguradora_id) if obj.aseguradora_id is not None else None,
@@ -28,17 +33,28 @@ class AuthRepository(AuthPort):
         self.db = db
 
     def create(self, user: User) -> User:
+        encrypted = encrypt_fields({
+            "nombre_completo": user.nombre,
+            "telefono": user.telefono or "",
+            "email": user.email,
+            "password_hash": user.password,
+            "rol": user.rol if user.rol else Rol.CLIENTE.value,
+            "estatus_arco": user.estado if user.estado else EstadoUsuario.ACTIVO.value,
+            "aseguradora_id": user.aseguradora_id,
+            "fecha_creacion": user.fecha_creacion,
+            "fecha_eliminacion": user.fecha_eliminacion,
+        })
         model = UserTable(
             id=user.usuario_id,
-            nombre_completo_cifrado=user.nombre,
-            email=user.email,
-            password_hash=user.password,
-            telefono_cifrado=user.telefono or "",
-            rol=user.rol if user.rol else Rol.CLIENTE.value,
-            estatus_arco=user.estado if user.estado else EstadoUsuario.ACTIVO.value,
-            aseguradora_id=user.aseguradora_id,
-            fecha_creacion=user.fecha_creacion,
-            fecha_eliminacion=user.fecha_eliminacion
+            nombre_completo_cifrado=encrypted["nombre_completo_cifrado"],
+            email=encrypted["email"],
+            password_hash=encrypted["password_hash"],
+            telefono_cifrado=encrypted.get("telefono_cifrado", ""),
+            rol=encrypted["rol"],
+            estatus_arco=encrypted["estatus_arco"],
+            aseguradora_id=encrypted["aseguradora_id"],
+            fecha_creacion=encrypted["fecha_creacion"],
+            fecha_eliminacion=encrypted["fecha_eliminacion"],
         )
         self.db.add(model)
         self.db.commit()

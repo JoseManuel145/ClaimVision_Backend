@@ -1,13 +1,14 @@
 from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, update, or_
+from sqlalchemy import select, func, update
 from datetime import datetime, timezone
 from src.modules.admin.domain.ports import AdminUserRepositoryPort
 from src.modules.auth.infra.db.tables.user_table import UserTable
 from src.shared.domain.models import EstadoUsuario
+from src.shared.domain.services.encryption_service import encrypt_fields, decrypt_fields
 
 def _user_to_dict(user) -> dict:
-    return {
+    raw = {
         "id": str(user.id),
         "email": user.email,
         "nombre_completo_cifrado": user.nombre_completo_cifrado,
@@ -18,6 +19,7 @@ def _user_to_dict(user) -> dict:
         "created_at": user.fecha_creacion,
         "deleted_at": user.fecha_eliminacion,
     }
+    return decrypt_fields(raw)
 
 class AdminUserRepository(AdminUserRepositoryPort):
     def __init__(self, session: Session):
@@ -60,8 +62,8 @@ class AdminUserRepository(AdminUserRepositoryPort):
             count_stmt = count_stmt.where(UserTable.estatus_arco == estatus)
         if search:
             pattern = f"%{search}%"
-            base = base.where(or_(UserTable.email.ilike(pattern), UserTable.nombre_completo_cifrado.ilike(pattern)))
-            count_stmt = count_stmt.where(or_(UserTable.email.ilike(pattern), UserTable.nombre_completo_cifrado.ilike(pattern)))
+            base = base.where(UserTable.email.ilike(pattern))
+            count_stmt = count_stmt.where(UserTable.email.ilike(pattern))
 
         total = self.session.execute(count_stmt).scalar() or 0
         stmt = base.order_by(UserTable.fecha_creacion.desc()).offset(offset).limit(limit)
@@ -72,7 +74,8 @@ class AdminUserRepository(AdminUserRepositoryPort):
         user = self.session.query(UserTable).filter(UserTable.id == usuario_id).first()
         if not user:
             return None
-        for key, value in data.items():
+        encrypted = encrypt_fields(data)
+        for key, value in encrypted.items():
             if value is not None:
                 setattr(user, key, value)
         self.session.commit()

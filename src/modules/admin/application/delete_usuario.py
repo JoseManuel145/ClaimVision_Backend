@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timezone
 from src.modules.admin.domain.ports import AdminUserRepositoryPort, AuditLogRepositoryPort
 from src.modules.admin.domain.models import AuditLog

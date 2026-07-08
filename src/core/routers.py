@@ -9,6 +9,7 @@ from src.modules.aseguradora.presentation.ajustadores.ajustador_routes import ro
 from src.modules.aseguradora.presentation.clientes.cliente_routes import router as cliente_crud_router
 from src.modules.aseguradora.presentation.talleres.taller_routes import router as taller_crud_router
 from src.modules.aseguradora.presentation.usuarios.usuario_routes import router as usuario_crud_router
+from src.modules.aseguradora.presentation.perfil.perfil_routes import router as perfil_router
 from src.modules.admin.presentation.admin_v1_routes import router as admin_v1_router
 from src.modules.auth.presentation.auth_v1_routes import router as auth_v1_router
 
@@ -21,5 +22,6 @@ api_router.include_router(ajustador_crud_router, prefix="/v1/aseguradora/crud/aj
 api_router.include_router(cliente_crud_router, prefix="/v1/aseguradora/crud/clientes", tags=["v1 · Aseguradora CRUD"])
 api_router.include_router(taller_crud_router, prefix="/v1/aseguradora/crud/talleres", tags=["v1 · Aseguradora CRUD"])
 api_router.include_router(usuario_crud_router, prefix="/v1/aseguradora/crud/usuarios", tags=["v1 · Aseguradora CRUD"])
+api_router.include_router(perfil_router, prefix="/v1/aseguradora/perfil", tags=["v1 · Aseguradora"])
 api_router.include_router(admin_v1_router, prefix="/v1/admin", tags=["v1 · Admin"])
 api_router.include_router(auth_v1_router, prefix="/v1/auth", tags=["v1 · Auth"])

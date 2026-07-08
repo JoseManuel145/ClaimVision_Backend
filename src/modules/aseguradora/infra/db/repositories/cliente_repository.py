@@ -4,9 +4,17 @@ from sqlalchemy import select, func, update
 from src.modules.aseguradora.domain.models.cliente_model import ClienteModel
 from src.modules.aseguradora.domain.ports.cliente_repository_port import ClienteRepositoryPort
 from src.modules.aseguradora.infra.db.tables.perfil_cliente_table import PerfilClienteTable
+from src.modules.auth.infra.db.tables.user_table import UserTable
+from src.shared.domain.services.encryption_service import decrypt_fields
 import uuid
 
-def _to_domain(obj: PerfilClienteTable) -> ClienteModel:
+
+def _to_domain(obj: PerfilClienteTable, user: UserTable | None = None) -> ClienteModel:
+    user_data = decrypt_fields({
+        "nombre_completo_cifrado": user.nombre_completo_cifrado if user else None,
+        "telefono_cifrado": user.telefono_cifrado if user else None,
+        "email": user.email if user else None,
+    }) if user else {}
     return ClienteModel(
         id=str(obj.id),
         usuario_id=str(obj.usuario_id),
@@ -20,8 +28,12 @@ def _to_domain(obj: PerfilClienteTable) -> ClienteModel:
         version=obj.version,
         created_at=obj.created_at,
         updated_at=obj.updated_at,
-        deleted_at=obj.deleted_at
+        deleted_at=obj.deleted_at,
+        nombre=user_data.get("nombre_completo"),
+        email=user_data.get("email"),
+        telefono=user_data.get("telefono"),
     )
+
 
 class ClienteRepository(ClienteRepositoryPort):
     def __init__(self, db: Session):
@@ -41,7 +53,7 @@ class ClienteRepository(ClienteRepositoryPort):
             version=cliente.version,
             created_at=cliente.created_at,
             updated_at=cliente.updated_at,
-            deleted_at=cliente.deleted_at
+            deleted_at=cliente.deleted_at,
         )
         self.db.add(model)
         self.db.commit()
@@ -49,29 +61,46 @@ class ClienteRepository(ClienteRepositoryPort):
         return _to_domain(model)
 
     def get_by_id(self, id: str) -> ClienteModel | None:
-        stmt = select(PerfilClienteTable).where(PerfilClienteTable.id == id, PerfilClienteTable.deleted_at.is_(None))
-        r = self.db.execute(stmt).scalar_one_or_none()
-        return _to_domain(r) if r else None
+        stmt = select(PerfilClienteTable, UserTable).join(
+            UserTable, PerfilClienteTable.usuario_id == UserTable.id
+        ).where(PerfilClienteTable.id == id, PerfilClienteTable.deleted_at.is_(None))
+        row = self.db.execute(stmt).one_or_none()
+        if not row:
+            return None
+        cliente, user = row
+        return _to_domain(cliente, user)
 
     def get_by_usuario_id(self, usuario_id: str) -> ClienteModel | None:
-        stmt = select(PerfilClienteTable).where(PerfilClienteTable.usuario_id == usuario_id, PerfilClienteTable.deleted_at.is_(None))
-        r = self.db.execute(stmt).scalar_one_or_none()
-        return _to_domain(r) if r else None
+        stmt = select(PerfilClienteTable, UserTable).join(
+            UserTable, PerfilClienteTable.usuario_id == UserTable.id
+        ).where(PerfilClienteTable.usuario_id == usuario_id, PerfilClienteTable.deleted_at.is_(None))
+        row = self.db.execute(stmt).one_or_none()
+        if not row:
+            return None
+        cliente, user = row
+        return _to_domain(cliente, user)
 
-    def list_by_aseguradora(self, aseguradora_id: str, offset: int = 0, limit: int = 20) -> Tuple[List[ClienteModel], int]:
-        from src.modules.auth.infra.db.tables.user_table import UserTable
-        
-        base = select(PerfilClienteTable).join(UserTable, PerfilClienteTable.usuario_id == UserTable.id)\
-            .where(UserTable.aseguradora_id == aseguradora_id, PerfilClienteTable.deleted_at.is_(None))
-        
-        count_stmt = select(func.count()).select_from(PerfilClienteTable).join(UserTable, PerfilClienteTable.usuario_id == UserTable.id)\
-            .where(UserTable.aseguradora_id == aseguradora_id, PerfilClienteTable.deleted_at.is_(None))
-        
+    def list_by_aseguradora(
+        self, aseguradora_id: str, offset: int = 0, limit: int = 20,
+    ) -> Tuple[List[ClienteModel], int]:
+        base = select(PerfilClienteTable, UserTable).join(
+            UserTable, PerfilClienteTable.usuario_id == UserTable.id
+        ).where(
+            UserTable.aseguradora_id == aseguradora_id,
+            PerfilClienteTable.deleted_at.is_(None),
+        )
+
+        count_stmt = select(func.count()).select_from(PerfilClienteTable).join(
+            UserTable, PerfilClienteTable.usuario_id == UserTable.id
+        ).where(
+            UserTable.aseguradora_id == aseguradora_id,
+            PerfilClienteTable.deleted_at.is_(None),
+        )
+
         total = self.db.execute(count_stmt).scalar() or 0
-        
         stmt = base.order_by(PerfilClienteTable.created_at.desc()).offset(offset).limit(limit)
-        results = self.db.execute(stmt).scalars().all()
-        return [_to_domain(r) for r in results], total
+        rows = self.db.execute(stmt).all()
+        return [_to_domain(c, u) for c, u in rows], total
 
     def update(self, cliente: ClienteModel) -> ClienteModel:
         stmt = update(PerfilClienteTable).where(PerfilClienteTable.id == cliente.id).values(
@@ -83,7 +112,7 @@ class ClienteRepository(ClienteRepositoryPort):
             autoriza_transferencia_talleres=cliente.autoriza_transferencia_talleres,
             fecha_consentimiento=cliente.fecha_consentimiento,
             version=cliente.version,
-            updated_at=cliente.updated_at
+            updated_at=cliente.updated_at,
         )
         self.db.execute(stmt)
         self.db.commit()

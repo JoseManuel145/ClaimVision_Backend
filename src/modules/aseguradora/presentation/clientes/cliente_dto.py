@@ -14,6 +14,9 @@ class ClienteResponseDTO(BaseModel):
     consentimiento_biometria: bool
     autoriza_transferencia_talleres: bool
     fecha_consentimiento: Optional[datetime]
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    telefono: Optional[str] = None
 
 class ClienteCreateDTO(BaseModel):
     nombre: str

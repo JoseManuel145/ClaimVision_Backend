@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, Query, Request, status
+from sqlalchemy.orm import Session
 
+from src.core.database import get_session
 from src.core.security import require_roles
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.shared.presentation.pagination import Page, offset_from_page
@@ -63,8 +65,28 @@ def detalle_siniestro(
     id: str,
     user: AuthenticatedUser = Depends(get_operador),
     uc: GetSiniestroAseguradora = Depends(deps.get_siniestro_service),
+    db: Session = Depends(get_session),
 ):
     siniestro, imagenes, peritaje, cotizacion = uc.execute(id, user.aseguradora_id)
+
+    from src.modules.aseguradora.infra.db.repositories.cliente_repository import ClienteRepository
+    from src.modules.aseguradora.infra.db.repositories.ajustador_repository import AjustadorRepository
+    from src.modules.aseguradora.infra.db.repositories.taller_repository import TallerRepository
+
+    def _resolver_nombre(repo, entity_id, attr="nombre"):
+        try:
+            entity = repo.get_by_id(entity_id)
+            return getattr(entity, attr, None) if entity else None
+        except Exception:
+            return None
+
+    cliente_nombre = _resolver_nombre(ClienteRepository(db), siniestro.cliente_id) if siniestro.cliente_id else None
+    ajustador_nombre = _resolver_nombre(AjustadorRepository(db), siniestro.ajustador_id) if siniestro.ajustador_id else None
+    taller_nombre = (
+        _resolver_nombre(TallerRepository(db), siniestro.taller_id, "nombre_comercial")
+        if siniestro.taller_id else None
+    )
+
     base = SiniestroResponseDTO.model_validate(siniestro)
     return SiniestroDetalleAseguradoraDTO(
         **base.model_dump(),
@@ -72,6 +94,9 @@ def detalle_siniestro(
         peritaje=PeritajeResponseDTO.model_validate(peritaje) if peritaje else None,
         cotizacion=CotizacionV1DTO.model_validate(cotizacion) if cotizacion else None,
         peritaje_ia=None,
+        cliente_nombre=cliente_nombre,
+        ajustador_nombre=ajustador_nombre,
+        taller_nombre=taller_nombre,
     )
 
 

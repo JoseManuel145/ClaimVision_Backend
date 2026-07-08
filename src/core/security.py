@@ -1,8 +1,11 @@
 import os
 import base64
+import logging
 from fastapi import status
 from fastapi import HTTPException
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -40,7 +43,8 @@ def decrypt_aes256(cipher_text: str) -> str:
         decrypted = aesgcm.decrypt(nonce, encrypted, None)
         return decrypted.decode('utf-8')
     except Exception:
-        return cipher_text # Fallback o podríamos levantar ValueError
+        logger.warning("Fallo descifrado AES-256, probablemente dato legacy (plano): %s caracteres", len(cipher_text))
+        return cipher_text
 
 def get_current_user(
     token_service: JwtTokenService = Depends(),
