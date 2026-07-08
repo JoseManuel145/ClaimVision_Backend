@@ -28,6 +28,7 @@ from src.modules.admin.application.delete_usuario import DeleteUsuario
 from src.modules.admin.application.list_talleres_admin import ListTalleresAdmin
 from src.modules.admin.application.get_taller_admin import GetTallerAdmin
 from src.modules.admin.application.get_dashboard_resumen import GetDashboardResumen
+from src.modules.admin.application.purge_aseguradora import PurgeAseguradoraUseCase
 # taller repo (reused from aseguradora module)
 from src.modules.aseguradora.infra.db.repositories.taller_repository import TallerRepository
 
@@ -122,4 +123,13 @@ def get_taller_admin_service(session=Depends(get_session)):
 
 def get_dashboard_resumen_service(session=Depends(get_session)):
     return GetDashboardResumen(session)
+
+
+def purge_aseguradora_service(session=Depends(get_session)):
+    from src.modules.admin.infra.db.repositories.admin_purge_repository import AdminPurgeRepository
+    return PurgeAseguradoraUseCase(
+        aseguradora_repo=AseguradoraRepository(session),
+        audit_repo=AuditLogRepository(session),
+        purge_repo=AdminPurgeRepository(session),
+    )
 

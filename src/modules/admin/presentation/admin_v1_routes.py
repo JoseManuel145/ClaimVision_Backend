@@ -22,6 +22,7 @@ from src.modules.admin.presentation.schemas import (
     DashboardResumenDTO,
     EstatusCountDTO,
     SiniestrosPorMesDTO,
+    PurgeAseguradoraResponse,
 )
 from src.modules.admin.application.registrar_aseguradora import RegistrarAseguradoraUseCase
 from src.modules.admin.application.crear_operador_aseguradora import CrearOperadorAseguradoraUseCase
@@ -41,6 +42,7 @@ from src.modules.admin.application.delete_usuario import DeleteUsuario
 from src.modules.admin.application.list_talleres_admin import ListTalleresAdmin
 from src.modules.admin.application.get_taller_admin import GetTallerAdmin
 from src.modules.admin.application.get_dashboard_resumen import GetDashboardResumen
+from src.modules.admin.application.purge_aseguradora import PurgeAseguradoraUseCase
 from src.modules.admin.presentation import dependencies as deps
 
 from src.modules.aseguradora.infra.db.repositories.taller_repository import TallerRepository
@@ -435,6 +437,29 @@ def obtener_taller_admin(
         )
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+# ── Purge ──────────────────────────────────────────────────────────────
+
+@router.post("/aseguradoras/{aseguradora_id}/purge", response_model=PurgeAseguradoraResponse)
+def purgar_aseguradora(
+    aseguradora_id: str,
+    request: Request,
+    user: AuthenticatedUser = Depends(get_admin),
+    uc: PurgeAseguradoraUseCase = Depends(deps.purge_aseguradora_service),
+    audit: AuditLogger = Depends(get_audit_logger),
+):
+    """Eliminar todos los datos asociados a una aseguradora (baja total)."""
+    try:
+        resultado = uc.execute(user.usuario_id, aseguradora_id)
+        audit.record(
+            evento_modulo=EVENTO, accion="purga_aseguradora",
+            usuario=user, request=request,
+            metadata={"aseguradora_id": aseguradora_id, "deleted": resultado["deleted"]},
+        )
+        return PurgeAseguradoraResponse(**resultado)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────

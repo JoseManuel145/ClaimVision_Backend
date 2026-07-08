@@ -3446,6 +3446,54 @@
         }
       }
     },
+    "/api/v1/admin/aseguradoras/{aseguradora_id}/purge": {
+      "post": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Purgar Aseguradora",
+        "description": "Eliminar todos los datos asociados a una aseguradora (baja total).",
+        "operationId": "purgar_aseguradora_api_v1_admin_aseguradoras__aseguradora_id__purge_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "aseguradora_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Aseguradora Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurgeAseguradoraResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/dashboard/resumen": {
       "get": {
         "tags": [
@@ -5444,6 +5492,37 @@
           "danos"
         ],
         "title": "PeritajeUpsertRequestDTO"
+      },
+      "PurgeAseguradoraResponse": {
+        "properties": {
+          "purged": {
+            "type": "boolean",
+            "title": "Purged"
+          },
+          "aseguradora_id": {
+            "type": "string",
+            "title": "Aseguradora Id"
+          },
+          "aseguradora_nombre": {
+            "type": "string",
+            "title": "Aseguradora Nombre"
+          },
+          "deleted": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Deleted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "purged",
+          "aseguradora_id",
+          "aseguradora_nombre",
+          "deleted"
+        ],
+        "title": "PurgeAseguradoraResponse"
       },
       "RechazarCotizacionRequest": {
         "properties": {

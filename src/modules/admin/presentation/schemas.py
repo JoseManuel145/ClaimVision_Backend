@@ -124,6 +124,15 @@ class DashboardResumenDTO(BaseModel):
     total_talleres: int
     talleres_pendientes: int
 
+# ── Purge ───────────────────────────────────────────────────────────────
+
+class PurgeAseguradoraResponse(BaseModel):
+    purged: bool
+    aseguradora_id: str
+    aseguradora_nombre: str
+    deleted: Dict[str, int]
+
+
 class PaginatedResponse(BaseModel, Generic[T]):
     items: List[T]
     total: int

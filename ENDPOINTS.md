@@ -43,6 +43,7 @@ Prefijo: `/api/v1/admin`
 | `POST` | `/api/v1/admin/aseguradoras/{aseguradora_id}/verificar` | Verificar una aseguradora |
 | `PUT` | `/api/v1/admin/aseguradoras/{aseguradora_id}/suscripcion` | Actualizar suscripción de la aseguradora |
 | `DELETE` | `/api/v1/admin/aseguradoras/{aseguradora_id}` | Desincorporar (baja lógica) una aseguradora |
+| `POST` | `/api/v1/admin/aseguradoras/{aseguradora_id}/purge` | Purga total: elimina todos los datos asociados en una transacción |
 | `POST` | `/api/v1/admin/usuarios/{usuario_id}/bloqueo-arco` | Aplicar bloqueo ARCO a un usuario |
 | `GET` | `/api/v1/admin/usuarios` | Listar usuarios (paginado, filtros por rol/estatus/search) |
 | `GET` | `/api/v1/admin/usuarios/{usuario_id}` | Obtener detalle de un usuario |
@@ -141,12 +142,12 @@ Prefijo: `/api/v1/aseguradora`
 | Grupo | Endpoints |
 |-------|----------|
 | Auth | 7 |
-| Admin | 19 |
+| Admin | 20 |
 | Cliente | 8 |
 | Ajustador | 7 |
 | Taller | 6 |
 | Aseguradora (Siniestros) | 8 |
 | Aseguradora (CRUD) | 16 |
-| **Subtotal** | **71** |
+| **Subtotal** | **72** |
 | Health | 1 |
-| **Total** | **72** |
+| **Total** | **73** |
