@@ -122,23 +122,21 @@ class AdminPurgeRepository:
                 )
             ).rowcount
 
-            # 13. talleres huérfanos
-            # IN + subquery elimina necesidad de CTE, manteniendo SQLAlchemy
-            talleres_con_convenio = (
+            # 13. talleres huérfanos — usamos select() directamente en notin_()
+            talleres_con_convenio_sq = (
                 select(ConvenioAseguradoraTallerTable.taller_id)
                 .where(ConvenioAseguradoraTallerTable.deleted_at.is_(None))
                 .distinct()
-                .subquery()
             )
             result["talleres_eliminados"] = self.session.execute(
                 sa_delete(TallerTable).where(
                     TallerTable.deleted_at.is_(None),
-                    TallerTable.id.notin_(talleres_con_convenio),
+                    TallerTable.id.notin_(talleres_con_convenio_sq),
                 )
             ).rowcount
 
             result["talleres_conservados"] = self.session.execute(
-                select(func.count()).select_from(talleres_con_convenio)
+                select(func.count()).select_from(talleres_con_convenio_sq.subquery())
             ).scalar() or 0
 
             # 14. aseguradora — baja lógica

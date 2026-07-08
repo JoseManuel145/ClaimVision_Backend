@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from src.core.database import get_session
 from src.core.security import require_roles
+from src.core.exceptions import NotFoundError
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.shared.presentation.pagination import Page, offset_from_page
 from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
@@ -458,8 +459,12 @@ def purgar_aseguradora(
             metadata={"aseguradora_id": aseguradora_id, "deleted": resultado["deleted"]},
         )
         return PurgeAseguradoraResponse(**resultado)
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except NotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error interno durante la purga. Revise los logs.")
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────
