@@ -13,6 +13,18 @@ from src.modules.taller.application.expedientes.concluir_expediente import Concl
 from src.modules.taller.application.expedientes.marcar_listo_entrega import MarcarListoEntrega
 from src.modules.taller.application.crear_cotizacion import CrearCotizacion
 from src.modules.taller.application.editar_cotizacion import EditarCotizacion
+from src.modules.taller.application.get_perfil_taller import GetPerfilTaller
+from src.modules.taller.application.actualizar_perfil_taller import ActualizarPerfilTaller
+from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
+from src.modules.aseguradora.infra.db.repositories.taller_repository import TallerRepository
+
+
+def get_perfil_taller_service(session: Session = Depends(get_session)) -> GetPerfilTaller:
+    return GetPerfilTaller(PerfilTallerRepository(session), TallerRepository(session), AuthRepository(session))
+
+
+def actualizar_perfil_taller_service(session: Session = Depends(get_session)) -> ActualizarPerfilTaller:
+    return ActualizarPerfilTaller(PerfilTallerRepository(session), TallerRepository(session), AuthRepository(session))
 
 
 def list_ordenes_service(session: Session = Depends(get_session)) -> ListExpedientesTallerUseCase:

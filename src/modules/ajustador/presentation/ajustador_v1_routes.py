@@ -35,6 +35,8 @@ from src.modules.ajustador.application.editar_peritaje import EditarPeritaje
 from src.modules.ajustador.application.agregar_dano import AgregarDano
 from src.modules.ajustador.application.actualizar_disponibilidad import ActualizarDisponibilidad
 from src.modules.ajustador.application.actualizar_geolocalizacion import ActualizarGeolocalizacion
+from src.modules.ajustador.application.get_perfil_ajustador import GetPerfilAjustador
+from src.modules.ajustador.application.actualizar_perfil_ajustador import ActualizarPerfilAjustador
 from src.modules.ajustador.presentation import ajustador_dependencies as deps
 
 router = APIRouter()
@@ -56,13 +58,10 @@ def _perfil_dto(aj) -> AjustadorPerfilResponse:
 @router.get("/perfil", response_model=AjustadorPerfilResponse)
 def get_perfil(
     user: AuthenticatedUser = Depends(get_ajustador),
-    db: Session = Depends(get_session),
+    uc: GetPerfilAjustador = Depends(deps.get_perfil_ajustador_service),
 ):
     """§5 · Perfil del ajustador (datos personales + disponibilidad + ubicación)."""
-    repo = AjustadorRepository(db)
-    aj = repo.get_by_usuario_id(user.usuario_id)
-    if not aj:
-        raise NotFoundError("Perfil de ajustador no encontrado.")
+    aj = uc.execute(user.usuario_id)
     return _perfil_dto(aj)
 
 
@@ -70,25 +69,10 @@ def get_perfil(
 def actualizar_perfil(
     dto: AjustadorPerfilUpdateRequest,
     user: AuthenticatedUser = Depends(get_ajustador),
-    db: Session = Depends(get_session),
+    uc: ActualizarPerfilAjustador = Depends(deps.actualizar_perfil_ajustador_service),
 ):
     """§5 · Actualiza datos personales del ajustador (nombre, email, teléfono)."""
-    from sqlalchemy import update as sa_update
-
-    user_update = {}
-    if dto.nombre is not None:
-        user_update["nombre_completo"] = dto.nombre
-    if dto.email is not None:
-        user_update["email"] = dto.email
-    if dto.telefono is not None:
-        user_update["telefono"] = dto.telefono
-    if user_update:
-        encrypted = encrypt_fields(user_update)
-        db.execute(sa_update(UserTable).where(UserTable.id == user.usuario_id).values(**encrypted))
-        db.commit()
-
-    repo = AjustadorRepository(db)
-    aj = repo.get_by_usuario_id(user.usuario_id)
+    aj = uc.execute(user.usuario_id, nombre=dto.nombre, email=dto.email, telefono=dto.telefono)
     return _perfil_dto(aj)
 
 

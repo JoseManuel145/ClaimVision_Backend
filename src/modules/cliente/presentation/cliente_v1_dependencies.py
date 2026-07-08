@@ -12,6 +12,7 @@ from src.modules.siniestro.application.siniestros.list_siniestros_cliente import
 from src.modules.siniestro.application.siniestros.get_siniestro_cliente import GetSiniestroCliente
 from src.modules.siniestro.application.siniestros.registrar_imagen import RegistrarImagenSiniestro
 from src.modules.cliente.application.get_perfil_cliente import GetPerfilCliente
+from src.modules.cliente.application.actualizar_perfil_cliente import ActualizarPerfilCliente
 from src.modules.auth.application.confirm_consent import ConfirmConsent
 from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
 
@@ -46,6 +47,15 @@ def registrar_imagen_service(session: Session = Depends(get_session)) -> Registr
 
 def get_perfil_cliente_service(session: Session = Depends(get_session)) -> GetPerfilCliente:
     return GetPerfilCliente(ClienteRepository(session))
+
+
+def get_auth_repo_for_enrichment(session: Session = Depends(get_session)):
+    from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
+    return AuthRepository(session)
+
+
+def actualizar_perfil_cliente_service(session: Session = Depends(get_session)) -> ActualizarPerfilCliente:
+    return ActualizarPerfilCliente(ClienteRepository(session), AuthRepository(session))
 
 
 def confirm_consent_service(session: Session = Depends(get_session)) -> ConfirmConsent:

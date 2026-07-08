@@ -14,6 +14,17 @@ from src.modules.ajustador.application.editar_peritaje import EditarPeritaje
 from src.modules.ajustador.application.agregar_dano import AgregarDano
 from src.modules.ajustador.application.actualizar_disponibilidad import ActualizarDisponibilidad
 from src.modules.ajustador.application.actualizar_geolocalizacion import ActualizarGeolocalizacion
+from src.modules.ajustador.application.get_perfil_ajustador import GetPerfilAjustador
+from src.modules.ajustador.application.actualizar_perfil_ajustador import ActualizarPerfilAjustador
+from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
+
+
+def get_perfil_ajustador_service(session: Session = Depends(get_session)) -> GetPerfilAjustador:
+    return GetPerfilAjustador(AjustadorRepository(session))
+
+
+def actualizar_perfil_ajustador_service(session: Session = Depends(get_session)) -> ActualizarPerfilAjustador:
+    return ActualizarPerfilAjustador(AjustadorRepository(session), AuthRepository(session))
 
 
 def list_asignaciones_service(session: Session = Depends(get_session)) -> ListMisAsignaciones:

@@ -89,6 +89,28 @@ class AuthRepository(AuthPort):
 
         self.db.commit()
 
+    def update_user_profile(self, usuario_id: str, nombre: str | None = None, email: str | None = None, telefono: str | None = None) -> None:
+        vals = {}
+        if nombre is not None:
+            vals["nombre_completo"] = nombre
+        if email is not None:
+            vals["email"] = email
+        if telefono is not None:
+            vals["telefono"] = telefono
+        if not vals:
+            return
+        encrypted = encrypt_fields(vals)
+        col_map = {}
+        if "nombre_completo_cifrado" in encrypted:
+            col_map["nombre_completo_cifrado"] = encrypted["nombre_completo_cifrado"]
+        if "telefono_cifrado" in encrypted:
+            col_map["telefono_cifrado"] = encrypted["telefono_cifrado"]
+        if "email" in encrypted:
+            col_map["email"] = encrypted["email"]
+        stmt = update(UserTable).where(UserTable.id == usuario_id).values(**col_map)
+        self.db.execute(stmt)
+        self.db.commit()
+
     def verify_user(self, usuario_id: str) -> None:
         stmt = select(UserTable).where(UserTable.id == usuario_id)
         r = self.db.execute(stmt).scalar()
