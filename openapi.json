@@ -2424,6 +2424,32 @@
         }
       }
     },
+    "/api/v1/aseguradora/perfil": {
+      "get": {
+        "tags": [
+          "v1 · Aseguradora"
+        ],
+        "summary": "Obtener Perfil",
+        "operationId": "obtener_perfil_api_v1_aseguradora_perfil_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerfilAseguradoraDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/aseguradoras": {
       "post": {
         "tags": [
@@ -3959,6 +3985,39 @@
             "type": "boolean",
             "title": "Activo Para Servicio"
           },
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "telefono": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono"
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -4358,6 +4417,39 @@
               }
             ],
             "title": "Fecha Consentimiento"
+          },
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "telefono": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono"
           }
         },
         "type": "object",
@@ -5324,6 +5416,71 @@
         ],
         "title": "Page[UsuarioResponseDTO]"
       },
+      "PerfilAseguradoraDTO": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "rfc": {
+            "type": "string",
+            "title": "Rfc"
+          },
+          "dominio_correo": {
+            "type": "string",
+            "title": "Dominio Correo"
+          },
+          "plan_suscripcion": {
+            "type": "string",
+            "title": "Plan Suscripcion"
+          },
+          "limite_peritajes_mes": {
+            "type": "integer",
+            "title": "Limite Peritajes Mes"
+          },
+          "peritajes_consumidos_mes": {
+            "type": "integer",
+            "title": "Peritajes Consumidos Mes"
+          },
+          "estatus_comercial": {
+            "type": "string",
+            "title": "Estatus Comercial"
+          },
+          "contacto_legal_email": {
+            "type": "string",
+            "title": "Contacto Legal Email"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nombre",
+          "rfc",
+          "dominio_correo",
+          "plan_suscripcion",
+          "limite_peritajes_mes",
+          "peritajes_consumidos_mes",
+          "estatus_comercial",
+          "contacto_legal_email",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PerfilAseguradoraDTO"
+      },
       "PerfilClienteResponse": {
         "properties": {
           "id": {
@@ -5889,6 +6046,39 @@
               }
             ],
             "title": "Peritaje Ia"
+          },
+          "cliente_nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cliente Nombre"
+          },
+          "ajustador_nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ajustador Nombre"
+          },
+          "taller_nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taller Nombre"
           }
         },
         "type": "object",
@@ -6962,11 +7152,11 @@
             "type": "string",
             "title": "Email"
           },
-          "nombre_completo_cifrado": {
+          "nombre_completo": {
             "type": "string",
-            "title": "Nombre Completo Cifrado"
+            "title": "Nombre Completo"
           },
-          "telefono_cifrado": {
+          "telefono": {
             "anyOf": [
               {
                 "type": "string"
@@ -6975,7 +7165,7 @@
                 "type": "null"
               }
             ],
-            "title": "Telefono Cifrado"
+            "title": "Telefono"
           },
           "rol": {
             "type": "string",
@@ -7018,7 +7208,7 @@
         "required": [
           "id",
           "email",
-          "nombre_completo_cifrado",
+          "nombre_completo",
           "rol",
           "estatus_arco",
           "created_at"
