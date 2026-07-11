@@ -16,7 +16,7 @@ def _to_domain(obj: SiniestroTable) -> SiniestroModel:
         ajustador_id=str(obj.ajustador_id) if obj.ajustador_id else None,
         taller_id=str(obj.taller_id) if obj.taller_id else None,
         vehiculo_id=str(obj.vehiculo_id) if obj.vehiculo_id else None,
-        estatus=obj.estatus,
+        estatus=obj.estatus.value if hasattr(obj.estatus, 'value') else obj.estatus,
         vehiculo_marca=obj.vehiculo_marca,
         vehiculo_modelo=obj.vehiculo_modelo,
         vehiculo_anio=obj.vehiculo_anio,

@@ -167,7 +167,16 @@ def register_exception_handlers(app: FastAPI):
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        def _sanitize(obj):
+            if isinstance(obj, bytes):
+                return repr(obj)
+            if isinstance(obj, dict):
+                return {k: _sanitize(v) for k, v in obj.items()}
+            if isinstance(obj, (list, tuple)):
+                return [_sanitize(i) for i in obj]
+            return obj
+
         return JSONResponse(
             status_code=422,
-            content={"error": "Error de validación en la solicitud.", "details": exc.errors()}
+            content={"error": "Error de validación en la solicitud.", "details": _sanitize(exc.errors())}
         )
