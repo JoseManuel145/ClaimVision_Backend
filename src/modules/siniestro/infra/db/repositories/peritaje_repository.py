@@ -53,7 +53,6 @@ class PeritajeAjustadorRepository(PeritajeAjustadorRepositoryPort):
             existing.costo_definitivo_ajustador = peritaje.costo_definitivo_ajustador
             existing.firma_digital_ajustador = peritaje.firma_digital_ajustador
             existing.observaciones_campo = peritaje.observaciones_campo
-            existing.version += 1
             
             # Clear existing danos and replace
             for d in existing.danos:
@@ -116,8 +115,12 @@ class PeritajeAjustadorRepository(PeritajeAjustadorRepositoryPort):
     def obtener_por_id(self, peritaje_id: str) -> Optional[PeritajeAjustadorModel]:
         if not peritaje_id:
             return None
+        try:
+            peritaje_uuid = uuid.UUID(peritaje_id)
+        except (ValueError, AttributeError):
+            return None
         stmt = select(PeritajeAjustadorTable).where(
-            PeritajeAjustadorTable.id == uuid.UUID(peritaje_id),
+            PeritajeAjustadorTable.id == peritaje_uuid,
             PeritajeAjustadorTable.deleted_at.is_(None)
         )
         result = self.db.execute(stmt).scalars().first()

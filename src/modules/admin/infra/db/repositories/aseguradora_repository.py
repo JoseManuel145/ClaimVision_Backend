@@ -71,25 +71,21 @@ class AseguradoraRepository(AseguradoraRepositoryPort):
         return [_to_domain(r) for r in results], total
 
     def update(self, aseguradora: AseguradoraTenant) -> AseguradoraTenant:
-        stmt = (
-            update(AseguradoraTable)
-            .where(AseguradoraTable.id == aseguradora.id)
-            .values(
-                nombre=aseguradora.nombre,
-                rfc=aseguradora.rfc,
-                dominio_correo=aseguradora.dominio_correo,
-                plan_suscripcion=aseguradora.plan_suscripcion,
-                limite_peritajes_mes=aseguradora.limite_peritajes_mes,
-                peritajes_consumidos_mes=aseguradora.peritajes_consumidos_mes,
-                estatus_comercial=aseguradora.estatus_comercial,
-                contacto_legal_email=aseguradora.contacto_legal_email,
-                version=aseguradora.version,
-                updated_at=aseguradora.updated_at,
-                deleted_at=aseguradora.deleted_at
-            )
-        )
-        result = self.db.execute(stmt)
-        if result.rowcount == 0:
+        obj = self.db.get(AseguradoraTable, aseguradora.id)
+        if not obj:
             raise NotFoundError("Aseguradora no encontrada")
+
+        obj.nombre = aseguradora.nombre
+        obj.rfc = aseguradora.rfc
+        obj.dominio_correo = aseguradora.dominio_correo
+        obj.plan_suscripcion = aseguradora.plan_suscripcion
+        obj.limite_peritajes_mes = aseguradora.limite_peritajes_mes
+        obj.peritajes_consumidos_mes = aseguradora.peritajes_consumidos_mes
+        obj.estatus_comercial = aseguradora.estatus_comercial
+        obj.contacto_legal_email = aseguradora.contacto_legal_email
+        obj.updated_at = aseguradora.updated_at
+        obj.deleted_at = aseguradora.deleted_at
+
         self.db.commit()
-        return self.get_by_id(aseguradora.id)
+        self.db.refresh(obj)
+        return _to_domain(obj)

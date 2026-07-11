@@ -13,7 +13,7 @@ class ConfirmConsent:
         user = self.auth_repo.get_by_id(usuario_id)
         if not user:
             raise NotFoundError("Usuario no encontrado")
-        if user.rol.value not in ("Cliente", "Tester_Global"):
+        if user.rol not in ("Cliente", "Tester_Global"):
             raise BusinessRuleError("Sólo los clientes pueden dar consentimiento explícito LFPDPPP.")
         
         profile = self.cliente_repo.get_by_usuario_id(usuario_id)

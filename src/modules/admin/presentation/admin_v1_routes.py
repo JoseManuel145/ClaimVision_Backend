@@ -33,6 +33,7 @@ from src.modules.admin.application.actualizar_aseguradora import ActualizarAsegu
 from src.modules.admin.application.verificar_aseguradora import VerificarAseguradoraUseCase
 from src.modules.admin.application.actualizar_suscripcion import ActualizarSuscripcionUseCase
 from src.modules.admin.application.desincorporar_aseguradora import DesincorporarAseguradoraUseCase
+from src.modules.admin.application.reactivar_aseguradora import ReactivarAseguradoraUseCase
 from src.modules.admin.application.aplicar_bloqueo_arco import AplicarBloqueoArcoUseCase
 from src.modules.admin.application.consultar_auditoria import ConsultarAuditoriaUseCase
 from src.modules.admin.application.list_usuarios import ListUsuarios
@@ -217,6 +218,27 @@ def desincorporar_aseguradora(
         resultado = uc.execute(user.usuario_id, aseguradora_id)
         audit.record(
             evento_modulo=EVENTO, accion="desincorporar_aseguradora",
+            usuario=user, request=request,
+            metadata={"aseguradora_id": aseguradora_id},
+        )
+        return resultado
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.patch("/aseguradoras/{aseguradora_id}/reactivar", response_model=AseguradoraResponseDTO)
+def reactivar_aseguradora(
+    aseguradora_id: str,
+    request: Request,
+    user: AuthenticatedUser = Depends(get_admin),
+    uc: ReactivarAseguradoraUseCase = Depends(deps.reactivar_aseguradora_service),
+    audit: AuditLogger = Depends(get_audit_logger),
+):
+    """§5 · Reactivar una aseguradora desincorporada (baja lógica)."""
+    try:
+        resultado = uc.execute(user.usuario_id, aseguradora_id)
+        audit.record(
+            evento_modulo=EVENTO, accion="reactivar_aseguradora",
             usuario=user, request=request,
             metadata={"aseguradora_id": aseguradora_id},
         )

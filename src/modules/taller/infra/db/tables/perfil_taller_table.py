@@ -6,6 +6,7 @@ from src.core.database import Base
 
 class PerfilTallerUsuariosTable(Base):
     __tablename__ = "perfiles_taller_usuarios"
+    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     usuario_id = Column(UUID(as_uuid=True), ForeignKey("usuarios.id"), unique=True, nullable=False)

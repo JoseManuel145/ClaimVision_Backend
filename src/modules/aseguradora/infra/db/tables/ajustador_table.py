@@ -5,6 +5,7 @@ from src.core.database import Base
 
 class AjustadorTable(Base):
     __tablename__ = "ajustadores"
+    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     usuario_id = Column(UUID(as_uuid=True), unique=True, nullable=False)

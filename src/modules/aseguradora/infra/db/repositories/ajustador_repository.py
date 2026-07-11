@@ -6,6 +6,7 @@ from src.modules.aseguradora.domain.ports.ajustador_repository_port import Ajust
 from src.modules.aseguradora.infra.db.tables.ajustador_table import AjustadorTable
 from src.modules.auth.infra.db.tables.user_table import UserTable
 from src.shared.domain.services.encryption_service import decrypt_fields
+from src.core.exceptions import NotFoundError
 import uuid
 
 
@@ -116,15 +117,17 @@ class AjustadorRepository(AjustadorRepositoryPort):
         return [_to_domain(a, u) for a, u in rows], total
 
     def update(self, ajustador: AjustadorModel) -> AjustadorModel:
-        stmt = update(AjustadorTable).where(AjustadorTable.id == ajustador.id).values(
-            cedula_profesional=ajustador.cedula_profesional,
-            geolocalizacion_actual=_format_wkt(ajustador.geolocalizacion_actual),
-            activo_para_servicio=ajustador.activo_para_servicio,
-            version=ajustador.version,
-            updated_at=ajustador.updated_at,
-        )
-        self.db.execute(stmt)
+        obj = self.db.get(AjustadorTable, uuid.UUID(ajustador.id))
+        if not obj:
+            raise NotFoundError("Ajustador no encontrado")
+
+        obj.cedula_profesional = ajustador.cedula_profesional
+        obj.geolocalizacion_actual = _format_wkt(ajustador.geolocalizacion_actual)
+        obj.activo_para_servicio = ajustador.activo_para_servicio
+        obj.updated_at = ajustador.updated_at
+
         self.db.commit()
+        self.db.refresh(obj)
         return self.get_by_id(ajustador.id)
 
     def delete(self, id: str) -> None:

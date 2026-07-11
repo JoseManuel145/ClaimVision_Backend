@@ -8,6 +8,7 @@ from src.shared.domain.models import TipoDano, SeveridadDano
 
 class PeritajeAjustadorTable(Base):
     __tablename__ = "peritajes_ajustador"
+    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     siniestro_id = Column(UUID(as_uuid=True), ForeignKey("siniestros.id"), unique=True, nullable=False)
@@ -24,6 +25,7 @@ class PeritajeAjustadorTable(Base):
 
 class DanosAjustadosManualTable(Base):
     __tablename__ = "danos_ajustados_manual"
+    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     peritaje_ajustador_id = Column(UUID(as_uuid=True), ForeignKey("peritajes_ajustador.id"), nullable=False)

@@ -6,6 +6,7 @@ from src.modules.aseguradora.domain.ports.cliente_repository_port import Cliente
 from src.modules.aseguradora.infra.db.tables.perfil_cliente_table import PerfilClienteTable
 from src.modules.auth.infra.db.tables.user_table import UserTable
 from src.shared.domain.services.encryption_service import decrypt_fields
+from src.core.exceptions import NotFoundError
 import uuid
 
 
@@ -103,19 +104,21 @@ class ClienteRepository(ClienteRepositoryPort):
         return [_to_domain(c, u) for c, u in rows], total
 
     def update(self, cliente: ClienteModel) -> ClienteModel:
-        stmt = update(PerfilClienteTable).where(PerfilClienteTable.id == cliente.id).values(
-            numero_poliza=cliente.numero_poliza,
-            vigencia_poliza=cliente.vigencia_poliza,
-            curp_rfc_cifrado=cliente.curp_rfc_cifrado,
-            consentimiento_aviso_privacidad=cliente.consentimiento_aviso_privacidad,
-            consentimiento_biometria=cliente.consentimiento_biometria,
-            autoriza_transferencia_talleres=cliente.autoriza_transferencia_talleres,
-            fecha_consentimiento=cliente.fecha_consentimiento,
-            version=cliente.version,
-            updated_at=cliente.updated_at,
-        )
-        self.db.execute(stmt)
+        obj = self.db.get(PerfilClienteTable, uuid.UUID(cliente.id))
+        if not obj:
+            raise NotFoundError("Cliente no encontrado")
+
+        obj.numero_poliza = cliente.numero_poliza
+        obj.vigencia_poliza = cliente.vigencia_poliza
+        obj.curp_rfc_cifrado = cliente.curp_rfc_cifrado
+        obj.consentimiento_aviso_privacidad = cliente.consentimiento_aviso_privacidad
+        obj.consentimiento_biometria = cliente.consentimiento_biometria
+        obj.autoriza_transferencia_talleres = cliente.autoriza_transferencia_talleres
+        obj.fecha_consentimiento = cliente.fecha_consentimiento
+        obj.updated_at = cliente.updated_at
+
         self.db.commit()
+        self.db.refresh(obj)
         return self.get_by_id(cliente.id)
 
     def delete(self, id: str) -> None:

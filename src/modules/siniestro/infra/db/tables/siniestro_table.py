@@ -6,6 +6,7 @@ from src.shared.domain.models import EstatusSiniestro
 
 class SiniestroTable(Base):
     __tablename__ = "siniestros"
+    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     aseguradora_id = Column(UUID(as_uuid=True), nullable=True)

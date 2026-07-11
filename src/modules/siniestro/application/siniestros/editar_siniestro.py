@@ -47,7 +47,6 @@ class EditarSiniestro:
         if dto.indicaciones_dano_interno is not None:
             siniestro.indicaciones_dano_interno = dto.indicaciones_dano_interno
 
-        siniestro.version += 1
         siniestro.updated_at = datetime.utcnow()
         
         return self.repo.update(siniestro)

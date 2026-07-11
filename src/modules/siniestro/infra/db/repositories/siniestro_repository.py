@@ -5,6 +5,7 @@ from src.modules.siniestro.domain.models.siniestro_model import SiniestroModel
 from src.modules.siniestro.domain.ports.siniestro_repository_port import SiniestroRepositoryPort
 from src.modules.siniestro.infra.db.tables.siniestro_table import SiniestroTable
 from src.shared.domain.models import EstatusSiniestro
+from src.core.exceptions import NotFoundError
 import uuid
 
 def _to_domain(obj: SiniestroTable) -> SiniestroModel:
@@ -111,27 +112,29 @@ class SiniestroRepository(SiniestroRepositoryPort):
         return [_to_domain(r) for r in results], total
 
     def update(self, siniestro: SiniestroModel) -> SiniestroModel:
-        stmt = update(SiniestroTable).where(SiniestroTable.id == siniestro.id).values(
-            ajustador_id=uuid.UUID(siniestro.ajustador_id) if siniestro.ajustador_id else None,
-            taller_id=uuid.UUID(siniestro.taller_id) if siniestro.taller_id else None,
-            vehiculo_id=uuid.UUID(siniestro.vehiculo_id) if siniestro.vehiculo_id else None,
-            estatus=siniestro.estatus,
-            vehiculo_marca=siniestro.vehiculo_marca,
-            vehiculo_modelo=siniestro.vehiculo_modelo,
-            vehiculo_anio=siniestro.vehiculo_anio,
-            vehiculo_placas=siniestro.vehiculo_placas,
-            vehiculo_vin=siniestro.vehiculo_vin,
-            latitud_siniestro=siniestro.latitud_siniestro,
-            longitud_siniestro=siniestro.longitud_siniestro,
-            narracion_texto=siniestro.narracion_texto,
-            narracion_audio_url=siniestro.narracion_audio_url,
-            indicaciones_dano_interno=siniestro.indicaciones_dano_interno,
-            version=siniestro.version,
-            updated_at=siniestro.updated_at
-        )
-        self.db.execute(stmt)
+        obj = self.db.get(SiniestroTable, uuid.UUID(siniestro.id))
+        if not obj:
+            raise NotFoundError("Siniestro no encontrado")
+
+        obj.ajustador_id = uuid.UUID(siniestro.ajustador_id) if siniestro.ajustador_id else None
+        obj.taller_id = uuid.UUID(siniestro.taller_id) if siniestro.taller_id else None
+        obj.vehiculo_id = uuid.UUID(siniestro.vehiculo_id) if siniestro.vehiculo_id else None
+        obj.estatus = siniestro.estatus
+        obj.vehiculo_marca = siniestro.vehiculo_marca
+        obj.vehiculo_modelo = siniestro.vehiculo_modelo
+        obj.vehiculo_anio = siniestro.vehiculo_anio
+        obj.vehiculo_placas = siniestro.vehiculo_placas
+        obj.vehiculo_vin = siniestro.vehiculo_vin
+        obj.latitud_siniestro = siniestro.latitud_siniestro
+        obj.longitud_siniestro = siniestro.longitud_siniestro
+        obj.narracion_texto = siniestro.narracion_texto
+        obj.narracion_audio_url = siniestro.narracion_audio_url
+        obj.indicaciones_dano_interno = siniestro.indicaciones_dano_interno
+        obj.updated_at = siniestro.updated_at
+
         self.db.commit()
-        return self.get_by_id(siniestro.id)
+        self.db.refresh(obj)
+        return _to_domain(obj)
 
     def update_estatus(self, siniestro_id: str, estatus: str) -> SiniestroModel:
         stmt = update(SiniestroTable).where(SiniestroTable.id == siniestro_id).values(

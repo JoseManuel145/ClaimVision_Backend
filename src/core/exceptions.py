@@ -3,6 +3,7 @@ from typing import Any, Optional
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse, Response
 from fastapi.exceptions import RequestValidationError
+from sqlalchemy.orm.exc import StaleDataError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from src.core.logging import get_logger
 
@@ -142,6 +143,13 @@ __all__ = [
 ]
 
 def register_exception_handlers(app: FastAPI):
+    @app.exception_handler(StaleDataError)
+    async def stale_data_handler(request: Request, exc: StaleDataError):
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"error": "Conflicto de concurrencia: el registro fue modificado por otro usuario. Recarge e intente de nuevo."}
+        )
+
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         logger.error(f"Error no manejado: {str(exc)}", exc_info=True)

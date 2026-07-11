@@ -5,6 +5,7 @@ from src.core.database import Base
 
 class ImagenSiniestroTable(Base):
     __tablename__ = "imagenes_siniestro"
+    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     siniestro_id = Column(UUID(as_uuid=True), nullable=False)

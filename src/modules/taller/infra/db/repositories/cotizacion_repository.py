@@ -43,7 +43,6 @@ class CotizacionRepository(CotizacionRepositoryPort):
             existing.desglose_pdf_url = cotizacion.desglose_pdf_url
             existing.estatus = cotizacion.estatus
             existing.observaciones_tecnicas = cotizacion.observaciones_tecnicas
-            existing.version += 1
             self.db.commit()
             self.db.refresh(existing)
             return _to_domain(existing)

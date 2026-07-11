@@ -5,6 +5,7 @@ from src.modules.aseguradora.domain.models.taller_model import TallerModel
 from src.modules.aseguradora.domain.ports.taller_repository_port import TallerRepositoryPort
 from src.modules.aseguradora.infra.db.tables.taller_table import TallerTable
 from src.modules.aseguradora.infra.db.tables.convenio_table import ConvenioAseguradoraTallerTable
+from src.core.exceptions import NotFoundError
 from datetime import datetime, timezone
 import uuid
 
@@ -71,17 +72,19 @@ class TallerRepository(TallerRepositoryPort):
         return [_to_domain(r) for r in results], total
 
     def update(self, taller: TallerModel) -> TallerModel:
-        stmt = update(TallerTable).where(TallerTable.id == taller.id).values(
-            nombre_comercial=taller.nombre_comercial,
-            rfc=taller.rfc,
-            direccion_tecnica=taller.direccion_tecnica,
-            telefono_contacto=taller.telefono_contacto,
-            version=taller.version,
-            updated_at=taller.updated_at
-        )
-        self.db.execute(stmt)
+        obj = self.db.get(TallerTable, uuid.UUID(taller.id))
+        if not obj:
+            raise NotFoundError("Taller no encontrado")
+
+        obj.nombre_comercial = taller.nombre_comercial
+        obj.rfc = taller.rfc
+        obj.direccion_tecnica = taller.direccion_tecnica
+        obj.telefono_contacto = taller.telefono_contacto
+        obj.updated_at = taller.updated_at
+
         self.db.commit()
-        return self.get_by_id(taller.id)
+        self.db.refresh(obj)
+        return _to_domain(obj)
 
     def delete(self, id: str) -> None:
         stmt = update(TallerTable).where(TallerTable.id == id).values(

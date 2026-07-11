@@ -16,7 +16,6 @@ from src.modules.siniestro.presentation.siniestros.siniestro_dto import (
 )
 from src.modules.auth.presentation.schemas import ConsentRequestDTO
 from src.modules.cliente.presentation.cliente_v1_schemas import (
-    RegistrarImagenRequest,
     ConsentimientosRequest,
     PerfilClienteUpdateRequest,
     PerfilClienteResponse,
@@ -26,7 +25,7 @@ from src.modules.cliente.presentation.cliente_v1_dependencies import (
     reportar_siniestro_service,
     list_siniestros_cliente_service,
     get_siniestro_cliente_service,
-    registrar_imagen_service,
+    subir_imagen_siniestro_service,
     get_perfil_cliente_service,
     confirm_consent_service,
     actualizar_perfil_cliente_service,
@@ -39,7 +38,7 @@ from src.modules.cliente.application.confirm_data import ConfirmData
 from src.modules.siniestro.application.siniestros.inicializar_siniestro import InicializarSiniestro
 from src.modules.siniestro.application.siniestros.list_siniestros_cliente import ListSiniestrosCliente
 from src.modules.siniestro.application.siniestros.get_siniestro_cliente import GetSiniestroCliente
-from src.modules.siniestro.application.siniestros.registrar_imagen import RegistrarImagenSiniestro
+from src.modules.siniestro.application.siniestros.subir_imagen_siniestro import SubirImagenSiniestro
 from src.modules.cliente.application.get_perfil_cliente import GetPerfilCliente
 from src.modules.aseguradora.application.vehiculos.list_vehiculos_cliente import ListVehiculosCliente
 from src.modules.aseguradora.presentation.vehiculos.vehiculo_dto import VehiculoResponseDTO
@@ -146,18 +145,25 @@ def detalle_siniestro(
     response_model=ImagenSiniestroResponseDTO,
     status_code=status.HTTP_201_CREATED,
 )
-def registrar_imagen(
+async def registrar_imagen(
     id: str,
-    dto: RegistrarImagenRequest,
-    request: Request,
+    file: UploadFile = File(...),
+    request: Request = None,
     user: AuthenticatedUser = Depends(get_cliente),
-    uc: RegistrarImagenSiniestro = Depends(registrar_imagen_service),
+    uc: SubirImagenSiniestro = Depends(subir_imagen_siniestro_service),
+    get_detalle: GetSiniestroCliente = Depends(get_siniestro_cliente_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    """§4 · Registra una imagen ya subida (vía URL prefirmada §8)."""
-    imagen = uc.execute(user.usuario_id, id, dto.imagen_url, dto.metadatos_json)
+    """§4 · Sube una imagen directamente a Supabase Storage."""
+    try:
+        get_detalle.execute(user.usuario_id, id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Siniestro no encontrado o no pertenece al cliente.")
+
+    file_bytes = await file.read()
+    imagen = uc.execute(id, file_bytes, file.filename or "unknown", file.content_type or "application/octet-stream")
     audit.record(
-        evento_modulo=EVENTO, accion="registrar_imagen", usuario=user,
+        evento_modulo=EVENTO, accion="subir_imagen", usuario=user,
         request=request, metadata={"siniestro_id": id, "imagen_id": imagen.id},
     )
     return imagen

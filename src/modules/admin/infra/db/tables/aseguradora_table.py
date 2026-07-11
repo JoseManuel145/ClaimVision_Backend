@@ -5,6 +5,7 @@ from src.shared.domain.models import EstatusComercialAseguradora
 
 class AseguradoraTable(Base):
     __tablename__ = "aseguradoras"
+    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True)
     nombre = Column(String, nullable=False)

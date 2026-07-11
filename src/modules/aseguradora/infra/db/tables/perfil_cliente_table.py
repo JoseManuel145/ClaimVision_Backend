@@ -5,6 +5,7 @@ from src.core.database import Base
 
 class PerfilClienteTable(Base):
     __tablename__ = "perfiles_clientes"
+    __mapper_args__ = {"version_id_col": "version"}
     __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

@@ -14,6 +14,9 @@ from src.modules.siniestro.application.siniestros.inicializar_siniestro import I
 from src.modules.siniestro.application.siniestros.list_siniestros_cliente import ListSiniestrosCliente
 from src.modules.siniestro.application.siniestros.get_siniestro_cliente import GetSiniestroCliente
 from src.modules.siniestro.application.siniestros.registrar_imagen import RegistrarImagenSiniestro
+from src.modules.siniestro.application.siniestros.subir_imagen_siniestro import SubirImagenSiniestro
+from src.modules.siniestro.infra.storage.supabase_storage import SupabaseStorageAdapter
+from src.core.supabase import get_supabase_client
 from src.modules.cliente.application.get_perfil_cliente import GetPerfilCliente
 from src.modules.cliente.application.actualizar_perfil_cliente import ActualizarPerfilCliente
 from src.modules.auth.application.confirm_consent import ConfirmConsent
@@ -22,6 +25,10 @@ from src.modules.auth.infra.db.repositories.auth_repository import AuthRepositor
 
 def _cliente_checker(session: Session) -> ClienteCheckerAdapter:
     return ClienteCheckerAdapter(ClienteRepository(session))
+
+
+def cliente_checker_service(session: Session = Depends(get_session)) -> ClienteCheckerAdapter:
+    return _cliente_checker(session)
 
 
 def reportar_siniestro_service(session: Session = Depends(get_session)) -> InicializarSiniestro:
@@ -73,4 +80,15 @@ def list_vehiculos_cliente_service(session: Session = Depends(get_session)) -> L
     return ListVehiculosCliente(
         VehiculoAdapter(VehiculoRepository(session)),
         _cliente_checker(session),
+    )
+
+
+def subir_imagen_siniestro_service(
+    session: Session = Depends(get_session),
+    client=Depends(get_supabase_client),
+) -> SubirImagenSiniestro:
+    return SubirImagenSiniestro(
+        ImagenSiniestroRepository(session),
+        SiniestroRepository(session),
+        SupabaseStorageAdapter(client),
     )

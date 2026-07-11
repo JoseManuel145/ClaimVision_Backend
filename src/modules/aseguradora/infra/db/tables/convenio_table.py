@@ -4,6 +4,7 @@ from src.core.database import Base
 
 class ConvenioAseguradoraTallerTable(Base):
     __tablename__ = "convenio_aseguradora_taller"
+    __mapper_args__ = {"version_id_col": "version"}
 
     aseguradora_id = Column(UUID(as_uuid=True), primary_key=True, nullable=False)
     taller_id = Column(UUID(as_uuid=True), primary_key=True, nullable=False)

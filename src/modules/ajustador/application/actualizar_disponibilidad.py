@@ -14,6 +14,5 @@ class ActualizarDisponibilidad:
         if not ajustador:
             raise BusinessRuleError("El usuario no tiene un perfil de ajustador.")
         ajustador.activo_para_servicio = activo_para_servicio
-        ajustador.version += 1
         ajustador.updated_at = datetime.utcnow()
         return self.ajustador_repo.update(ajustador)

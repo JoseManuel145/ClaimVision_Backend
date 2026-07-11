@@ -4,6 +4,7 @@ from sqlalchemy import select, func, update
 from src.modules.aseguradora.domain.models.vehiculo_model import VehiculoModel
 from src.modules.aseguradora.domain.ports.vehiculo_repository_port import VehiculoRepositoryPort
 from src.modules.aseguradora.infra.db.tables.vehiculo_table import VehiculoTable
+from src.core.exceptions import NotFoundError
 import uuid
 
 def _to_domain(obj: VehiculoTable) -> VehiculoModel:
@@ -82,19 +83,21 @@ class VehiculoRepository(VehiculoRepositoryPort):
         return [_to_domain(r) for r in results], total
 
     def update(self, vehiculo: VehiculoModel) -> VehiculoModel:
-        stmt = update(VehiculoTable).where(VehiculoTable.id == vehiculo.id).values(
-            marca=vehiculo.marca,
-            modelo=vehiculo.modelo,
-            anio=vehiculo.anio,
-            placas=vehiculo.placas,
-            vin=vehiculo.vin,
-            color=vehiculo.color,
-            version=vehiculo.version,
-            updated_at=vehiculo.updated_at,
-        )
-        self.db.execute(stmt)
+        obj = self.db.get(VehiculoTable, uuid.UUID(vehiculo.id))
+        if not obj:
+            raise NotFoundError("Vehiculo no encontrado")
+
+        obj.marca = vehiculo.marca
+        obj.modelo = vehiculo.modelo
+        obj.anio = vehiculo.anio
+        obj.placas = vehiculo.placas
+        obj.vin = vehiculo.vin
+        obj.color = vehiculo.color
+        obj.updated_at = vehiculo.updated_at
+
         self.db.commit()
-        return self.get_by_id(vehiculo.id)
+        self.db.refresh(obj)
+        return _to_domain(obj)
 
     def delete(self, id: str) -> None:
         stmt = update(VehiculoTable).where(VehiculoTable.id == id).values(

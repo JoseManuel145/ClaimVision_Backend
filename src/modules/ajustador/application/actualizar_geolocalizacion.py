@@ -14,6 +14,5 @@ class ActualizarGeolocalizacion:
         if not ajustador:
             raise BusinessRuleError("El usuario no tiene un perfil de ajustador.")
         ajustador.geolocalizacion_actual = (latitud, longitud)
-        ajustador.version += 1
         ajustador.updated_at = datetime.utcnow()
         return self.ajustador_repo.update(ajustador)

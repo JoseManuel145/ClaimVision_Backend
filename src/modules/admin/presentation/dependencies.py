@@ -15,6 +15,7 @@ from src.modules.admin.application.crear_operador_aseguradora import CrearOperad
 from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
 from src.modules.auth.infra.security.password_service import PasswordService
 from src.modules.admin.application.desincorporar_aseguradora import DesincorporarAseguradoraUseCase
+from src.modules.admin.application.reactivar_aseguradora import ReactivarAseguradoraUseCase
 from src.modules.admin.application.aplicar_bloqueo_arco import AplicarBloqueoArcoUseCase
 from src.modules.admin.application.verificar_aseguradora import VerificarAseguradoraUseCase
 from src.modules.admin.application.consultar_auditoria import ConsultarAuditoriaUseCase
@@ -132,4 +133,10 @@ def purge_aseguradora_service(session=Depends(get_session)):
         audit_repo=AuditLogRepository(session),
         purge_repo=AdminPurgeRepository(session),
     )
+
+
+def reactivar_aseguradora_service(session=Depends(get_session)):
+    repo = AseguradoraRepository(session)
+    audit_repo = AuditLogRepository(session)
+    return ReactivarAseguradoraUseCase(repo, audit_repo)
 

@@ -5,6 +5,7 @@ from src.core.database import Base
 
 class TallerTable(Base):
     __tablename__ = "talleres"
+    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     nombre_comercial = Column(String, nullable=False)
