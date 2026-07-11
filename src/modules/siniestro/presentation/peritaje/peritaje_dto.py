@@ -1,11 +1,11 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 class DanoAjustadoDTO(BaseModel):
     zona_vehiculo: str
-    tipo: str
-    severidad: str
+    tipo: Literal["Abolladura", "Rayadura", "Fractura", "Rotura_Cristal", "Deformacion"]
+    severidad: Literal["Bajo", "Medio", "Alto"]
     costo_real_reparacion: float
     origen_cambio: str = "AJUSTADOR"
 

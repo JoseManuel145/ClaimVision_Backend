@@ -5,6 +5,7 @@ from sqlalchemy import select
 from src.modules.siniestro.domain.models.peritaje_model import PeritajeAjustadorModel, DanoAjustadoManualModel
 from src.modules.siniestro.domain.ports.peritaje_repository_port import PeritajeAjustadorRepositoryPort
 from src.modules.siniestro.infra.db.tables.peritaje_table import PeritajeAjustadorTable, DanosAjustadosManualTable
+from src.core.exceptions import ConflictError
 
 def _dano_to_domain(r: DanosAjustadosManualTable) -> DanoAjustadoManualModel:
     return DanoAjustadoManualModel(
@@ -71,8 +72,12 @@ class PeritajeAjustadorRepository(PeritajeAjustadorRepositoryPort):
                 )
                 existing.danos.append(new_dano)
             
-            self.db.commit()
-            self.db.refresh(existing)
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
+                raise ConflictError("Error al actualizar el peritaje: verifique los datos y intente de nuevo")
+            self.db.refresh(existing, ["danos"])
             return _peritaje_to_domain(existing)
         else:
             new_peritaje = PeritajeAjustadorTable(
@@ -95,9 +100,13 @@ class PeritajeAjustadorRepository(PeritajeAjustadorRepositoryPort):
                     origen_cambio=d.origen_cambio
                 )
                 new_peritaje.danos.append(new_dano)
-                
-            self.db.commit()
-            self.db.refresh(new_peritaje)
+            
+            try:
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
+                raise ConflictError("Error al guardar el peritaje: verifique los datos y intente de nuevo")
+            self.db.refresh(new_peritaje, ["danos"])
             return _peritaje_to_domain(new_peritaje)
 
     def obtener_peritaje_por_siniestro(self, siniestro_id: str) -> Optional[PeritajeAjustadorModel]:
