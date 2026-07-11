@@ -273,7 +273,7 @@
           "v1 · Cliente"
         ],
         "summary": "Registrar Imagen",
-        "description": "§4 · Registra una imagen ya subida (vía URL prefirmada §8).",
+        "description": "§4 · Sube una imagen directamente a Supabase Storage.",
         "operationId": "registrar_imagen_api_v1_cliente_siniestros__id__imagenes_post",
         "security": [
           {
@@ -294,9 +294,9 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/RegistrarImagenRequest"
+                "$ref": "#/components/schemas/Body_registrar_imagen_api_v1_cliente_siniestros__id__imagenes_post"
               }
             }
           }
@@ -3499,6 +3499,54 @@
         }
       }
     },
+    "/api/v1/admin/aseguradoras/{aseguradora_id}/reactivar": {
+      "patch": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Reactivar Aseguradora",
+        "description": "§5 · Reactivar una aseguradora desincorporada (baja lógica).",
+        "operationId": "reactivar_aseguradora_api_v1_admin_aseguradoras__aseguradora_id__reactivar_patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "aseguradora_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Aseguradora Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AseguradoraResponseDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/usuarios/{usuario_id}/bloqueo-arco": {
       "post": {
         "tags": [
@@ -4974,6 +5022,20 @@
           "poliza"
         ],
         "title": "Body_ocr_extraction_api_v1_cliente_onboarding_ocr_post"
+      },
+      "Body_registrar_imagen_api_v1_cliente_siniestros__id__imagenes_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_registrar_imagen_api_v1_cliente_siniestros__id__imagenes_post"
       },
       "ClienteCreateDTO": {
         "properties": {
@@ -6511,31 +6573,6 @@
         },
         "type": "object",
         "title": "RechazarCotizacionRequest"
-      },
-      "RegistrarImagenRequest": {
-        "properties": {
-          "imagen_url": {
-            "type": "string",
-            "title": "Imagen Url"
-          },
-          "metadatos_json": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Metadatos Json"
-          }
-        },
-        "type": "object",
-        "required": [
-          "imagen_url"
-        ],
-        "title": "RegistrarImagenRequest"
       },
       "SiniestroDetalleAjustadorDTO": {
         "properties": {
