@@ -49,15 +49,20 @@ class AuditLogRepository(AuditLogRepositoryPort):
         results = self.db.execute(stmt).scalars().all()
         return [_to_domain(r) for r in results]
 
-    def list_logs(self, offset: int = 0, limit: int = 20) -> Tuple[List[AuditLog], int]:
-        count_stmt = select(func.count()).select_from(AuditLogTable)
+    def list_logs(self, offset: int = 0, limit: int = 20, aseguradora_id: str | None = None) -> Tuple[List[AuditLog], int]:
+        import uuid as _uuid
+
+        filtros = []
+        if aseguradora_id:
+            filtros.append(AuditLogTable.aseguradora_id == _uuid.UUID(aseguradora_id))
+
+        count_stmt = select(func.count()).select_from(AuditLogTable).where(*filtros) if filtros else select(func.count()).select_from(AuditLogTable)
         total = self.db.execute(count_stmt).scalar() or 0
 
-        stmt = (
-            select(AuditLogTable)
-            .order_by(AuditLogTable.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+        stmt = select(AuditLogTable)
+        if filtros:
+            stmt = stmt.where(*filtros)
+        stmt = stmt.order_by(AuditLogTable.created_at.desc()).offset(offset).limit(limit)
+
         results = self.db.execute(stmt).scalars().all()
         return [_to_domain(r) for r in results], total

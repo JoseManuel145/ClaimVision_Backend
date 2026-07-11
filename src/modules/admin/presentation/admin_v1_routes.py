@@ -54,6 +54,7 @@ from src.modules.admin.infra.db.tables.aseguradora_table import AseguradoraTable
 router = APIRouter()
 
 get_admin = require_roles("Administrador_Global")
+get_admin_or_operador = require_roles("Administrador_Global", "Operador_Aseguradora")
 
 EVENTO = "admin"
 
@@ -276,13 +277,17 @@ def aplicar_bloqueo_arco(
 def consultar_auditoria(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    user: AuthenticatedUser = Depends(get_admin),
+    user: AuthenticatedUser = Depends(get_admin_or_operador),
     uc: ConsultarAuditoriaUseCase = Depends(deps.consultar_auditoria_service),
 ):
     """§6 · Consultar logs de auditoría (paginado)."""
     try:
         offset = offset_from_page(page, page_size)
-        items, total = uc.execute(offset=offset, limit=page_size)
+        if user.rol == "Operador_Aseguradora":
+            filtro_aseg = user.aseguradora_id
+        else:
+            filtro_aseg = None
+        items, total = uc.execute(offset=offset, limit=page_size, aseguradora_id=filtro_aseg)
         data = [AuditResponse.model_validate(i) for i in items]
         return Page.build(data=data, total=total, page=page, page_size=page_size)
     except Exception as e:
