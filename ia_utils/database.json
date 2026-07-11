@@ -1,0 +1,1313 @@
+{
+	"tablas": [
+		{
+			"table_name": "ajustadores",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "usuario_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "cedula_profesional",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "geolocalizacion_actual",
+					"tipo_dato": "geography"
+				},
+				{
+					"atributo": "activo_para_servicio",
+					"tipo_dato": "boolean"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "ajustadores_usuario_id_key",
+					"definicion": "CREATE UNIQUE INDEX ajustadores_usuario_id_key ON public.ajustadores USING btree (usuario_id)"
+				},
+				{
+					"nombre_indice": "ajustadores_pkey",
+					"definicion": "CREATE UNIQUE INDEX ajustadores_pkey ON public.ajustadores USING btree (id)"
+				},
+				{
+					"nombre_indice": "ajustadores_cedula_profesional_key",
+					"definicion": "CREATE UNIQUE INDEX ajustadores_cedula_profesional_key ON public.ajustadores USING btree (cedula_profesional)"
+				}
+			]
+		},
+		{
+			"table_name": "aseguradoras",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "nombre",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "rfc",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "dominio_correo",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "plan_suscripcion",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "limite_peritajes_mes",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "peritajes_consumidos_mes",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "estatus_comercial",
+					"tipo_dato": "estatus_comercial_aseguradora"
+				},
+				{
+					"atributo": "contacto_legal_email",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "aseguradoras_pkey",
+					"definicion": "CREATE UNIQUE INDEX aseguradoras_pkey ON public.aseguradoras USING btree (id)"
+				},
+				{
+					"nombre_indice": "aseguradoras_rfc_key",
+					"definicion": "CREATE UNIQUE INDEX aseguradoras_rfc_key ON public.aseguradoras USING btree (rfc)"
+				},
+				{
+					"nombre_indice": "aseguradoras_dominio_correo_key",
+					"definicion": "CREATE UNIQUE INDEX aseguradoras_dominio_correo_key ON public.aseguradoras USING btree (dominio_correo)"
+				}
+			]
+		},
+		{
+			"table_name": "convenio_aseguradora_taller",
+			"atributos": [
+				{
+					"atributo": "aseguradora_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "taller_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "fecha_convenio",
+					"tipo_dato": "date"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "convenio_aseguradora_taller_pkey",
+					"definicion": "CREATE UNIQUE INDEX convenio_aseguradora_taller_pkey ON public.convenio_aseguradora_taller USING btree (aseguradora_id, taller_id)"
+				}
+			]
+		},
+		{
+			"table_name": "cotizaciones_taller",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "siniestro_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "taller_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "monto_mano_obra",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "monto_refacciones",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "monto_total",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "desglose_pdf_url",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "estatus",
+					"tipo_dato": "estatus_cotizacion"
+				},
+				{
+					"atributo": "observaciones_tecnicas",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "cotizaciones_taller_pkey",
+					"definicion": "CREATE UNIQUE INDEX cotizaciones_taller_pkey ON public.cotizaciones_taller USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "danos_ajustados_manual",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "peritaje_ajustador_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "zona_vehiculo",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "tipo",
+					"tipo_dato": "tipo_dano"
+				},
+				{
+					"atributo": "severidad",
+					"tipo_dato": "severidad_dano"
+				},
+				{
+					"atributo": "costo_real_reparacion",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "origen_cambio",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "danos_ajustados_manual_pkey",
+					"definicion": "CREATE UNIQUE INDEX danos_ajustados_manual_pkey ON public.danos_ajustados_manual USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "danos_detectados_ia",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "peritaje_ia_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "zona_vehiculo",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "tipo",
+					"tipo_dato": "tipo_dano"
+				},
+				{
+					"atributo": "severidad",
+					"tipo_dato": "severidad_dano"
+				},
+				{
+					"atributo": "costo_estimado_reparacion",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "danos_detectados_ia_pkey",
+					"definicion": "CREATE UNIQUE INDEX danos_detectados_ia_pkey ON public.danos_detectados_ia USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "imagenes_siniestro",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "siniestro_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "imagen_url",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "es_calidad_valida",
+					"tipo_dato": "boolean"
+				},
+				{
+					"atributo": "metadatos_json",
+					"tipo_dato": "jsonb"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "imagenes_siniestro_pkey",
+					"definicion": "CREATE UNIQUE INDEX imagenes_siniestro_pkey ON public.imagenes_siniestro USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "inferences",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "filename",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "cluster_id",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "tipo_dano",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "severidad",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "confianza",
+					"tipo_dato": "double precision"
+				},
+				{
+					"atributo": "distancia_centroide",
+					"tipo_dato": "double precision"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "idx_inferences_created_at",
+					"definicion": "CREATE INDEX idx_inferences_created_at ON public.inferences USING btree (created_at DESC)"
+				},
+				{
+					"nombre_indice": "inferences_pkey",
+					"definicion": "CREATE UNIQUE INDEX inferences_pkey ON public.inferences USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "logs_auditoria",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "usuario_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "aseguradora_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "evento_modulo",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "accion_realizada",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "direccion_ip",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "user_agent",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "metadata_context",
+					"tipo_dato": "jsonb"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "logs_auditoria_pkey",
+					"definicion": "CREATE UNIQUE INDEX logs_auditoria_pkey ON public.logs_auditoria USING btree (id, created_at)"
+				}
+			]
+		},
+		{
+			"table_name": "nlp_damage_entities",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "transcripcion_id",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "tipo_dano",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "severidad",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "parte_afectada",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "sintoma",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "confianza",
+					"tipo_dato": "double precision"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "nlp_damage_entities_pkey",
+					"definicion": "CREATE UNIQUE INDEX nlp_damage_entities_pkey ON public.nlp_damage_entities USING btree (id)"
+				},
+				{
+					"nombre_indice": "idx_nlp_damage_entities_transcripcion_id",
+					"definicion": "CREATE INDEX idx_nlp_damage_entities_transcripcion_id ON public.nlp_damage_entities USING btree (transcripcion_id)"
+				}
+			]
+		},
+		{
+			"table_name": "nlp_jobs",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "filename",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "status",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "progress",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "result_id",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "error",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "idx_nlp_jobs_status",
+					"definicion": "CREATE INDEX idx_nlp_jobs_status ON public.nlp_jobs USING btree (status)"
+				},
+				{
+					"nombre_indice": "idx_nlp_jobs_created_at",
+					"definicion": "CREATE INDEX idx_nlp_jobs_created_at ON public.nlp_jobs USING btree (created_at DESC)"
+				},
+				{
+					"nombre_indice": "nlp_jobs_pkey",
+					"definicion": "CREATE UNIQUE INDEX nlp_jobs_pkey ON public.nlp_jobs USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "nlp_transcripciones",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "filename",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "texto",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "duracion_seg",
+					"tipo_dato": "double precision"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "nlp_transcripciones_pkey",
+					"definicion": "CREATE UNIQUE INDEX nlp_transcripciones_pkey ON public.nlp_transcripciones USING btree (id)"
+				},
+				{
+					"nombre_indice": "idx_nlp_transcripciones_created_at",
+					"definicion": "CREATE INDEX idx_nlp_transcripciones_created_at ON public.nlp_transcripciones USING btree (created_at DESC)"
+				}
+			]
+		},
+		{
+			"table_name": "ocr_documents",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "filename",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "text",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "page_count",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "idx_ocr_documents_created_at",
+					"definicion": "CREATE INDEX idx_ocr_documents_created_at ON public.ocr_documents USING btree (created_at DESC)"
+				},
+				{
+					"nombre_indice": "ocr_documents_pkey",
+					"definicion": "CREATE UNIQUE INDEX ocr_documents_pkey ON public.ocr_documents USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "perfiles_clientes",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "usuario_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "numero_poliza",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "vigencia_poliza",
+					"tipo_dato": "date"
+				},
+				{
+					"atributo": "curp_rfc_cifrado",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "consentimiento_aviso_privacidad",
+					"tipo_dato": "boolean"
+				},
+				{
+					"atributo": "consentimiento_biometria",
+					"tipo_dato": "boolean"
+				},
+				{
+					"atributo": "autoriza_transferencia_talleres",
+					"tipo_dato": "boolean"
+				},
+				{
+					"atributo": "fecha_consentimiento",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "perfiles_clientes_pkey",
+					"definicion": "CREATE UNIQUE INDEX perfiles_clientes_pkey ON public.perfiles_clientes USING btree (id)"
+				},
+				{
+					"nombre_indice": "perfiles_clientes_usuario_id_key",
+					"definicion": "CREATE UNIQUE INDEX perfiles_clientes_usuario_id_key ON public.perfiles_clientes USING btree (usuario_id)"
+				}
+			]
+		},
+		{
+			"table_name": "perfiles_taller_usuarios",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "usuario_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "taller_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "puesto",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "perfiles_taller_usuarios_usuario_id_key",
+					"definicion": "CREATE UNIQUE INDEX perfiles_taller_usuarios_usuario_id_key ON public.perfiles_taller_usuarios USING btree (usuario_id)"
+				},
+				{
+					"nombre_indice": "perfiles_taller_usuarios_pkey",
+					"definicion": "CREATE UNIQUE INDEX perfiles_taller_usuarios_pkey ON public.perfiles_taller_usuarios USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "peritajes_ajustador",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "siniestro_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "ajustador_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "costo_definitivo_ajustador",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "firma_digital_ajustador",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "observaciones_campo",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "peritajes_ajustador_siniestro_id_key",
+					"definicion": "CREATE UNIQUE INDEX peritajes_ajustador_siniestro_id_key ON public.peritajes_ajustador USING btree (siniestro_id)"
+				},
+				{
+					"nombre_indice": "peritajes_ajustador_pkey",
+					"definicion": "CREATE UNIQUE INDEX peritajes_ajustador_pkey ON public.peritajes_ajustador USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "peritajes_ia",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "siniestro_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "costo_estimado_ia_min",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "costo_estimado_ia_max",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "peritajes_ia_siniestro_id_key",
+					"definicion": "CREATE UNIQUE INDEX peritajes_ia_siniestro_id_key ON public.peritajes_ia USING btree (siniestro_id)"
+				},
+				{
+					"nombre_indice": "peritajes_ia_pkey",
+					"definicion": "CREATE UNIQUE INDEX peritajes_ia_pkey ON public.peritajes_ia USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "siniestros",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "aseguradora_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "cliente_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "ajustador_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "taller_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "estatus",
+					"tipo_dato": "estatus_siniestro"
+				},
+				{
+					"atributo": "vehiculo_marca",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "vehiculo_modelo",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "vehiculo_anio",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "vehiculo_placas",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "vehiculo_vin",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "latitud_siniestro",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "longitud_siniestro",
+					"tipo_dato": "numeric"
+				},
+				{
+					"atributo": "narracion_texto",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "narracion_audio_url",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "indicaciones_dano_interno",
+					"tipo_dato": "boolean"
+				},
+				{
+					"atributo": "fecha_siniestro",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "vehiculo_id",
+					"tipo_dato": "uuid"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "siniestros_pkey",
+					"definicion": "CREATE UNIQUE INDEX siniestros_pkey ON public.siniestros USING btree (id)"
+				},
+				{
+					"nombre_indice": "idx_siniestros_vehiculo_id",
+					"definicion": "CREATE INDEX idx_siniestros_vehiculo_id ON public.siniestros USING btree (vehiculo_id)"
+				}
+			]
+		},
+		{
+			"table_name": "talleres",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "nombre_comercial",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "rfc",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "direccion_tecnica",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "telefono_contacto",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "talleres_pkey",
+					"definicion": "CREATE UNIQUE INDEX talleres_pkey ON public.talleres USING btree (id)"
+				},
+				{
+					"nombre_indice": "talleres_rfc_key",
+					"definicion": "CREATE UNIQUE INDEX talleres_rfc_key ON public.talleres USING btree (rfc)"
+				}
+			]
+		},
+		{
+			"table_name": "usuarios",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "aseguradora_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "rol",
+					"tipo_dato": "rol_usuario"
+				},
+				{
+					"atributo": "email",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "password_hash",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "nombre_completo_cifrado",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "telefono_cifrado",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "huella_vinculada",
+					"tipo_dato": "boolean"
+				},
+				{
+					"atributo": "estatus_arco",
+					"tipo_dato": "estatus_usuario"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "usuarios_pkey",
+					"definicion": "CREATE UNIQUE INDEX usuarios_pkey ON public.usuarios USING btree (id)"
+				},
+				{
+					"nombre_indice": "usuarios_email_key",
+					"definicion": "CREATE UNIQUE INDEX usuarios_email_key ON public.usuarios USING btree (email)"
+				}
+			]
+		},
+		{
+			"table_name": "v2_predictions",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "filename",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "class_id",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "tipo_dano",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "severidad",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "confianza",
+					"tipo_dato": "double precision"
+				},
+				{
+					"atributo": "prob_dist",
+					"tipo_dato": "json"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "v2_predictions_pkey",
+					"definicion": "CREATE UNIQUE INDEX v2_predictions_pkey ON public.v2_predictions USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "v2_retrain_jobs",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "status",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "total_epochs",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "current_epoch",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "best_accuracy",
+					"tipo_dato": "double precision"
+				},
+				{
+					"atributo": "loss_history",
+					"tipo_dato": "json"
+				},
+				{
+					"atributo": "error",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "completed_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "v2_retrain_jobs_pkey",
+					"definicion": "CREATE UNIQUE INDEX v2_retrain_jobs_pkey ON public.v2_retrain_jobs USING btree (id)"
+				}
+			]
+		},
+		{
+			"table_name": "vehiculos",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "aseguradora_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "cliente_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "marca",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "modelo",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "anio",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "placas",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "vin",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "color",
+					"tipo_dato": "text"
+				},
+				{
+					"atributo": "version",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "created_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "updated_at",
+					"tipo_dato": "timestamp with time zone"
+				},
+				{
+					"atributo": "deleted_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "idx_vehiculos_aseguradora_id",
+					"definicion": "CREATE INDEX idx_vehiculos_aseguradora_id ON public.vehiculos USING btree (aseguradora_id)"
+				},
+				{
+					"nombre_indice": "vehiculos_pkey",
+					"definicion": "CREATE UNIQUE INDEX vehiculos_pkey ON public.vehiculos USING btree (id)"
+				},
+				{
+					"nombre_indice": "idx_vehiculos_cliente_id",
+					"definicion": "CREATE INDEX idx_vehiculos_cliente_id ON public.vehiculos USING btree (cliente_id)"
+				}
+			]
+		}
+	],
+	"enums": [
+		{
+			"enum_name": "estatus_comercial_aseguradora",
+			"valores": [
+				"Activo",
+				"Suspendido",
+				"Cancelado"
+			]
+		},
+		{
+			"enum_name": "estatus_cotizacion",
+			"valores": [
+				"Pendiente_Aprobacion",
+				"Aprobada",
+				"Rechazada"
+			]
+		},
+		{
+			"enum_name": "estatus_siniestro",
+			"valores": [
+				"Reportado_Preliminar",
+				"Asignado_A_Ajustador",
+				"Peritaje_Validado",
+				"Asignado_A_Taller",
+				"Trabajo_Concluido",
+				"Listo_Para_Entrega",
+				"Entregado"
+			]
+		},
+		{
+			"enum_name": "estatus_usuario",
+			"valores": [
+				"Activo",
+				"Inactivo",
+				"Bloqueado_Temporal",
+				"Bloqueado_ARCO"
+			]
+		},
+		{
+			"enum_name": "rol_usuario",
+			"valores": [
+				"Administrador_Global",
+				"Operador_Aseguradora",
+				"Ajustador",
+				"Operador_Taller",
+				"Cliente",
+				"Tester_Global"
+			]
+		},
+		{
+			"enum_name": "severidad_dano",
+			"valores": [
+				"Bajo",
+				"Medio",
+				"Alto"
+			]
+		},
+		{
+			"enum_name": "tipo_dano",
+			"valores": [
+				"Abolladura",
+				"Rayadura",
+				"Fractura",
+				"Rotura_Cristal",
+				"Deformacion"
+			]
+		}
+	]
+}
