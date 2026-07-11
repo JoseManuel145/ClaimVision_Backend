@@ -36,3 +36,18 @@ class ConsentRequestDTO(BaseModel):
     aviso_privacidad: bool
     biometria: bool
     transferencia_talleres: bool
+
+
+class RecoveryRequestDTO(BaseModel):
+    email: EmailStr
+
+
+class RecoveryVerifyDTO(BaseModel):
+    usuario_id: str
+    code: str
+
+
+class RecoveryResetDTO(BaseModel):
+    usuario_id: str
+    code: str
+    new_password: str

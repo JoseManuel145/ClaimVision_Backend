@@ -1,5 +1,6 @@
 from src.modules.auth.domain.ports import AuthPort, PasswordPort, TokenPort
 from src.modules.auth.domain.models import User, TokenPayload
+from src.core.exceptions import ConflictError
 from datetime import datetime, timedelta, timezone
 from src.shared.domain.models import Rol, EstadoUsuario
 from uuid import uuid4
@@ -19,7 +20,7 @@ class RegisterUser:
     async def execute(self, user: User):
         existing = self.auth_repo.get_by_email(user.email)
         if existing:
-            raise ValueError("Email already registered")
+            raise ConflictError("Email already registered")
 
         hashed = self.password_repo.hash(user.password)
 

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import EmailStr
 
 from src.core.security import get_current_user
 from src.modules.auth.domain.models import AuthenticatedUser
@@ -9,6 +8,9 @@ from src.modules.auth.presentation.schemas import (
     LoginRequestDTO,
     LoginResponseDTO,
     UserRegister,
+    RecoveryRequestDTO,
+    RecoveryVerifyDTO,
+    RecoveryResetDTO,
 )
 from src.modules.auth.application.login_user import LoginUser
 from src.modules.auth.application.register_user import RegisterUser
@@ -52,33 +54,34 @@ async def me(
 
 @router.post("/recovery/request", status_code=status.HTTP_200_OK)
 async def request_recovery(
-    email: EmailStr,
+    data: RecoveryRequestDTO,
     generate_uc: GenerateRecoveryCode = Depends(deps.generate_recovery_code_service),
     send_uc: SendRecoveryCode = Depends(deps.send_recovery_code_service),
 ):
-    code = await generate_uc.execute(email)
-    return await send_uc.execute(email, code)
+    code = await generate_uc.execute(data.email)
+    return await send_uc.execute(data.email, code)
 
 
 @router.post("/recovery/verify", status_code=status.HTTP_200_OK)
 async def verify_code(
-    usuario_id: str,
-    code: str,
+    data: RecoveryVerifyDTO,
     usecase_code: VerifyRecoveryCode = Depends(deps.verify_recovery_code_service),
     usecase_auth: VerifyUser = Depends(deps.verify_user_service),
 ):
-    if await usecase_code.execute(usuario_id, code):
-        return await usecase_auth.execute(usuario_id)
-    return None
+    if await usecase_code.execute(data.usuario_id, data.code):
+        return await usecase_auth.execute(data.usuario_id)
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Código inválido o expirado.")
 
 
 @router.post("/recovery/reset", status_code=status.HTTP_200_OK)
 async def reset_password(
-    usuario_id: str,
-    new_password: str,
-    usecase: ResetPassword = Depends(deps.reset_password_service),
+    data: RecoveryResetDTO,
+    usecase_verify: VerifyRecoveryCode = Depends(deps.verify_recovery_code_service),
+    usecase_reset: ResetPassword = Depends(deps.reset_password_service),
 ):
-    return await usecase.execute(usuario_id, new_password)
+    if not await usecase_verify.execute(data.usuario_id, data.code):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Código inválido o expirado.")
+    return await usecase_reset.execute(data.usuario_id, data.new_password)
 
 
 @router.post("/consentimiento", status_code=status.HTTP_200_OK)

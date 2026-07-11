@@ -4264,18 +4264,16 @@
         ],
         "summary": "Request Recovery",
         "operationId": "request_recovery_api_v1_auth_recovery_request_post",
-        "parameters": [
-          {
-            "name": "email",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "email",
-              "title": "Email"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryRequestDTO"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -4305,26 +4303,16 @@
         ],
         "summary": "Verify Code",
         "operationId": "verify_code_api_v1_auth_recovery_verify_post",
-        "parameters": [
-          {
-            "name": "usuario_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Usuario Id"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryVerifyDTO"
+              }
             }
           },
-          {
-            "name": "code",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Code"
-            }
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -4354,26 +4342,16 @@
         ],
         "summary": "Reset Password",
         "operationId": "reset_password_api_v1_auth_recovery_reset_post",
-        "parameters": [
-          {
-            "name": "usuario_id",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Usuario Id"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryResetDTO"
+              }
             }
           },
-          {
-            "name": "new_password",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "New Password"
-            }
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -6573,6 +6551,61 @@
         },
         "type": "object",
         "title": "RechazarCotizacionRequest"
+      },
+      "RecoveryRequestDTO": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "RecoveryRequestDTO"
+      },
+      "RecoveryResetDTO": {
+        "properties": {
+          "usuario_id": {
+            "type": "string",
+            "title": "Usuario Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "new_password": {
+            "type": "string",
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "usuario_id",
+          "code",
+          "new_password"
+        ],
+        "title": "RecoveryResetDTO"
+      },
+      "RecoveryVerifyDTO": {
+        "properties": {
+          "usuario_id": {
+            "type": "string",
+            "title": "Usuario Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "usuario_id",
+          "code"
+        ],
+        "title": "RecoveryVerifyDTO"
       },
       "SiniestroDetalleAjustadorDTO": {
         "properties": {

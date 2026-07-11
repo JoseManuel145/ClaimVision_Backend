@@ -5,7 +5,6 @@ from src.core.database import Base
 
 class PerfilClienteTable(Base):
     __tablename__ = "perfiles_clientes"
-    __mapper_args__ = {"version_id_col": "version"}
     __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -21,3 +20,5 @@ class PerfilClienteTable(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    __mapper_args__ = {"version_id_col": version}

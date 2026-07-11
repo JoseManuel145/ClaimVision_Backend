@@ -7,7 +7,6 @@ from src.shared.domain.models import EstatusCotizacion
 
 class CotizacionTallerTable(Base):
     __tablename__ = "cotizaciones_taller"
-    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     siniestro_id = Column(UUID(as_uuid=True), ForeignKey("siniestros.id"), nullable=False)
@@ -22,3 +21,5 @@ class CotizacionTallerTable(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    __mapper_args__ = {"version_id_col": version}

@@ -5,7 +5,6 @@ from src.core.database import Base
 
 class VehiculoTable(Base):
     __tablename__ = "vehiculos"
-    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     aseguradora_id = Column(UUID(as_uuid=True), ForeignKey("aseguradoras.id"), nullable=False)
@@ -20,3 +19,5 @@ class VehiculoTable(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    __mapper_args__ = {"version_id_col": version}

@@ -5,7 +5,6 @@ from src.shared.domain.models import EstatusComercialAseguradora
 
 class AseguradoraTable(Base):
     __tablename__ = "aseguradoras"
-    __mapper_args__ = {"version_id_col": "version"}
 
     id = Column(UUID(as_uuid=True), primary_key=True)
     nombre = Column(String, nullable=False)
@@ -20,3 +19,5 @@ class AseguradoraTable(Base):
     created_at = Column(DateTime(timezone=True), nullable=False)
     updated_at = Column(DateTime(timezone=True), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    __mapper_args__ = {"version_id_col": version}

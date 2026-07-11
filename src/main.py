@@ -5,6 +5,7 @@ from src.core.logging import setup_logging
 from src.core.middlewares import register_middlewares
 from src.core.exceptions import register_exception_handlers
 from src.core.routers import api_router
+from src.core.database import Base, engine
 
 setup_logging()
 
@@ -24,6 +25,10 @@ register_exception_handlers(app)
 
 # Registrar todas las rutas de los módulos
 app.include_router(api_router, prefix="/api")
+
+@app.on_event("startup")
+def create_missing_tables():
+    Base.metadata.create_all(bind=engine)
 
 @app.get("/", tags=["Root"])
 def root():
