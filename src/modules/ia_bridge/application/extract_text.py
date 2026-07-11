@@ -6,5 +6,5 @@ class ExtractText:
     def __init__(self, ocr_port: OcrPort):
         self.ocr_port = ocr_port
 
-    async def execute(self, pdf_bytes: bytes, filename: str) -> dict[str, Any]:
-        return await self.ocr_port.extract_text(pdf_bytes, filename)
+    async def execute(self, pdf_bytes: bytes, filename: str, content_type: str) -> dict[str, Any]:
+        return await self.ocr_port.extract_text(pdf_bytes, filename, content_type)

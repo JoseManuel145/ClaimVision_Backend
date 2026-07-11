@@ -7,10 +7,10 @@ class PredictService:
     def __init__(self, ia_url: str):
         self.ia_url = ia_url
 
-    async def predict(self, image_bytes: bytes, filename: str) -> dict[str, Any]:
+    async def predict(self, image_bytes: bytes, filename: str, content_type: str) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             try:
-                files = {"file": (filename, image_bytes, "image/jpeg")}
+                files = {"file": (filename, image_bytes, content_type)}
                 response = await client.post(
                     f"{self.ia_url}/api/v2/predict",
                     files=files,

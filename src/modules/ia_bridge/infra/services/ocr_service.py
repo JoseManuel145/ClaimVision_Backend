@@ -7,10 +7,10 @@ class IaOcrService:
     def __init__(self, ia_url: str):
         self.ia_url = ia_url
 
-    async def extract_text(self, pdf_bytes: bytes, filename: str) -> dict[str, Any]:
+    async def extract_text(self, pdf_bytes: bytes, filename: str, content_type: str) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             try:
-                files = {"file": (filename, pdf_bytes, "application/pdf")}
+                files = {"file": (filename, pdf_bytes, content_type)}
                 response = await client.post(
                     f"{self.ia_url}/api/v1/ocr",
                     files=files,

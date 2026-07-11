@@ -7,10 +7,10 @@ class TranscribirService:
     def __init__(self, ia_url: str):
         self.ia_url = ia_url
 
-    async def transcribe(self, audio_bytes: bytes, filename: str) -> dict[str, Any]:
+    async def transcribe(self, audio_bytes: bytes, filename: str, content_type: str) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             try:
-                files = {"file": (filename, audio_bytes, "audio/m4a")}
+                files = {"file": (filename, audio_bytes, content_type)}
                 response = await client.post(
                     f"{self.ia_url}/api/v1/nlp/transcribir",
                     files=files,

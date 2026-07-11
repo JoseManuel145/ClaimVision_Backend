@@ -1,9 +1,9 @@
 # Reporte de Pruebas de Endpoints — ClaimVision API
 
-**Fecha:** 2026-07-11 (4ª ronda)  
+**Fecha:** 2026-07-11 (6ª ronda)  
 **OpenAPI:** v1.5.0  
 **Backend:** `https://claimvision.actividades.icu/api/v1`  
-**Aseguradora de prueba:** Seguros Demo (`f6c46a9f-...`)  
+**Aseguradora:** Seguros Demo (`f6c46a9f-...`)
 
 ---
 
@@ -13,97 +13,119 @@
 |----------|-----------|
 | `POST /auth/login` (5 roles) | ✅ 200 — Todos los roles obtienen token |
 | `GET /auth/me` | ✅ 200 — `{usuario_id, email, rol, aseguradora_id}` |
-| `POST /auth/register` (nuevo) | ✅ 201 — Usuario creado |
-| `POST /auth/register` (duplicado) | ✅ **CORREGIDO** — 409 "Email already registered" |
-| `POST /auth/consentimiento` | ✅ 200 — "Consentimiento registrado exitosamente" |
+| `POST /auth/register` (nuevo) | ✅ 201 — Usuario creado con token |
+| `POST /auth/register` (duplicado) | ✅ 409 "Email already registered" |
+
+### Consentimiento
+| Endpoint | Campos | Resultado |
+|----------|--------|-----------|
+| `POST /auth/consentimiento` | `aviso_privacidad`, `biometria`, `transferencia_talleres` | ✅ **NUEVO SCHEMA** — 200 |
+| `PATCH /cliente/consentimientos` | `consentimiento_aviso_privacidad`, `consentimiento_biometria`, `autoriza_transferencia_talleres` | ✅ 200 (schema anterior) |
 
 ### Recovery
 | Endpoint | Body | Resultado |
 |----------|------|-----------|
-| `POST /auth/recovery/request` | `{"email":"..."}` | ✅ **CORREGIDO** — 200 `true` |
-| `POST /auth/recovery/verify` | `{"usuario_id":"...","code":"..."}` | ✅ **CORREGIDO** — 400 "Código inválido o expirado." |
-| `POST /auth/recovery/reset` | `{"usuario_id":"...","code":"...","new_password":"..."}` | ✅ **CORREGIDO** — Requiere `code` válido |
+| `POST /auth/recovery/request` | `{"email":"..."}` | ✅ 200 `true` |
+| `POST /auth/recovery/verify` | `{"usuario_id":"...","code":"..."}` | ✅ 400 "Código inválido o expirado." |
+| `POST /auth/recovery/reset` | Requiere `code` válido | ✅ No vulnerable |
 
 ---
 
-## 2. Cliente — Onboarding / Perfil / Siniestros
+## 2. Cliente — Onboarding
+
+| Endpoint | Body | Resultado |
+|----------|------|-----------|
+| `POST /cliente/onboarding/confirmar-datos` | `{"numero_poliza","vigencia_poliza","curp_rfc"}` | ⚠️ **Campo renombrado** de `curp_rpc` → `curp_rfc` |
+
+---
+
+## 3. Cliente — Perfil
+
+| Endpoint | Body | Resultado |
+|----------|------|-----------|
+| `GET /cliente/perfil` | — | ✅ 200 |
+| `PUT /cliente/perfil` | `{"nombre","telefono"}` | ✅ 200 |
+| `PATCH /cliente/consentimientos` | `{"consentimiento_aviso_privacidad","consentimiento_biometria","autoriza_transferencia_talleres"}` | ✅ 200 |
+
+---
+
+## 4. Cliente — Siniestros
 
 | Endpoint | Resultado |
 |----------|-----------|
-| `POST /cliente/onboarding/confirmar-datos` | ✅ 200 — DTO simplificado |
-| `GET /cliente/perfil` | ✅ 200 |
-| `PUT /cliente/perfil` | ✅ 200 |
-| `PATCH /cliente/consentimientos` | ✅ 200 |
-| `POST /cliente/siniestros` | ✅ 201 — `estatus: Reportado_Preliminar` |
-| `GET /cliente/siniestros` | ✅ 200 |
+| `POST /cliente/siniestros` | ✅ 201 — Requiere `vehiculo_id` + `vehiculo_marca`, `vehiculo_modelo`, `vehiculo_anio`, `vehiculo_placas` |
+| `GET /cliente/siniestros` | ✅ 200 — Paginación |
 | `GET /cliente/siniestros/{id}` | ✅ 200 — Detalle + imágenes + timeline |
 | `POST /cliente/siniestros/{id}/imagenes` | ✅ 201 — Sube a Supabase Storage |
 | `GET /cliente/vehiculos` | ✅ 200 |
 
 ---
 
-## 3. Ajustador — Perfil
+## 5. Ajustador — Perfil
 
 | Endpoint | Body | Resultado |
 |----------|------|-----------|
 | `GET /ajustador/perfil` | — | ✅ 200 |
 | `PUT /ajustador/perfil` | `{"telefono"}` | ✅ 200 |
-| `PATCH /ajustador/disponibilidad` | `{"activo_para_servicio":bool}` | ✅ **CORREGIDO** — 200 |
-| `PUT /ajustador/geolocalizacion` | `{"latitud","longitud"}` | ✅ **CORREGIDO** — 200 |
+| `PATCH /ajustador/disponibilidad` | `{"activo_para_servicio":bool}` | ✅ 200 |
+| `PUT /ajustador/geolocalizacion` | `{"latitud","longitud"}` | ✅ 200 |
 
 ---
 
-## 4. Ajustador — Flujo de Peritaje
+## 6. Ajustador — Flujo de Peritaje
 
-### `POST /aseguradora/siniestros/{id}/asignar-ajustador`
-✅ **CORREGIDO** — 200, estatus cambia a `Asignado_A_Ajustador`
+### Asignación
+| Endpoint | Resultado |
+|----------|-----------|
+| `POST /aseguradora/siniestros/{id}/asignar-ajustador` | ✅ 200 — estatus → `Asignado_A_Ajustador` |
+| `GET /ajustador/asignaciones` | ✅ 200 — Lista paginada |
+| `GET /ajustador/siniestros/{id}` | ✅ 200 — Detalle + imágenes + peritaje + peritaje_ia:null |
 
-### `GET /ajustador/asignaciones`
-✅ 200 — Lista paginada de siniestros asignados
+### Peritaje
+| Endpoint | Envío | Resultado |
+|----------|-------|-----------|
+| `POST /ajustador/siniestros/{id}/peritaje` | `danos: [{tipo:"Abolladura", severidad:"Alto"}]` | ✅ **201** — Peritaje creado, estatus → `Peritaje_Validado` |
+| `GET /ajustador/siniestros/{id}` | (post-peritaje) | ✅ **200** — Peritaje + danos visibles, siniestro en `Peritaje_Validado` |
+| `PATCH /ajustador/peritajes/{id}` | `{"costo_definitivo_ajustador":26000}` | ✅ **409** "ya fue validado y no puede editarse" (correcto) |
+| `POST /ajustador/peritajes/{id}/danos` | `{tipo,severidad,zona,costo}` | ✅ **409** "ya fue validado y no puede editarse" (correcto) |
 
-### `GET /ajustador/siniestros/{id}`
-✅ 200 (siniestro sin peritaje huérfano)  
-❌ **500** (siniestro con peritaje huérfano de intento fallido)
-
-### `POST /ajustador/siniestros/{id}/peritaje`
-❌ **BUG CRÍTICO** — 500 "Ocurrió un error interno en el servidor."
-
-**Causa raíz:** En `peritaje_repository.py:99`, `self.db.commit()` ocurre ANTES de `self.db.refresh()` y `_peritaje_to_domain()`. Si `refresh()` falla, el peritaje ya quedó persistido en la BD (commit exitoso) pero el endpoint retorna 500. Esto deja la BD inconsistente con un registro huérfano.
-
-**Síntoma:** El GET del mismo siniestro desde ajustador/operador retorna 500 intentando cargar el peritaje huérfano. El GET desde cliente funciona bien (no consulta peritajes).
-
-**Solución implementada en código local** (requiere redeploy):
-1. `peritaje_repository.py`: Mover `_peritaje_to_domain()` ANTES de `self.db.commit()` para evitar commits parciales
-2. `peritaje_dto.py`: Agregar validadores Pydantic en `DanoAjustadoDTO` para validar `tipo`/`severidad` contra los valores válidos del enum
-
-### `PATCH /ajustador/peritajes/{id}`
-✅ **CORREGIDO** — 404 cuando ID inexistente  
-⚠️ No probado con ID válido (peritaje no se crea)
-
-### `POST /ajustador/peritajes/{id}/danos`
-✅ **CORREGIDO** — 404 cuando ID inexistente
+### Notas
+- Los enums de `tipo` y `severidad` usan **PascalCase** (`Abolladura`, `Alto`, etc.) tanto en el DTO como en la BD.
+- UPPERCASE (`ABOLLADURA`, `ALTO`) es rechazado por el DTO con 422.
+- El peritaje transiciona automáticamente a `Peritaje_Validado`, lo que bloquea edits/danos posteriores (comportamiento esperado).
 
 ---
 
-## 5. Aseguradora (Operador)
+## 7. Aseguradora (Operador)
 
 | Endpoint | Resultado |
 |----------|-----------|
 | `GET /aseguradora/siniestros` | ✅ 200 |
-| `GET /aseguradora/siniestros/{id}` | ❌ **500** para siniestro con peritaje huérfano; ✅ 200 para otros |
-| `PUT /aseguradora/siniestros/{id}` | ✅ 200 |
-| `POST /aseguradora/crud/vehiculos` | ✅ 201 |
+| `GET /aseguradora/siniestros/{id}` | ✅ 200 — Detalle con peritaje, cotización, peritaje_ia |
+| `POST /aseguradora/siniestros/{id}/asignar-ajustador` | ✅ 200 |
+| `POST /aseguradora/siniestros/{id}/asignar-taller` | ✅ 200 (si taller existe) |
+| `GET /aseguradora/crud/vehiculos` | ✅ 200 — **NUEVA RUTA** (`/aseguradora/vehiculos` ya no existe) |
+| `GET /aseguradora/crud/talleres` | ✅ 200 — **NUEVA RUTA** |
+| `GET /aseguradora/crud/ajustadores` | ✅ 200 — **NUEVA RUTA** (antes `/aseguradora/perfil-ajustadores`) |
 
 ---
 
-## 6. Taller / Admin Global
+## 8. Taller
 
 | Endpoint | Resultado |
 |----------|-----------|
 | `GET /taller/perfil` | ✅ 200 |
 | `GET /taller/ordenes` | ✅ 200 |
+
+---
+
+## 9. Admin Global
+
+| Endpoint | Resultado |
+|----------|-----------|
 | `GET /admin/aseguradoras` | ✅ 200 |
-| `GET /admin/aseguradoras/{id}` | ✅ 200 |
+| `GET /admin/aseguradoras/{id}` | ✅ 200 — Retorna `nombre` (campo actualizado) |
+| `PATCH /admin/aseguradoras/{id}/reactivar` | ✅ 409 si estatus no es "Cancelado" |
 
 ---
 
@@ -111,27 +133,34 @@
 
 | Estado | Cantidad |
 |--------|----------|
-| ✅ Funcionan | **26** endpoints |
-| ❌ Bug crítico | **1** (`POST peritaje` + GETs de siniestro con peritaje huérfano) |
+| ✅ Funcionan | **32** endpoints |
+| ❌ Bugs | **0** — todos los bugs resueltos |
+| ⚠️ Observaciones | **2** (ver abajo) |
 
-### Bugs corregidos desde ronda 1 (10)
-| Endpoint | Ronda 1 → Ronda 4 |
-|----------|-------------------|
-| Imagenes upload | ❌ 500 → ✅ 201 |
-| Consentimiento POST | ❌ 500 → ✅ 200 |
-| Consentimientos PATCH | ❌ 500 → ✅ 200 |
-| Register duplicado | ❌ 500 → ✅ 409 |
-| Disponibilidad | ❌ 500 → ✅ 200 |
-| Geolocalizacion | ❌ 500 → ✅ 200 |
-| Peritajes PATCH (ID inexistente) | ❌ 500 → ✅ 404 |
-| Peritajes danos (ID inexistente) | ❌ 500 → ✅ 404 |
-| Recovery request/verify/reset | ❌ 500 → ✅ 200 |
-| **Asignar ajustador** | ❌ 400/409 → ✅ **200** |
+### Observaciones
+1. **Onboarding** — El campo `curp_rpc` cambió a `curp_rfc`. No es un bug, solo un rename de schema.
+2. **Rutas de operador movidas** — `GET /aseguradora/{vehiculos,talleres,perfil-ajustadores}` ahora son `GET /aseguradora/crud/{vehiculos,talleres,ajustadores}`. El endpoint `ajustadores-disponibles` fue eliminado.
 
-### Bug nuevo: guardar_peritaje con commit prematuro
+### Cambios detectados en el schema (vs ronda 4)
+| Endpoint | Cambio |
+|----------|--------|
+| `POST /cliente/siniestros` | **Ahora requiere** `vehiculo_id` además de los campos de vehículo |
+| `POST /auth/consentimiento` | **Campos cambiados** a `aviso_privacidad`, `biometria`, `transferencia_talleres` |
+| `GET /admin/aseguradoras/{id}` | **Campo cambiado** de `nombre_comercial` a `nombre` |
+| `POST /cliente/onboarding/confirmar-datos` | **Campo renombrado** de `curp_rpc` → `curp_rfc` |
+| Rutas de operador | Movidas a `/aseguradora/crud/*` |
 
-**Archivos modificados localmente (pendientes de deploy):**
-- `ClaimVision_Backend/src/modules/siniestro/infra/db/repositories/peritaje_repository.py` — **Fix:** Mover `_peritaje_to_domain()` antes de `commit()` para evitar commits parciales
-- `ClaimVision_Backend/src/modules/siniestro/presentation/peritaje/peritaje_dto.py` — **Fix:** Agregar validadores Pydantic para `tipo` y `severidad` contra los valores reales de los enums `TipoDano` y `SeveridadDano`
+### Historial de bugs resueltos
 
-**Limpieza necesaria en BD:** El siniestro `465c46fb-ef1d-45a9-aecd-d677aecd9a96` tiene un registro huérfano en `peritajes_ajustador` que debe eliminarse manualmente.
+| Bug | Estado | Fix |
+|-----|--------|-----|
+| `POST peritaje` con commit prematuro (500 + peritaje huérfano) | ✅ **RESUELTO** | `peritaje_repository.py`: `flush()` → `refresh()` → `_peritaje_to_domain()` → `commit()` |
+| Enum mismatch `tipo_dano`/`severidad_dano` | ✅ **NO APLICABA** — el análisis inicial fue incorrecto. El PG enum usa PascalCase, igual que el código Python. El error original era solo el commit prematuro. |
+
+### Siniestros con peritajes huérfanos (requieren limpieza en BD)
+```sql
+DELETE FROM danos_ajustados_manual WHERE peritaje_ajustador_id IN 
+  (SELECT id FROM peritajes_ajustador WHERE siniestro_id = '465c46fb-ef1d-45a9-aecd-d677aecd9a96');
+DELETE FROM peritajes_ajustador WHERE siniestro_id = '465c46fb-ef1d-45a9-aecd-d677aecd9a96';
+-- Repetir para '6070bbc6-91cc-42f3-8096-ae6fd49e7734' y '2eadddb3-7b24-43c4-bab9-a047ed2a010e'
+```
