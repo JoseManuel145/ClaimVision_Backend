@@ -4418,6 +4418,227 @@
         ]
       }
     },
+    "/api/v1/ia/predict": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Predict Damage",
+        "operationId": "predict_damage_api_v1_ia_predict_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_predict_damage_api_v1_ia_predict_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ia/ocr": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Extract Text",
+        "operationId": "extract_text_api_v1_ia_ocr_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_extract_text_api_v1_ia_ocr_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ia/nlp/transcribir": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Transcribe Audio",
+        "operationId": "transcribe_audio_api_v1_ia_nlp_transcribir_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_transcribe_audio_api_v1_ia_nlp_transcribir_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ia/nlp/transcribir/status/{job_id}": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Transcribe Status",
+        "operationId": "transcribe_status_api_v1_ia_nlp_transcribir_status__job_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ia/nlp/analizar": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Analyze Text",
+        "operationId": "analyze_text_api_v1_ia_nlp_analizar_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_analyze_text_api_v1_ia_nlp_analizar_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -4981,6 +5202,33 @@
         ],
         "title": "AuditResponse"
       },
+      "Body_analyze_text_api_v1_ia_nlp_analizar_post": {
+        "properties": {
+          "texto": {
+            "type": "string",
+            "title": "Texto"
+          }
+        },
+        "type": "object",
+        "required": [
+          "texto"
+        ],
+        "title": "Body_analyze_text_api_v1_ia_nlp_analizar_post"
+      },
+      "Body_extract_text_api_v1_ia_ocr_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_extract_text_api_v1_ia_ocr_post"
+      },
       "Body_ocr_extraction_api_v1_cliente_onboarding_ocr_post": {
         "properties": {
           "cedula": {
@@ -5001,6 +5249,20 @@
         ],
         "title": "Body_ocr_extraction_api_v1_cliente_onboarding_ocr_post"
       },
+      "Body_predict_damage_api_v1_ia_predict_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_predict_damage_api_v1_ia_predict_post"
+      },
       "Body_registrar_imagen_api_v1_cliente_siniestros__id__imagenes_post": {
         "properties": {
           "file": {
@@ -5014,6 +5276,20 @@
           "file"
         ],
         "title": "Body_registrar_imagen_api_v1_cliente_siniestros__id__imagenes_post"
+      },
+      "Body_transcribe_audio_api_v1_ia_nlp_transcribir_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_transcribe_audio_api_v1_ia_nlp_transcribir_post"
       },
       "ClienteCreateDTO": {
         "properties": {
@@ -5383,10 +5659,22 @@
           },
           "tipo": {
             "type": "string",
+            "enum": [
+              "Abolladura",
+              "Rayadura",
+              "Fractura",
+              "Rotura_Cristal",
+              "Deformacion"
+            ],
             "title": "Tipo"
           },
           "severidad": {
             "type": "string",
+            "enum": [
+              "Bajo",
+              "Medio",
+              "Alto"
+            ],
             "title": "Severidad"
           },
           "costo_real_reparacion": {
@@ -5416,10 +5704,22 @@
           },
           "tipo": {
             "type": "string",
+            "enum": [
+              "Abolladura",
+              "Rayadura",
+              "Fractura",
+              "Rotura_Cristal",
+              "Deformacion"
+            ],
             "title": "Tipo"
           },
           "severidad": {
             "type": "string",
+            "enum": [
+              "Bajo",
+              "Medio",
+              "Alto"
+            ],
             "title": "Severidad"
           },
           "costo_real_reparacion": {
