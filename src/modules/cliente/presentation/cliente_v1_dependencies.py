@@ -6,6 +6,9 @@ from src.modules.siniestro.infra.db.repositories.siniestro_repository import Sin
 from src.modules.siniestro.infra.db.repositories.imagen_siniestro_repository import ImagenSiniestroRepository
 from src.modules.siniestro.infra.adapters.cliente_checker_adapter import ClienteCheckerAdapter
 from src.modules.cliente.infra.db.repositories.cliente_repository import ClienteRepository
+from src.modules.aseguradora.infra.db.repositories.vehiculo_repository import VehiculoRepository
+from src.modules.aseguradora.infra.adapters.vehiculo_adapter import VehiculoAdapter
+from src.modules.aseguradora.application.vehiculos.list_vehiculos_cliente import ListVehiculosCliente
 
 from src.modules.siniestro.application.siniestros.inicializar_siniestro import InicializarSiniestro
 from src.modules.siniestro.application.siniestros.list_siniestros_cliente import ListSiniestrosCliente
@@ -22,7 +25,11 @@ def _cliente_checker(session: Session) -> ClienteCheckerAdapter:
 
 
 def reportar_siniestro_service(session: Session = Depends(get_session)) -> InicializarSiniestro:
-    return InicializarSiniestro(SiniestroRepository(session), _cliente_checker(session))
+    return InicializarSiniestro(
+        SiniestroRepository(session),
+        _cliente_checker(session),
+        VehiculoRepository(session),
+    )
 
 
 def list_siniestros_cliente_service(session: Session = Depends(get_session)) -> ListSiniestrosCliente:
@@ -60,3 +67,10 @@ def actualizar_perfil_cliente_service(session: Session = Depends(get_session)) -
 
 def confirm_consent_service(session: Session = Depends(get_session)) -> ConfirmConsent:
     return ConfirmConsent(ClienteRepository(session), AuthRepository(session))
+
+
+def list_vehiculos_cliente_service(session: Session = Depends(get_session)) -> ListVehiculosCliente:
+    return ListVehiculosCliente(
+        VehiculoAdapter(VehiculoRepository(session)),
+        _cliente_checker(session),
+    )

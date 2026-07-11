@@ -12,6 +12,7 @@ class SiniestroTable(Base):
     cliente_id = Column(UUID(as_uuid=True), nullable=False)
     ajustador_id = Column(UUID(as_uuid=True), nullable=True)
     taller_id = Column(UUID(as_uuid=True), nullable=True)
+    vehiculo_id = Column(UUID(as_uuid=True), nullable=True)
     estatus = Column(Enum(EstatusSiniestro, name="estatus_siniestro", values_callable=lambda x: [e.value for e in x]), nullable=False, default=EstatusSiniestro.REPORTADO_PRELIMINAR.value)
     vehiculo_marca = Column(String, nullable=False)
     vehiculo_modelo = Column(String, nullable=False)

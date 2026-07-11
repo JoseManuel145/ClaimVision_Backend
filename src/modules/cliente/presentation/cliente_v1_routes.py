@@ -31,6 +31,7 @@ from src.modules.cliente.presentation.cliente_v1_dependencies import (
     confirm_consent_service,
     actualizar_perfil_cliente_service,
     get_auth_repo_for_enrichment,
+    list_vehiculos_cliente_service,
 )
 from src.modules.cliente.presentation.schemas import ConfirmDataRequestDTO
 from src.modules.cliente.application.process_ocr import ProcessOcr
@@ -40,6 +41,8 @@ from src.modules.siniestro.application.siniestros.list_siniestros_cliente import
 from src.modules.siniestro.application.siniestros.get_siniestro_cliente import GetSiniestroCliente
 from src.modules.siniestro.application.siniestros.registrar_imagen import RegistrarImagenSiniestro
 from src.modules.cliente.application.get_perfil_cliente import GetPerfilCliente
+from src.modules.aseguradora.application.vehiculos.list_vehiculos_cliente import ListVehiculosCliente
+from src.modules.aseguradora.presentation.vehiculos.vehiculo_dto import VehiculoResponseDTO
 from src.modules.auth.application.confirm_consent import ConfirmConsent
 from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
 from src.modules.cliente.presentation.dependencies import (
@@ -220,3 +223,15 @@ def actualizar_consentimientos(
         usuario=user, request=request,
     )
     return {"message": "Consentimientos registrados exitosamente."}
+
+
+@router.get("/vehiculos", response_model=Page[VehiculoResponseDTO])
+def listar_mis_vehiculos(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc: ListVehiculosCliente = Depends(list_vehiculos_cliente_service),
+):
+    items, total = uc.execute(user.usuario_id, offset_from_page(page, page_size), page_size)
+    data = [VehiculoResponseDTO.model_validate(v) for v in items]
+    return Page.build(data=data, total=total, page=page, page_size=page_size)

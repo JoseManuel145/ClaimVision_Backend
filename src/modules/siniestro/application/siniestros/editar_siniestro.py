@@ -24,6 +24,8 @@ class EditarSiniestro:
             raise BusinessRuleError("No tiene permiso para editar este siniestro. No le ha sido asignado.")
             
         # Actualización condicional
+        if dto.vehiculo_id is not None:
+            siniestro.vehiculo_id = dto.vehiculo_id
         if dto.vehiculo_marca is not None:
             siniestro.vehiculo_marca = dto.vehiculo_marca
         if dto.vehiculo_modelo is not None:

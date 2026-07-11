@@ -14,6 +14,7 @@ def _to_domain(obj: SiniestroTable) -> SiniestroModel:
         cliente_id=str(obj.cliente_id),
         ajustador_id=str(obj.ajustador_id) if obj.ajustador_id else None,
         taller_id=str(obj.taller_id) if obj.taller_id else None,
+        vehiculo_id=str(obj.vehiculo_id) if obj.vehiculo_id else None,
         estatus=obj.estatus,
         vehiculo_marca=obj.vehiculo_marca,
         vehiculo_modelo=obj.vehiculo_modelo,
@@ -43,6 +44,7 @@ class SiniestroRepository(SiniestroRepositoryPort):
             cliente_id=uuid.UUID(siniestro.cliente_id) if siniestro.cliente_id else None,
             ajustador_id=uuid.UUID(siniestro.ajustador_id) if siniestro.ajustador_id else None,
             taller_id=uuid.UUID(siniestro.taller_id) if siniestro.taller_id else None,
+            vehiculo_id=uuid.UUID(siniestro.vehiculo_id) if siniestro.vehiculo_id else None,
             estatus=siniestro.estatus,
             vehiculo_marca=siniestro.vehiculo_marca,
             vehiculo_modelo=siniestro.vehiculo_modelo,
@@ -112,6 +114,7 @@ class SiniestroRepository(SiniestroRepositoryPort):
         stmt = update(SiniestroTable).where(SiniestroTable.id == siniestro.id).values(
             ajustador_id=uuid.UUID(siniestro.ajustador_id) if siniestro.ajustador_id else None,
             taller_id=uuid.UUID(siniestro.taller_id) if siniestro.taller_id else None,
+            vehiculo_id=uuid.UUID(siniestro.vehiculo_id) if siniestro.vehiculo_id else None,
             estatus=siniestro.estatus,
             vehiculo_marca=siniestro.vehiculo_marca,
             vehiculo_modelo=siniestro.vehiculo_modelo,

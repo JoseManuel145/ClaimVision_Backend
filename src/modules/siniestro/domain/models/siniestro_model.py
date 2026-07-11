@@ -8,6 +8,7 @@ class SiniestroModel:
     cliente_id: str
     ajustador_id: str | None
     taller_id: str | None
+    vehiculo_id: str | None
     estatus: str
     vehiculo_marca: str
     vehiculo_modelo: str

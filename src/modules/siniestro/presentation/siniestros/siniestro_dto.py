@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 class SiniestroInicializarDTO(BaseModel):
+    vehiculo_id: str
     vehiculo_marca: str
     vehiculo_modelo: str
     vehiculo_anio: int
@@ -16,6 +17,7 @@ class SiniestroInicializarDTO(BaseModel):
     fecha_siniestro: Optional[datetime] = None
 
 class SiniestroUpdateDTO(BaseModel):
+    vehiculo_id: Optional[str] = None
     vehiculo_marca: Optional[str] = None
     vehiculo_modelo: Optional[str] = None
     vehiculo_anio: Optional[int] = None
@@ -35,6 +37,7 @@ class SiniestroResponseDTO(BaseModel):
     cliente_id: str
     ajustador_id: Optional[str] = None
     taller_id: Optional[str] = None
+    vehiculo_id: Optional[str] = None
     estatus: str
     vehiculo_marca: str
     vehiculo_modelo: str
