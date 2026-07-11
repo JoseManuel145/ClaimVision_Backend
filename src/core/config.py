@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     BCRYPT_ROUNDS: int
     ENCRYPTION_KEY: str
     OCR_API_URL: str
+    IA_SERVICE_URL: str
 
     # LOGGING & CORS
     LOG_LEVEL: str

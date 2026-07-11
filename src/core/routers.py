@@ -13,6 +13,7 @@ from src.modules.aseguradora.presentation.vehiculos.vehiculo_routes import route
 from src.modules.aseguradora.presentation.perfil.perfil_routes import router as perfil_router
 from src.modules.admin.presentation.admin_v1_routes import router as admin_v1_router
 from src.modules.auth.presentation.auth_v1_routes import router as auth_v1_router
+from src.modules.ia_bridge.presentation.ia_bridge_v1_routes import router as ia_bridge_router
 
 api_router = APIRouter()
 api_router.include_router(cliente_v1_router, prefix="/v1/cliente", tags=["v1 · Cliente"])
@@ -27,3 +28,4 @@ api_router.include_router(vehiculo_crud_router, prefix="/v1/aseguradora/crud/veh
 api_router.include_router(perfil_router, prefix="/v1/aseguradora/perfil", tags=["v1 · Aseguradora"])
 api_router.include_router(admin_v1_router, prefix="/v1/admin", tags=["v1 · Admin"])
 api_router.include_router(auth_v1_router, prefix="/v1/auth", tags=["v1 · Auth"])
+api_router.include_router(ia_bridge_router, prefix="/v1/ia", tags=["v1 · IA Bridge"])

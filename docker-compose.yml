@@ -1,0 +1,60 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SUPABASE_BUCKET_IMG=${SUPABASE_BUCKET_IMG}
+      - SUPABASE_BUCKET_PDF=${SUPABASE_BUCKET_PDF}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALGORITHM=${ALGORITHM}
+      - TIME_MINUTES=${TIME_MINUTES}
+      - BCRYPT_ROUNDS=${BCRYPT_ROUNDS}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - OCR_API_URL=http://ocr-service:8000
+      - IA_SERVICE_URL=http://ia-service:8000
+      - LOG_LEVEL=${LOG_LEVEL}
+      - ORIGINS=${ORIGINS}
+      - FIREBASE_CREDENTIALS_PATH=${FIREBASE_CREDENTIALS_PATH}
+    depends_on:
+      ia-service:
+        condition: service_started
+    restart: unless-stopped
+
+  ia-service:
+    build: ../ClaimVision_IAService
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://claimvision:claimvision_pass@db:5432/claimvision_ia
+      - MODELS_DIR=/app/models
+      - LOG_LEVEL=INFO
+      - ORIGINS=["*"]
+      - OLLAMA_URL=http://ollama:11434
+    volumes:
+      - ../ClaimVision_IAService/models:/app/models
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  ollama_data:
