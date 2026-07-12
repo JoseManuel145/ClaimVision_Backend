@@ -145,6 +145,9 @@ __all__ = [
 def register_exception_handlers(app: FastAPI):
     @app.exception_handler(StaleDataError)
     async def stale_data_handler(request: Request, exc: StaleDataError):
+        method = request.method
+        path = request.url.path
+        logger.warning(f"HTTP 409 | {method} {path} | Conflicto de concurrencia: {str(exc)}")
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={"error": "Conflicto de concurrencia: el registro fue modificado por otro usuario. Recarge e intente de nuevo."}
@@ -160,9 +163,21 @@ def register_exception_handlers(app: FastAPI):
 
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+        status_code = exc.status_code
+        detail = exc.detail
+        method = request.method
+        path = request.url.path
+
+        if status_code >= 500:
+            logger.error(f"HTTP {status_code} | {method} {path} | {detail}")
+        elif status_code >= 400:
+            logger.warning(f"HTTP {status_code} | {method} {path} | {detail}")
+        else:
+            logger.info(f"HTTP {status_code} | {method} {path} | {detail}")
+
         return JSONResponse(
-            status_code=exc.status_code,
-            content={"error": exc.detail}
+            status_code=status_code,
+            content={"error": detail}
         )
 
     @app.exception_handler(RequestValidationError)
@@ -176,7 +191,13 @@ def register_exception_handlers(app: FastAPI):
                 return [_sanitize(i) for i in obj]
             return obj
 
+        method = request.method
+        path = request.url.path
+        errors = _sanitize(exc.errors())
+
+        logger.warning(f"HTTP 422 | {method} {path} | Error de validación: {errors}")
+
         return JSONResponse(
             status_code=422,
-            content={"error": "Error de validación en la solicitud.", "details": _sanitize(exc.errors())}
+            content={"error": "Error de validación en la solicitud.", "details": errors}
         )
