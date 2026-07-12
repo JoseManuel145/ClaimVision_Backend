@@ -42,7 +42,7 @@ class ClienteRepository(ClienteRepositoryPort):
             consentimiento_biometria=profile.consentimiento_biometria,
             autoriza_transferencia_talleres=profile.autoriza_transferencia_talleres,
             fecha_consentimiento=profile.fecha_consentimiento,
-            fecha_creacion=profile.fecha_creacion or datetime.now(timezone.utc)
+            created_at=profile.fecha_creacion or datetime.now(timezone.utc)
         )
         self.db.add(model)
         self.db.commit()

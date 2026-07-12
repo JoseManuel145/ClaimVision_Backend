@@ -15,7 +15,7 @@ class ClienteProfileTable(Base):
     consentimiento_biometria = Column(Boolean, nullable=False, default=False)
     autoriza_transferencia_talleres = Column(Boolean, nullable=False, default=False)
     fecha_consentimiento = Column(DateTime(timezone=True), nullable=True)
-    fecha_creacion = Column("created_at", DateTime(timezone=True), nullable=False, server_default=func.now())
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     version = Column(Integer, nullable=False, default=1)
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True)
