@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query, Request, status
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from src.core.database import get_session
 from src.core.security import require_roles
@@ -62,12 +63,12 @@ def listar_siniestros(
 
 @router.get("/siniestros/{id}", response_model=SiniestroDetalleAseguradoraDTO)
 def detalle_siniestro(
-    id: str,
+    id: UUID,
     user: AuthenticatedUser = Depends(get_operador),
     uc: GetSiniestroAseguradora = Depends(deps.get_siniestro_service),
     db: Session = Depends(get_session),
 ):
-    siniestro, imagenes, peritaje, cotizacion = uc.execute(id, user.aseguradora_id)
+    siniestro, imagenes, peritaje, cotizacion = uc.execute(str(id), user.aseguradora_id)
 
     from src.modules.aseguradora.infra.db.repositories.cliente_repository import ClienteRepository
     from src.modules.aseguradora.infra.db.repositories.ajustador_repository import AjustadorRepository
@@ -102,87 +103,87 @@ def detalle_siniestro(
 
 @router.put("/siniestros/{id}", response_model=SiniestroResponseDTO)
 def editar_siniestro(
-    id: str,
+    id: UUID,
     dto: SiniestroUpdateDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: EditarSiniestro = Depends(editar_siniestro_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    siniestro = uc.execute(siniestro_id=id, usuario_id=user.usuario_id, rol=user.rol, dto=dto)
+    siniestro = uc.execute(siniestro_id=str(id), usuario_id=user.usuario_id, rol=user.rol, dto=dto)
     audit.record(evento_modulo=EVENTO, accion="editar_siniestro", usuario=user, request=request,
-                 metadata={"siniestro_id": id})
+                 metadata={"siniestro_id": str(id)})
     return siniestro
 
 
 @router.post("/siniestros/{id}/asignar-ajustador", response_model=SiniestroResponseDTO)
 def asignar_ajustador(
-    id: str,
+    id: UUID,
     dto: AsignarAjustadorDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: AsignarAjustador = Depends(asignar_ajustador_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    siniestro = uc.execute(id, dto.ajustador_id, user.aseguradora_id)
+    siniestro = uc.execute(str(id), dto.ajustador_id, user.aseguradora_id)
     audit.record(evento_modulo=EVENTO, accion="asignar_ajustador", usuario=user, request=request,
-                 metadata={"siniestro_id": id, "ajustador_id": dto.ajustador_id})
+                 metadata={"siniestro_id": str(id), "ajustador_id": dto.ajustador_id})
     return siniestro
 
 
 @router.post("/siniestros/{id}/enviar-taller", response_model=SiniestroResponseDTO)
 def enviar_taller(
-    id: str,
+    id: UUID,
     dto: EnviarTallerDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: EnviarTaller = Depends(enviar_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    siniestro = uc.execute(id, dto.taller_id, user.aseguradora_id)
+    siniestro = uc.execute(str(id), dto.taller_id, user.aseguradora_id)
     audit.record(evento_modulo=EVENTO, accion="enviar_taller", usuario=user, request=request,
-                 metadata={"siniestro_id": id, "taller_id": dto.taller_id})
+                 metadata={"siniestro_id": str(id), "taller_id": dto.taller_id})
     return siniestro
 
 
 @router.post("/siniestros/{id}/autorizar-entrega", response_model=SiniestroResponseDTO)
 def autorizar_entrega(
-    id: str,
+    id: UUID,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: AutorizarEntregaV1 = Depends(deps.autorizar_entrega_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    siniestro = uc.execute(id, user.aseguradora_id)
+    siniestro = uc.execute(str(id), user.aseguradora_id)
     audit.record(evento_modulo=EVENTO, accion="autorizar_entrega", usuario=user, request=request,
-                 metadata={"siniestro_id": id})
+                 metadata={"siniestro_id": str(id)})
     return siniestro
 
 
 @router.post("/cotizaciones/{id}/aprobar", response_model=CotizacionV1DTO)
 def aprobar_cotizacion(
-    id: str,
+    id: UUID,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: AprobarCotizacion = Depends(deps.aprobar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    cot = uc.execute(id, user.aseguradora_id)
+    cot = uc.execute(str(id), user.aseguradora_id)
     audit.record(evento_modulo=EVENTO, accion="aprobar_cotizacion", usuario=user, request=request,
-                 metadata={"cotizacion_id": id})
+                 metadata={"cotizacion_id": str(id)})
     return cot
 
 
 @router.post("/cotizaciones/{id}/rechazar", response_model=CotizacionV1DTO)
 def rechazar_cotizacion(
-    id: str,
+    id: UUID,
     dto: RechazarCotizacionRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: RechazarCotizacion = Depends(deps.rechazar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    cot = uc.execute(id, user.aseguradora_id, dto.motivo)
+    cot = uc.execute(str(id), user.aseguradora_id, dto.motivo)
     audit.record(evento_modulo=EVENTO, accion="rechazar_cotizacion", usuario=user, request=request,
-                 metadata={"cotizacion_id": id, "motivo": dto.motivo})
+                 metadata={"cotizacion_id": str(id), "motivo": dto.motivo})
     return cot

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from uuid import UUID
 
 from src.core.security import require_roles
 from src.modules.auth.domain.models import AuthenticatedUser
@@ -23,6 +24,15 @@ get_operador = require_roles("Operador_Aseguradora")
 EVENTO = "aseguradora.crud"
 
 
+def _require_aseguradora(user: AuthenticatedUser):
+    if not user.aseguradora_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Operador no tiene una aseguradora asignada.",
+        )
+    return user.aseguradora_id
+
+
 @router.post("", response_model=VehiculoResponseDTO, status_code=status.HTTP_201_CREATED)
 def crear_vehiculo(
     dto: VehiculoCreateDTO,
@@ -32,7 +42,7 @@ def crear_vehiculo(
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     resultado = uc.execute(
-        user.aseguradora_id, dto.cliente_id, dto.marca, dto.modelo,
+        _require_aseguradora(user), dto.cliente_id, dto.marca, dto.modelo,
         dto.anio, dto.placas, dto.vin, dto.color,
     )
     audit.record(
@@ -52,7 +62,7 @@ def listar_vehiculos(
     uc: ListVehiculos = Depends(vehiculo_dependencies.list_vehiculos_service),
 ):
     items, total = uc.execute(
-        user.aseguradora_id, offset_from_page(page, page_size), page_size, cliente_id,
+        _require_aseguradora(user), offset_from_page(page, page_size), page_size, cliente_id,
     )
     data = [VehiculoResponseDTO.model_validate(i) for i in items]
     return Page.build(data=data, total=total, page=page, page_size=page_size)
@@ -60,16 +70,16 @@ def listar_vehiculos(
 
 @router.get("/{id}", response_model=VehiculoResponseDTO)
 def obtener_vehiculo(
-    id: str,
+    id: UUID,
     user: AuthenticatedUser = Depends(get_operador),
     uc: GetVehiculo = Depends(vehiculo_dependencies.get_vehiculo_service),
 ):
-    return uc.execute(id)
+    return uc.execute(str(id))
 
 
 @router.put("/{id}", response_model=VehiculoResponseDTO)
 def actualizar_vehiculo(
-    id: str,
+    id: UUID,
     dto: VehiculoUpdateDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
@@ -77,27 +87,27 @@ def actualizar_vehiculo(
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     resultado = uc.execute(
-        id, dto.marca, dto.modelo, dto.anio, dto.placas, dto.vin, dto.color,
+        str(id), dto.marca, dto.modelo, dto.anio, dto.placas, dto.vin, dto.color,
     )
     audit.record(
         evento_modulo=EVENTO, accion="actualizar_vehiculo",
         usuario=user, request=request,
-        metadata={"vehiculo_id": id},
+        metadata={"vehiculo_id": str(id)},
     )
     return resultado
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_vehiculo(
-    id: str,
+    id: UUID,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: DeleteVehiculo = Depends(vehiculo_dependencies.delete_vehiculo_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    uc.execute(id)
+    uc.execute(str(id))
     audit.record(
         evento_modulo=EVENTO, accion="eliminar_vehiculo",
         usuario=user, request=request,
-        metadata={"vehiculo_id": id},
+        metadata={"vehiculo_id": str(id)},
     )

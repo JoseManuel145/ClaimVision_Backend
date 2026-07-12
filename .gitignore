@@ -8,3 +8,4 @@ create_test.py
 Plan.md
 graphify-out/cache/*
 generate_openapi.py
+clean_db.py

@@ -31,8 +31,8 @@ class VehiculoRepository(VehiculoRepositoryPort):
     def save(self, vehiculo: VehiculoModel) -> VehiculoModel:
         model = VehiculoTable(
             id=uuid.UUID(vehiculo.id) if vehiculo.id else uuid.uuid4(),
-            aseguradora_id=uuid.UUID(vehiculo.aseguradora_id),
-            cliente_id=uuid.UUID(vehiculo.cliente_id),
+            aseguradora_id=uuid.UUID(vehiculo.aseguradora_id) if vehiculo.aseguradora_id else None,
+            cliente_id=uuid.UUID(vehiculo.cliente_id) if vehiculo.cliente_id else None,
             marca=vehiculo.marca,
             modelo=vehiculo.modelo,
             anio=vehiculo.anio,

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status, HTTPException
+from uuid import UUID
 
 from src.core.security import require_roles
 from src.modules.auth.domain.models import AuthenticatedUser
@@ -24,6 +25,14 @@ router = APIRouter()
 get_operador = require_roles("Operador_Aseguradora")
 EVENTO = "aseguradora.crud"
 
+def _require_aseguradora(user: AuthenticatedUser):
+    if not user.aseguradora_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Operador no tiene una aseguradora asignada.",
+        )
+    return user.aseguradora_id
+
 
 @router.post("", response_model=TallerResponseDTO, status_code=status.HTTP_201_CREATED)
 def crear_taller(
@@ -33,7 +42,7 @@ def crear_taller(
     uc: CreateTaller = Depends(taller_dependencies.create_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    resultado = uc.execute(user.aseguradora_id, dto.nombre_comercial, dto.rfc, dto.direccion_tecnica, dto.telefono_contacto)
+    resultado = uc.execute(_require_aseguradora(user), dto.nombre_comercial, dto.rfc, dto.direccion_tecnica, dto.telefono_contacto)
     audit.record(
         evento_modulo=EVENTO, accion="crear_taller",
         usuario=user, request=request,
@@ -49,67 +58,67 @@ def listar_talleres(
     user: AuthenticatedUser = Depends(get_operador),
     uc: ListTalleres = Depends(taller_dependencies.list_talleres_service),
 ):
-    items, total = uc.execute(user.aseguradora_id, offset_from_page(page, page_size), page_size)
+    items, total = uc.execute(_require_aseguradora(user), offset_from_page(page, page_size), page_size)
     data = [TallerResponseDTO.model_validate(i) for i in items]
     return Page.build(data=data, total=total, page=page, page_size=page_size)
 
 
 @router.get("/{id}", response_model=TallerResponseDTO)
 def obtener_taller(
-    id: str,
+    id: UUID,
     user: AuthenticatedUser = Depends(get_operador),
     uc: GetTaller = Depends(taller_dependencies.get_taller_service),
 ):
-    return uc.execute(id)
+    return uc.execute(str(id))
 
 
 @router.put("/{id}", response_model=TallerResponseDTO)
 def actualizar_taller(
-    id: str,
+    id: UUID,
     dto: TallerUpdateDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: UpdateTaller = Depends(taller_dependencies.update_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    resultado = uc.execute(id, dto.nombre_comercial, dto.direccion_tecnica, dto.telefono_contacto)
+    resultado = uc.execute(str(id), dto.nombre_comercial, dto.direccion_tecnica, dto.telefono_contacto)
     audit.record(
         evento_modulo=EVENTO, accion="actualizar_taller",
         usuario=user, request=request,
-        metadata={"taller_id": id},
+        metadata={"taller_id": str(id)},
     )
     return resultado
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_taller(
-    id: str,
+    id: UUID,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: DeleteTaller = Depends(taller_dependencies.delete_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    uc.execute(id, user.aseguradora_id)
+    uc.execute(str(id), _require_aseguradora(user))
     audit.record(
         evento_modulo=EVENTO, accion="eliminar_taller",
         usuario=user, request=request,
-        metadata={"taller_id": id},
+        metadata={"taller_id": str(id)},
     )
 
 
 @router.post("/{id}/operadores", status_code=status.HTTP_201_CREATED)
 def crear_operador_taller(
-    id: str,
+    id: UUID,
     dto: OperadorTallerRequestDTO,
     request: Request,
     user: AuthenticatedUser = Depends(get_operador),
     uc: CreateOperadorTallerUseCase = Depends(taller_dependencies.crear_operador_taller_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    resultado = uc.execute(user.aseguradora_id, user.usuario_id, id, dto)
+    resultado = uc.execute(_require_aseguradora(user), user.usuario_id, str(id), dto)
     audit.record(
         evento_modulo=EVENTO, accion="crear_operador_taller",
         usuario=user, request=request,
-        metadata={"taller_id": id},
+        metadata={"taller_id": str(id)},
     )
     return resultado
