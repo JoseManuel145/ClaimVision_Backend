@@ -42,16 +42,16 @@
 			],
 			"indices": [
 				{
+					"nombre_indice": "ajustadores_cedula_profesional_key",
+					"definicion": "CREATE UNIQUE INDEX ajustadores_cedula_profesional_key ON public.ajustadores USING btree (cedula_profesional)"
+				},
+				{
 					"nombre_indice": "ajustadores_usuario_id_key",
 					"definicion": "CREATE UNIQUE INDEX ajustadores_usuario_id_key ON public.ajustadores USING btree (usuario_id)"
 				},
 				{
 					"nombre_indice": "ajustadores_pkey",
 					"definicion": "CREATE UNIQUE INDEX ajustadores_pkey ON public.ajustadores USING btree (id)"
-				},
-				{
-					"nombre_indice": "ajustadores_cedula_profesional_key",
-					"definicion": "CREATE UNIQUE INDEX ajustadores_cedula_profesional_key ON public.ajustadores USING btree (cedula_profesional)"
 				}
 			]
 		},
@@ -117,12 +117,12 @@
 					"definicion": "CREATE UNIQUE INDEX aseguradoras_pkey ON public.aseguradoras USING btree (id)"
 				},
 				{
-					"nombre_indice": "aseguradoras_rfc_key",
-					"definicion": "CREATE UNIQUE INDEX aseguradoras_rfc_key ON public.aseguradoras USING btree (rfc)"
-				},
-				{
 					"nombre_indice": "aseguradoras_dominio_correo_key",
 					"definicion": "CREATE UNIQUE INDEX aseguradoras_dominio_correo_key ON public.aseguradoras USING btree (dominio_correo)"
+				},
+				{
+					"nombre_indice": "aseguradoras_rfc_key",
+					"definicion": "CREATE UNIQUE INDEX aseguradoras_rfc_key ON public.aseguradoras USING btree (rfc)"
 				}
 			]
 		},
@@ -564,12 +564,12 @@
 					"definicion": "CREATE INDEX idx_nlp_jobs_status ON public.nlp_jobs USING btree (status)"
 				},
 				{
-					"nombre_indice": "idx_nlp_jobs_created_at",
-					"definicion": "CREATE INDEX idx_nlp_jobs_created_at ON public.nlp_jobs USING btree (created_at DESC)"
-				},
-				{
 					"nombre_indice": "nlp_jobs_pkey",
 					"definicion": "CREATE UNIQUE INDEX nlp_jobs_pkey ON public.nlp_jobs USING btree (id)"
+				},
+				{
+					"nombre_indice": "idx_nlp_jobs_created_at",
+					"definicion": "CREATE INDEX idx_nlp_jobs_created_at ON public.nlp_jobs USING btree (created_at DESC)"
 				}
 			]
 		},
@@ -634,12 +634,12 @@
 			],
 			"indices": [
 				{
-					"nombre_indice": "idx_ocr_documents_created_at",
-					"definicion": "CREATE INDEX idx_ocr_documents_created_at ON public.ocr_documents USING btree (created_at DESC)"
-				},
-				{
 					"nombre_indice": "ocr_documents_pkey",
 					"definicion": "CREATE UNIQUE INDEX ocr_documents_pkey ON public.ocr_documents USING btree (id)"
+				},
+				{
+					"nombre_indice": "idx_ocr_documents_created_at",
+					"definicion": "CREATE INDEX idx_ocr_documents_created_at ON public.ocr_documents USING btree (created_at DESC)"
 				}
 			]
 		},
@@ -701,12 +701,12 @@
 			],
 			"indices": [
 				{
-					"nombre_indice": "perfiles_clientes_pkey",
-					"definicion": "CREATE UNIQUE INDEX perfiles_clientes_pkey ON public.perfiles_clientes USING btree (id)"
-				},
-				{
 					"nombre_indice": "perfiles_clientes_usuario_id_key",
 					"definicion": "CREATE UNIQUE INDEX perfiles_clientes_usuario_id_key ON public.perfiles_clientes USING btree (usuario_id)"
+				},
+				{
+					"nombre_indice": "perfiles_clientes_pkey",
+					"definicion": "CREATE UNIQUE INDEX perfiles_clientes_pkey ON public.perfiles_clientes USING btree (id)"
 				}
 			]
 		},
@@ -803,12 +803,12 @@
 			],
 			"indices": [
 				{
-					"nombre_indice": "peritajes_ajustador_siniestro_id_key",
-					"definicion": "CREATE UNIQUE INDEX peritajes_ajustador_siniestro_id_key ON public.peritajes_ajustador USING btree (siniestro_id)"
-				},
-				{
 					"nombre_indice": "peritajes_ajustador_pkey",
 					"definicion": "CREATE UNIQUE INDEX peritajes_ajustador_pkey ON public.peritajes_ajustador USING btree (id)"
+				},
+				{
+					"nombre_indice": "peritajes_ajustador_siniestro_id_key",
+					"definicion": "CREATE UNIQUE INDEX peritajes_ajustador_siniestro_id_key ON public.peritajes_ajustador USING btree (siniestro_id)"
 				}
 			]
 		},
@@ -850,12 +850,39 @@
 			],
 			"indices": [
 				{
-					"nombre_indice": "peritajes_ia_siniestro_id_key",
-					"definicion": "CREATE UNIQUE INDEX peritajes_ia_siniestro_id_key ON public.peritajes_ia USING btree (siniestro_id)"
-				},
-				{
 					"nombre_indice": "peritajes_ia_pkey",
 					"definicion": "CREATE UNIQUE INDEX peritajes_ia_pkey ON public.peritajes_ia USING btree (id)"
+				},
+				{
+					"nombre_indice": "peritajes_ia_siniestro_id_key",
+					"definicion": "CREATE UNIQUE INDEX peritajes_ia_siniestro_id_key ON public.peritajes_ia USING btree (siniestro_id)"
+				}
+			]
+		},
+		{
+			"table_name": "recovery_code",
+			"atributos": [
+				{
+					"atributo": "id",
+					"tipo_dato": "integer"
+				},
+				{
+					"atributo": "usuario_id",
+					"tipo_dato": "uuid"
+				},
+				{
+					"atributo": "code",
+					"tipo_dato": "character varying"
+				},
+				{
+					"atributo": "expires_at",
+					"tipo_dato": "timestamp with time zone"
+				}
+			],
+			"indices": [
+				{
+					"nombre_indice": "recovery_code_pkey",
+					"definicion": "CREATE UNIQUE INDEX recovery_code_pkey ON public.recovery_code USING btree (id)"
 				}
 			]
 		},
@@ -1071,12 +1098,12 @@
 			],
 			"indices": [
 				{
-					"nombre_indice": "usuarios_pkey",
-					"definicion": "CREATE UNIQUE INDEX usuarios_pkey ON public.usuarios USING btree (id)"
-				},
-				{
 					"nombre_indice": "usuarios_email_key",
 					"definicion": "CREATE UNIQUE INDEX usuarios_email_key ON public.usuarios USING btree (email)"
+				},
+				{
+					"nombre_indice": "usuarios_pkey",
+					"definicion": "CREATE UNIQUE INDEX usuarios_pkey ON public.usuarios USING btree (id)"
 				}
 			]
 		},
@@ -1228,16 +1255,16 @@
 			],
 			"indices": [
 				{
-					"nombre_indice": "idx_vehiculos_aseguradora_id",
-					"definicion": "CREATE INDEX idx_vehiculos_aseguradora_id ON public.vehiculos USING btree (aseguradora_id)"
+					"nombre_indice": "idx_vehiculos_cliente_id",
+					"definicion": "CREATE INDEX idx_vehiculos_cliente_id ON public.vehiculos USING btree (cliente_id)"
 				},
 				{
 					"nombre_indice": "vehiculos_pkey",
 					"definicion": "CREATE UNIQUE INDEX vehiculos_pkey ON public.vehiculos USING btree (id)"
 				},
 				{
-					"nombre_indice": "idx_vehiculos_cliente_id",
-					"definicion": "CREATE INDEX idx_vehiculos_cliente_id ON public.vehiculos USING btree (cliente_id)"
+					"nombre_indice": "idx_vehiculos_aseguradora_id",
+					"definicion": "CREATE INDEX idx_vehiculos_aseguradora_id ON public.vehiculos USING btree (aseguradora_id)"
 				}
 			]
 		}

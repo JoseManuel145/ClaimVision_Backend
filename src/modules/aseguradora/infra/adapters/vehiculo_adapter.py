@@ -4,12 +4,14 @@ from typing import List, Tuple
 from src.modules.aseguradora.domain.ports.vehiculo_module_port import VehiculoModulePort
 from src.modules.aseguradora.domain.models.vehiculo_model import VehiculoModel
 from src.modules.aseguradora.domain.ports.vehiculo_repository_port import VehiculoRepositoryPort
-from src.core.exceptions import NotFoundError
+from src.modules.aseguradora.domain.ports.cliente_repository_port import ClienteRepositoryPort
+from src.core.exceptions import NotFoundError, BusinessRuleError
 
 
 class VehiculoAdapter(VehiculoModulePort):
-    def __init__(self, vehiculo_repo: VehiculoRepositoryPort):
+    def __init__(self, vehiculo_repo: VehiculoRepositoryPort, cliente_repo: ClienteRepositoryPort | None = None):
         self.vehiculo_repo = vehiculo_repo
+        self.cliente_repo = cliente_repo
 
     def crear(
         self,
@@ -22,6 +24,10 @@ class VehiculoAdapter(VehiculoModulePort):
         vin: str | None,
         color: str | None,
     ) -> VehiculoModel:
+        if self.cliente_repo:
+            cliente = self.cliente_repo.get_by_id(cliente_id)
+            if not cliente:
+                raise BusinessRuleError("El cliente especificado no existe. Use el campo 'id' del perfil de cliente, no 'usuario_id'.")
         model = VehiculoModel(
             id="",
             aseguradora_id=aseguradora_id,

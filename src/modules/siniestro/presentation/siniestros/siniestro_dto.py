@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 class SiniestroInicializarDTO(BaseModel):
-    vehiculo_id: Optional[str] = None
+    vehiculo_id: str
     vehiculo_marca: str
     vehiculo_modelo: str
     vehiculo_anio: int

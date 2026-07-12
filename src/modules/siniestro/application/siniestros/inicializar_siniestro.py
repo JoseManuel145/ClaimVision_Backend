@@ -6,7 +6,7 @@ from src.modules.siniestro.presentation.siniestros.siniestro_dto import Siniestr
 from src.modules.siniestro.domain.ports.cliente_checker_port import ClienteCheckerPort
 from src.modules.aseguradora.domain.ports.vehiculo_repository_port import VehiculoRepositoryPort
 from src.shared.domain.models import EstatusSiniestro
-from src.core.exceptions import BusinessRuleError, NotFoundError
+from src.core.exceptions import BusinessRuleError
 
 class InicializarSiniestro:
     def __init__(
@@ -28,7 +28,7 @@ class InicializarSiniestro:
         # 2. Validar que el vehiculo exista y pertenezca al cliente
         vehiculo = self.vehiculo_repo.get_by_id(dto.vehiculo_id)
         if not vehiculo:
-            raise NotFoundError("Vehiculo no encontrado.")
+            raise BusinessRuleError("El vehículo especificado no fue encontrado. Verifique el ID.")
         if vehiculo.cliente_id != perfil_cliente_id:
             raise BusinessRuleError("El vehiculo no pertenece a este cliente.")
         if vehiculo.aseguradora_id != aseguradora_id:

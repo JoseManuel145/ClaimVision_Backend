@@ -2,6 +2,7 @@ from fastapi import Depends
 from src.core.database import get_session
 from sqlalchemy.orm import Session
 from src.modules.aseguradora.infra.db.repositories.vehiculo_repository import VehiculoRepository
+from src.modules.aseguradora.infra.db.repositories.cliente_repository import ClienteRepository
 from src.modules.aseguradora.infra.adapters.vehiculo_adapter import VehiculoAdapter
 from src.modules.aseguradora.application.vehiculos.create_vehiculo import CreateVehiculo
 from src.modules.aseguradora.application.vehiculos.list_vehiculos import ListVehiculos
@@ -13,6 +14,7 @@ from src.modules.aseguradora.application.vehiculos.delete_vehiculo import Delete
 def _adapter(session: Session = Depends(get_session)) -> VehiculoAdapter:
     return VehiculoAdapter(
         vehiculo_repo=VehiculoRepository(session),
+        cliente_repo=ClienteRepository(session),
     )
 
 
