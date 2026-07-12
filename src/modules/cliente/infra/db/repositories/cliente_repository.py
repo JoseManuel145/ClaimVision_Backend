@@ -17,7 +17,7 @@ def _to_domain(obj: ClienteProfileTable) -> ClienteProfile:
         consentimiento_biometria=obj.consentimiento_biometria,
         autoriza_transferencia_talleres=obj.autoriza_transferencia_talleres,
         fecha_consentimiento=obj.fecha_consentimiento,
-        fecha_creacion=obj.fecha_creacion
+        fecha_creacion=obj.created_at
     )
 
 class ClienteRepository(ClienteRepositoryPort):
