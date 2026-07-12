@@ -7580,14 +7580,7 @@
       "SiniestroInicializarDTO": {
         "properties": {
           "vehiculo_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
+            "type": "string",
             "title": "Vehiculo Id"
           },
           "vehiculo_marca": {
@@ -7667,6 +7660,7 @@
         },
         "type": "object",
         "required": [
+          "vehiculo_id",
           "vehiculo_marca",
           "vehiculo_modelo",
           "vehiculo_anio",
