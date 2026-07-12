@@ -1523,6 +1523,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -1568,6 +1569,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -1625,6 +1627,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -1682,6 +1685,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -1739,6 +1743,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -1786,6 +1791,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -1833,6 +1839,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -2408,6 +2415,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -2453,6 +2461,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -2508,6 +2517,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -2548,6 +2558,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -2814,6 +2825,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -2859,6 +2871,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -2914,6 +2927,7 @@
             "required": true,
             "schema": {
               "type": "string",
+              "format": "uuid",
               "title": "Id"
             }
           }
@@ -4440,7 +4454,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/PredictResponse"
+                }
               }
             }
           },
@@ -4484,7 +4500,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/OcrResponse"
+                }
               }
             }
           },
@@ -4528,7 +4546,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/TranscribirResponse"
+                }
               }
             }
           },
@@ -4617,7 +4637,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/AnalizarResponse"
+                }
               }
             }
           },
@@ -4961,6 +4983,23 @@
         },
         "type": "object",
         "title": "AjustadorUpdateDTO"
+      },
+      "AnalizarResponse": {
+        "properties": {
+          "entidades": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Entidades"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entidades"
+        ],
+        "title": "AnalizarResponse"
       },
       "AseguradoraRequestDTO": {
         "properties": {
@@ -6080,6 +6119,39 @@
         ],
         "title": "LoginResponseDTO"
       },
+      "OcrResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "page_count": {
+            "type": "integer",
+            "title": "Page Count"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "filename",
+          "text",
+          "page_count",
+          "created_at"
+        ],
+        "title": "OcrResponse"
+      },
       "OperadorAseguradoraRequestDTO": {
         "properties": {
           "nombre": {
@@ -6804,6 +6876,44 @@
         ],
         "title": "PeritajeUpsertRequestDTO"
       },
+      "PredictResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "tipo_dano": {
+            "type": "string",
+            "title": "Tipo Dano"
+          },
+          "severidad": {
+            "type": "string",
+            "title": "Severidad"
+          },
+          "confianza": {
+            "type": "number",
+            "title": "Confianza"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "filename",
+          "tipo_dano",
+          "severidad",
+          "confianza",
+          "created_at"
+        ],
+        "title": "PredictResponse"
+      },
       "PurgeAseguradoraResponse": {
         "properties": {
           "purged": {
@@ -7470,7 +7580,14 @@
       "SiniestroInicializarDTO": {
         "properties": {
           "vehiculo_id": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Vehiculo Id"
           },
           "vehiculo_marca": {
@@ -7550,7 +7667,6 @@
         },
         "type": "object",
         "required": [
-          "vehiculo_id",
           "vehiculo_marca",
           "vehiculo_modelo",
           "vehiculo_anio",
@@ -8391,6 +8507,29 @@
           "actual"
         ],
         "title": "TimelineItemDTO"
+      },
+      "TranscribirResponse": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "title": "Job Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "progress": {
+            "type": "integer",
+            "title": "Progress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "job_id",
+          "status",
+          "progress"
+        ],
+        "title": "TranscribirResponse"
       },
       "UpdateAseguradoraDTO": {
         "properties": {
