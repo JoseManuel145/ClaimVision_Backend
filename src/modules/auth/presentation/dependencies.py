@@ -25,6 +25,9 @@ from src.modules.auth.application import (
     VerifyUser,
     ConfirmConsent
 )
+from src.modules.auth.application.change_password import ChangePassword
+from src.modules.auth.application.request_password_change_code import RequestPasswordChangeCode
+from src.modules.auth.application.change_password_with_code import ChangePasswordWithCode
 
 def verify_token_service():
     token_service = JwtTokenService()
@@ -68,3 +71,23 @@ def confirm_consent_service(session=Depends(get_session)):
     auth_repo = AuthRepository(session)
     cliente_repo = ClienteRepository(session)
     return ConfirmConsent(cliente_repo, auth_repo)
+
+
+def change_password_service(session=Depends(get_session)):
+    repo = AuthRepository(session)
+    password_service = PasswordService()
+    return ChangePassword(repo, password_service)
+
+
+def request_password_change_code_service(session=Depends(get_session)):
+    repo = AuthRepository(session)
+    recovery_repo = RecoveryCodeService(session)
+    email_service = EmailService()
+    return RequestPasswordChangeCode(repo, recovery_repo, email_service)
+
+
+def change_password_with_code_service(session=Depends(get_session)):
+    repo = AuthRepository(session)
+    password_service = PasswordService()
+    recovery_repo = RecoveryCodeService(session)
+    return ChangePasswordWithCode(repo, password_service, recovery_repo)

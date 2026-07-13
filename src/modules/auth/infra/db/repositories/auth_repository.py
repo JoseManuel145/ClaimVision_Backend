@@ -23,6 +23,7 @@ def _to_domain(obj: UserTable) -> User:
         rol=obj.rol.value if hasattr(obj.rol, 'value') else obj.rol,
         estado=obj.estatus_arco.value if hasattr(obj.estatus_arco, 'value') else obj.estatus_arco,
         aseguradora_id=str(obj.aseguradora_id) if obj.aseguradora_id is not None else None,
+        primer_cambio_password=obj.primer_cambio_password,
         fecha_creacion=obj.fecha_creacion,
         is_authenticated=False,
         fecha_eliminacion=obj.fecha_eliminacion
@@ -53,6 +54,7 @@ class AuthRepository(AuthPort):
             rol=encrypted["rol"],
             estatus_arco=encrypted["estatus_arco"],
             aseguradora_id=encrypted["aseguradora_id"],
+            primer_cambio_password=True,
             fecha_creacion=encrypted["fecha_creacion"],
             fecha_eliminacion=encrypted["fecha_eliminacion"],
         )
@@ -80,6 +82,20 @@ class AuthRepository(AuthPort):
             update(UserTable)
             .where(UserTable.id == usuario_id)
             .values(password_hash=password_hash)
+        )
+
+        result = self.db.execute(stmt)
+
+        if result.rowcount == 0:
+            raise NotFoundError("User not found")
+
+        self.db.commit()
+
+    def update_password_with_flag(self, usuario_id: str, password_hash: str, primer_cambio: bool = False) -> None:
+        stmt = (
+            update(UserTable)
+            .where(UserTable.id == usuario_id)
+            .values(password_hash=password_hash, primer_cambio_password=primer_cambio)
         )
 
         result = self.db.execute(stmt)

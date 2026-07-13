@@ -11,6 +11,8 @@ from src.modules.auth.presentation.schemas import (
     RecoveryRequestDTO,
     RecoveryVerifyDTO,
     RecoveryResetDTO,
+    ChangePasswordRequest,
+    ChangePasswordWithCodeRequest,
 )
 from src.modules.auth.application.login_user import LoginUser
 from src.modules.auth.application.register_user import RegisterUser
@@ -20,6 +22,9 @@ from src.modules.auth.application.verify_code import VerifyRecoveryCode
 from src.modules.auth.application.verify_user import VerifyUser
 from src.modules.auth.application.reset_password import ResetPassword
 from src.modules.auth.application.confirm_consent import ConfirmConsent
+from src.modules.auth.application.change_password import ChangePassword
+from src.modules.auth.application.request_password_change_code import RequestPasswordChangeCode
+from src.modules.auth.application.change_password_with_code import ChangePasswordWithCode
 
 router = APIRouter()
 
@@ -95,3 +100,41 @@ async def submit_consentimiento(
         return {"message": "Consentimiento registrado exitosamente"}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.patch("/password", status_code=status.HTTP_200_OK)
+async def change_password(
+    data: ChangePasswordRequest,
+    user: AuthenticatedUser = Depends(get_current_user),
+    usecase: ChangePassword = Depends(deps.change_password_service),
+):
+    try:
+        await usecase.execute(user.usuario_id, data.old_password, data.new_password)
+        return {"message": "Contraseña actualizada exitosamente"}
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+
+
+@router.post("/password/request-code", status_code=status.HTTP_200_OK)
+async def request_password_change_code(
+    user: AuthenticatedUser = Depends(get_current_user),
+    usecase: RequestPasswordChangeCode = Depends(deps.request_password_change_code_service),
+):
+    try:
+        await usecase.execute(user.usuario_id)
+        return {"message": "Código de verificación enviado a tu correo"}
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+
+
+@router.post("/password/verify", status_code=status.HTTP_200_OK)
+async def change_password_with_code(
+    data: ChangePasswordWithCodeRequest,
+    user: AuthenticatedUser = Depends(get_current_user),
+    usecase: ChangePasswordWithCode = Depends(deps.change_password_with_code_service),
+):
+    try:
+        await usecase.execute(user.usuario_id, data.code, data.new_password)
+        return {"message": "Contraseña actualizada exitosamente"}
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))

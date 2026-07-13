@@ -7,6 +7,9 @@ from src.modules.auth.application.verify_code import VerifyRecoveryCode
 from src.modules.auth.application.send_recovery_code import SendRecoveryCode
 from src.modules.auth.application.verify_user import VerifyUser
 from src.modules.auth.application.confirm_consent import ConfirmConsent
+from src.modules.auth.application.change_password import ChangePassword
+from src.modules.auth.application.request_password_change_code import RequestPasswordChangeCode
+from src.modules.auth.application.change_password_with_code import ChangePasswordWithCode
 
 __all__ = [
     "VerifyToken",
@@ -17,5 +20,8 @@ __all__ = [
     "VerifyRecoveryCode",
     "SendRecoveryCode",
     "VerifyUser",
-    "ConfirmConsent"
+    "ConfirmConsent",
+    "ChangePassword",
+    "RequestPasswordChangeCode",
+    "ChangePasswordWithCode",
 ]

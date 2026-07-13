@@ -14,6 +14,7 @@ class User:
     aseguradora_id: str | None = None
     password: str | None = None
     telefono: str | None = None
+    primer_cambio_password: bool = True
     fecha_eliminacion: datetime | None = None
 
 @dataclass

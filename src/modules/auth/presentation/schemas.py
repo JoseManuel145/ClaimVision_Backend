@@ -51,3 +51,13 @@ class RecoveryResetDTO(BaseModel):
     usuario_id: str
     code: str
     new_password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+
+class ChangePasswordWithCodeRequest(BaseModel):
+    code: str
+    new_password: str
