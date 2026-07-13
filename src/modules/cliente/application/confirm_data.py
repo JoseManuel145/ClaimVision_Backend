@@ -2,7 +2,7 @@ from src.modules.cliente.presentation.schemas import ConfirmDataRequestDTO
 from src.modules.cliente.domain.ports import ClienteRepositoryPort
 from src.modules.aseguradora.domain.ports.vehiculo_module_port import VehiculoModulePort
 from src.core.exceptions import NotFoundError, BusinessRuleError
-from src.core.security import encrypt_aes256
+from src.core.security import encrypt_xsalsa20
 
 
 class ConfirmData:
@@ -22,7 +22,7 @@ class ConfirmData:
 
         profile.numero_poliza = data.numero_poliza
         profile.vigencia_poliza = data.vigencia_poliza
-        profile.curp_rfc_cifrado = encrypt_aes256(data.curp_rfc)
+        profile.curp_rfc_cifrado = encrypt_xsalsa20(data.curp_rfc)
         self.cliente_repo.update(profile)
 
         vehiculo = self.vehiculo_module.crear(
