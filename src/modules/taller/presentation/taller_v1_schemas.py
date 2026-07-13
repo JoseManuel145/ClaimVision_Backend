@@ -32,7 +32,6 @@ class CrearCotizacionRequest(BaseModel):
     monto_mano_obra: float
     monto_refacciones: float
     monto_total: Optional[float] = None
-    desglose_pdf_url: str
     observaciones_tecnicas: Optional[str] = None
 
 

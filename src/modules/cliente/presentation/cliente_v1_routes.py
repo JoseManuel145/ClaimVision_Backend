@@ -31,10 +31,12 @@ from src.modules.cliente.presentation.cliente_v1_dependencies import (
     actualizar_perfil_cliente_service,
     get_auth_repo_for_enrichment,
     list_vehiculos_cliente_service,
+    create_vehicle_from_poliza_service,
 )
 from src.modules.cliente.presentation.schemas import ConfirmDataRequestDTO
 from src.modules.cliente.application.process_ocr import ProcessOcr
 from src.modules.cliente.application.confirm_data import ConfirmData
+from src.modules.cliente.application.create_vehicle_from_poliza import CreateVehicleFromPoliza
 from src.modules.siniestro.application.siniestros.inicializar_siniestro import InicializarSiniestro
 from src.modules.siniestro.application.siniestros.list_siniestros_cliente import ListSiniestrosCliente
 from src.modules.siniestro.application.siniestros.get_siniestro_cliente import GetSiniestroCliente
@@ -241,3 +243,29 @@ def listar_mis_vehiculos(
     items, total = uc.execute(user.usuario_id, offset_from_page(page, page_size), page_size)
     data = [VehiculoResponseDTO.model_validate(v) for v in items]
     return Page.build(data=data, total=total, page=page, page_size=page_size)
+
+
+@router.post("/vehiculos/from-poliza", response_model=VehiculoResponseDTO, status_code=status.HTTP_201_CREATED)
+async def crear_vehiculo_desde_poliza(
+    file: UploadFile = File(...),
+    request: Request = None,
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc: CreateVehicleFromPoliza = Depends(create_vehicle_from_poliza_service),
+    audit: AuditLogger = Depends(get_audit_logger),
+):
+    """Crea un vehiculo a partir de los datos extraidos de una poliza de seguro via OCR."""
+    pdf_bytes = await file.read()
+    vehiculo = await uc.execute(
+        usuario_id=user.usuario_id,
+        aseguradora_id=user.aseguradora_id,
+        pdf_bytes=pdf_bytes,
+        filename=file.filename or "unknown",
+    )
+    audit.record(
+        evento_modulo="cliente.vehiculos",
+        accion="crear_desde_poliza",
+        usuario=user,
+        request=request,
+        metadata={"vehiculo_id": vehiculo.id},
+    )
+    return vehiculo

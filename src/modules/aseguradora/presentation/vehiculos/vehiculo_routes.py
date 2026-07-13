@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, Form, status
 from uuid import UUID
 
 from src.core.security import require_roles
@@ -12,6 +12,7 @@ from src.modules.aseguradora.presentation.vehiculos.vehiculo_dto import (
     VehiculoResponseDTO,
 )
 from src.modules.aseguradora.application.vehiculos.create_vehiculo import CreateVehiculo
+from src.modules.aseguradora.application.vehiculos.create_vehiculo_from_poliza import CreateVehiculoFromPoliza
 from src.modules.aseguradora.application.vehiculos.list_vehiculos import ListVehiculos
 from src.modules.aseguradora.application.vehiculos.get_vehiculo import GetVehiculo
 from src.modules.aseguradora.application.vehiculos.update_vehiculo import UpdateVehiculo
@@ -111,3 +112,30 @@ def eliminar_vehiculo(
         usuario=user, request=request,
         metadata={"vehiculo_id": str(id)},
     )
+
+
+@router.post("/from-poliza", response_model=VehiculoResponseDTO, status_code=status.HTTP_201_CREATED)
+async def crear_vehiculo_desde_poliza(
+    cliente_id: str = Form(...),
+    file: UploadFile = File(...),
+    request: Request = None,
+    user: AuthenticatedUser = Depends(get_operador),
+    uc: CreateVehiculoFromPoliza = Depends(vehiculo_dependencies.create_vehiculo_from_poliza_service),
+    audit: AuditLogger = Depends(get_audit_logger),
+):
+    """Crea un vehiculo a partir de los datos extraidos de una poliza de seguro via OCR."""
+    pdf_bytes = await file.read()
+    vehiculo = await uc.execute(
+        aseguradora_id=_require_aseguradora(user),
+        cliente_id=cliente_id,
+        pdf_bytes=pdf_bytes,
+        filename=file.filename or "unknown",
+    )
+    audit.record(
+        evento_modulo=EVENTO,
+        accion="crear_vehiculo_desde_poliza",
+        usuario=user,
+        request=request,
+        metadata={"vehiculo_id": vehiculo.id, "cliente_id": cliente_id},
+    )
+    return vehiculo

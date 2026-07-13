@@ -503,6 +503,53 @@
         }
       }
     },
+    "/api/v1/cliente/vehiculos/from-poliza": {
+      "post": {
+        "tags": [
+          "v1 · Cliente"
+        ],
+        "summary": "Crear Vehiculo Desde Poliza",
+        "description": "Crea un vehiculo a partir de los datos extraidos de una poliza de seguro via OCR.",
+        "operationId": "crear_vehiculo_desde_poliza_api_v1_cliente_vehiculos_from_poliza_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_crear_vehiculo_desde_poliza_api_v1_cliente_vehiculos_from_poliza_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehiculoResponseDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/ajustador/perfil": {
       "get": {
         "tags": [
@@ -1173,7 +1220,7 @@
           "v1 · Taller"
         ],
         "summary": "Crear Cotizacion",
-        "description": "§6 · Crea cotización → estatus_cotizacion = Pendiente_Aprobacion.",
+        "description": "§6 · Crea cotización → estatus_cotizacion = Pendiente_Aprobacion. Recibe PDF del desglose.",
         "operationId": "crear_cotizacion_api_v1_taller_siniestros__id__cotizacion_post",
         "security": [
           {
@@ -1194,9 +1241,9 @@
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/CrearCotizacionRequest"
+                "$ref": "#/components/schemas/Body_crear_cotizacion_api_v1_taller_siniestros__id__cotizacion_post"
               }
             }
           }
@@ -2949,6 +2996,53 @@
         }
       }
     },
+    "/api/v1/aseguradora/crud/vehiculos/from-poliza": {
+      "post": {
+        "tags": [
+          "v1 · Aseguradora CRUD"
+        ],
+        "summary": "Crear Vehiculo Desde Poliza",
+        "description": "Crea un vehiculo a partir de los datos extraidos de una poliza de seguro via OCR.",
+        "operationId": "crear_vehiculo_desde_poliza_api_v1_aseguradora_crud_vehiculos_from_poliza_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_crear_vehiculo_desde_poliza_api_v1_aseguradora_crud_vehiculos_from_poliza_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehiculoResponseDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/aseguradora/perfil": {
       "get": {
         "tags": [
@@ -4524,6 +4618,138 @@
         ]
       }
     },
+    "/api/v1/ia/ocr/extract-poliza": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Extract Poliza",
+        "operationId": "extract_poliza_api_v1_ia_ocr_extract_poliza_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_extract_poliza_api_v1_ia_ocr_extract_poliza_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ia/ocr/extract-ine": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Extract Ine",
+        "operationId": "extract_ine_api_v1_ia_ocr_extract_ine_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_extract_ine_api_v1_ia_ocr_extract_ine_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ia/ocr/extract-and-validate": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Extract And Validate",
+        "operationId": "extract_and_validate_api_v1_ia_ocr_extract_and_validate_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_extract_and_validate_api_v1_ia_ocr_extract_and_validate_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/ia/nlp/transcribir": {
       "post": {
         "tags": [
@@ -5254,6 +5480,133 @@
         ],
         "title": "Body_analyze_text_api_v1_ia_nlp_analizar_post"
       },
+      "Body_crear_cotizacion_api_v1_taller_siniestros__id__cotizacion_post": {
+        "properties": {
+          "monto_mano_obra": {
+            "type": "number",
+            "title": "Monto Mano Obra"
+          },
+          "monto_refacciones": {
+            "type": "number",
+            "title": "Monto Refacciones"
+          },
+          "monto_total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Monto Total"
+          },
+          "observaciones_tecnicas": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observaciones Tecnicas"
+          },
+          "desglose_pdf": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Desglose Pdf"
+          }
+        },
+        "type": "object",
+        "required": [
+          "monto_mano_obra",
+          "monto_refacciones",
+          "desglose_pdf"
+        ],
+        "title": "Body_crear_cotizacion_api_v1_taller_siniestros__id__cotizacion_post"
+      },
+      "Body_crear_vehiculo_desde_poliza_api_v1_aseguradora_crud_vehiculos_from_poliza_post": {
+        "properties": {
+          "cliente_id": {
+            "type": "string",
+            "title": "Cliente Id"
+          },
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cliente_id",
+          "file"
+        ],
+        "title": "Body_crear_vehiculo_desde_poliza_api_v1_aseguradora_crud_vehiculos_from_poliza_post"
+      },
+      "Body_crear_vehiculo_desde_poliza_api_v1_cliente_vehiculos_from_poliza_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_crear_vehiculo_desde_poliza_api_v1_cliente_vehiculos_from_poliza_post"
+      },
+      "Body_extract_and_validate_api_v1_ia_ocr_extract_and_validate_post": {
+        "properties": {
+          "poliza": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Poliza"
+          },
+          "ine": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Ine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "poliza",
+          "ine"
+        ],
+        "title": "Body_extract_and_validate_api_v1_ia_ocr_extract_and_validate_post"
+      },
+      "Body_extract_ine_api_v1_ia_ocr_extract_ine_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_extract_ine_api_v1_ia_ocr_extract_ine_post"
+      },
+      "Body_extract_poliza_api_v1_ia_ocr_extract_poliza_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_extract_poliza_api_v1_ia_ocr_extract_poliza_post"
+      },
       "Body_extract_text_api_v1_ia_ocr_post": {
         "properties": {
           "file": {
@@ -5593,51 +5946,6 @@
           "updated_at"
         ],
         "title": "CotizacionV1DTO"
-      },
-      "CrearCotizacionRequest": {
-        "properties": {
-          "monto_mano_obra": {
-            "type": "number",
-            "title": "Monto Mano Obra"
-          },
-          "monto_refacciones": {
-            "type": "number",
-            "title": "Monto Refacciones"
-          },
-          "monto_total": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Monto Total"
-          },
-          "desglose_pdf_url": {
-            "type": "string",
-            "title": "Desglose Pdf Url"
-          },
-          "observaciones_tecnicas": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Observaciones Tecnicas"
-          }
-        },
-        "type": "object",
-        "required": [
-          "monto_mano_obra",
-          "monto_refacciones",
-          "desglose_pdf_url"
-        ],
-        "title": "CrearCotizacionRequest"
       },
       "CreateUsuarioRequestDTO": {
         "properties": {

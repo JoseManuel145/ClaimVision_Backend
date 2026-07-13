@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, status
 from sqlalchemy.orm import Session
 
 from src.core.database import get_session
@@ -26,6 +26,7 @@ from src.modules.taller.application.crear_cotizacion import CrearCotizacion
 from src.modules.taller.application.editar_cotizacion import EditarCotizacion
 from src.modules.taller.application.get_perfil_taller import GetPerfilTaller
 from src.modules.taller.application.actualizar_perfil_taller import ActualizarPerfilTaller
+from src.modules.taller.infra.pdf.supabase_storage_repository import SupabasePdfStorage
 from src.modules.taller.presentation import taller_v1_dependencies as deps
 
 router = APIRouter()
@@ -118,20 +119,30 @@ def detalle_orden(
 
 
 @router.post("/siniestros/{id}/cotizacion", response_model=CotizacionV1DTO, status_code=status.HTTP_201_CREATED)
-def crear_cotizacion(
+async def crear_cotizacion(
     id: str,
-    dto: CrearCotizacionRequest,
-    request: Request,
+    monto_mano_obra: float = Form(...),
+    monto_refacciones: float = Form(...),
+    monto_total: float | None = Form(None),
+    observaciones_tecnicas: str | None = Form(None),
+    desglose_pdf: UploadFile = File(...),
+    request: Request = None,
     user: AuthenticatedUser = Depends(get_taller),
     uc: CrearCotizacion = Depends(deps.crear_cotizacion_service),
+    storage: SupabasePdfStorage = Depends(deps.subir_pdf_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    """§6 · Crea cotización → estatus_cotizacion = Pendiente_Aprobacion."""
+    """§6 · Crea cotización → estatus_cotizacion = Pendiente_Aprobacion. Recibe PDF del desglose."""
+    pdf_bytes = await desglose_pdf.read()
+    filename = desglose_pdf.filename or f"cotizacion_{id}.pdf"
+    content_type = desglose_pdf.content_type or "application/pdf"
+    pdf_url = storage.upload_pdf(pdf_bytes, filename, content_type)
+
     cot = uc.execute(
         usuario_id=user.usuario_id, siniestro_id=id,
-        monto_mano_obra=dto.monto_mano_obra, monto_refacciones=dto.monto_refacciones,
-        desglose_pdf_url=dto.desglose_pdf_url, monto_total=dto.monto_total,
-        observaciones_tecnicas=dto.observaciones_tecnicas,
+        monto_mano_obra=monto_mano_obra, monto_refacciones=monto_refacciones,
+        desglose_pdf_url=pdf_url, monto_total=monto_total,
+        observaciones_tecnicas=observaciones_tecnicas,
     )
     audit.record(evento_modulo=EVENTO, accion="crear_cotizacion", usuario=user, request=request,
                  metadata={"siniestro_id": id, "cotizacion_id": cot.id})
