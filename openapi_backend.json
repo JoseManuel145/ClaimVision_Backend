@@ -3,7 +3,7 @@
   "info": {
     "title": "ClaimVision-API",
     "description": "API del proyecto ClaimVision, en constante actualizacion y mejoria",
-    "version": "1.5.0"
+    "version": "1.12.0"
   },
   "paths": {
     "/api/v1/cliente/onboarding/ocr": {
@@ -4526,6 +4526,118 @@
         ]
       }
     },
+    "/api/v1/auth/password": {
+      "patch": {
+        "tags": [
+          "v1 · Auth"
+        ],
+        "summary": "Change Password",
+        "operationId": "change_password_api_v1_auth_password_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/password/request-code": {
+      "post": {
+        "tags": [
+          "v1 · Auth"
+        ],
+        "summary": "Request Password Change Code",
+        "operationId": "request_password_change_code_api_v1_auth_password_request_code_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/password/verify": {
+      "post": {
+        "tags": [
+          "v1 · Auth"
+        ],
+        "summary": "Change Password With Code",
+        "operationId": "change_password_with_code_api_v1_auth_password_verify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordWithCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/ia/predict": {
       "post": {
         "tags": [
@@ -5682,6 +5794,42 @@
           "file"
         ],
         "title": "Body_transcribe_audio_api_v1_ia_nlp_transcribir_post"
+      },
+      "ChangePasswordRequest": {
+        "properties": {
+          "old_password": {
+            "type": "string",
+            "title": "Old Password"
+          },
+          "new_password": {
+            "type": "string",
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "old_password",
+          "new_password"
+        ],
+        "title": "ChangePasswordRequest"
+      },
+      "ChangePasswordWithCodeRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "new_password": {
+            "type": "string",
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "new_password"
+        ],
+        "title": "ChangePasswordWithCodeRequest"
       },
       "ClienteCreateDTO": {
         "properties": {
