@@ -14,36 +14,57 @@ from src.modules.auth.infra.jwt.token_service import JwtTokenService
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.core.exceptions import UnauthorizedError
 from src.core.config import settings
+from nacl.secret import SecretBox
+from nacl.utils import random as nacl_random
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 security_scheme = HTTPBearer()
 
-def _get_aesgcm() -> AESGCM:
-    key_bytes = base64.b64decode(settings.ENCRYPTION_KEY)
-    return AESGCM(key_bytes)
+XSALSA20_NONCE_SIZE = 24
+AES_GCM_NONCE_SIZE = 12
 
-def encrypt_aes256(plain_text: str) -> str:
-    """Cifra un texto utilizando AES-256-GCM. Retorna string base64."""
+def _get_xsalsa20_key() -> bytes:
+    key_bytes = base64.b64decode(settings.ENCRYPTION_KEY)
+    return key_bytes[:32]
+
+def encrypt_xsalsa20(plain_text: str) -> str:
+    """Cifra un texto utilizando XSalsa20-Poly1305 (NaCl). Retorna string base64."""
     if not plain_text:
         return ""
-    aesgcm = _get_aesgcm()
-    nonce = os.urandom(12)
-    encrypted = aesgcm.encrypt(nonce, plain_text.encode('utf-8'), None)
-    return base64.b64encode(nonce + encrypted).decode('utf-8')
+    key = _get_xsalsa20_key()
+    box = SecretBox(key)
+    nonce = nacl_random(XSALSA20_NONCE_SIZE)
+    encrypted = box.encrypt(plain_text.encode('utf-8'), nonce)
+    return base64.b64encode(encrypted).decode('utf-8')
 
-def decrypt_aes256(cipher_text: str) -> str:
-    """Descifra un texto cifrado con AES-256-GCM desde string base64."""
+def decrypt_xsalsa20(cipher_text: str) -> str:
+    """Descifra un texto cifrado con XSalsa20-Poly1305 desde string base64."""
     if not cipher_text:
         return ""
     try:
+        key = _get_xsalsa20_key()
+        box = SecretBox(key)
         data = base64.b64decode(cipher_text.encode('utf-8'))
-        nonce = data[:12]
-        encrypted = data[12:]
-        aesgcm = _get_aesgcm()
+        decrypted = box.decrypt(data)
+        return decrypted.decode('utf-8')
+    except Exception:
+        logger.warning("Fallo descifrado XSalsa20, intentando AES-GCM legacy: %s caracteres", len(cipher_text))
+        return decrypt_aes256_legacy(cipher_text)
+
+def decrypt_aes256_legacy(cipher_text: str) -> str:
+    """Descifra datos legacy cifrados con AES-256-GCM (fallback)."""
+    if not cipher_text:
+        return ""
+    try:
+        key_bytes = base64.b64decode(settings.ENCRYPTION_KEY)
+        aesgcm = AESGCM(key_bytes)
+        data = base64.b64decode(cipher_text.encode('utf-8'))
+        nonce = data[:AES_GCM_NONCE_SIZE]
+        encrypted = data[AES_GCM_NONCE_SIZE:]
         decrypted = aesgcm.decrypt(nonce, encrypted, None)
         return decrypted.decode('utf-8')
     except Exception:
-        logger.warning("Fallo descifrado AES-256, probablemente dato legacy (plano): %s caracteres", len(cipher_text))
+        logger.warning("Fallo descifrado AES-256 legacy, probablemente dato en plano: %s caracteres", len(cipher_text))
         return cipher_text
 
 def get_current_user(
@@ -87,7 +108,7 @@ def require_roles(*roles: str):
     allowed = set(roles)
 
     def _dependency(user: AuthenticatedUser = Depends(get_current_user)) -> AuthenticatedUser:
-        if user.rol in ("Administrador_Global", "Tester_Global") or user.rol in allowed:
+        if user.rol == "Administrador_Global" or user.rol in allowed:
             return user
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

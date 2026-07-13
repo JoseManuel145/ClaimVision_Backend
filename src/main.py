@@ -1,11 +1,14 @@
 import uvicorn
 from fastapi import FastAPI
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from src.core.logging import setup_logging
 from src.core.middlewares import register_middlewares
 from src.core.exceptions import register_exception_handlers
 from src.core.routers import api_router
 from src.core.database import Base, engine
+from src.core.rate_limit import limiter
 
 setup_logging()
 
@@ -16,6 +19,9 @@ app = FastAPI(
     redoc_url="/redoc",
     version="1.12.0"
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Configurar middlewares transversales (CORS, Logging)
 register_middlewares(app)

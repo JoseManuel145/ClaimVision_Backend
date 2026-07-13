@@ -1,11 +1,30 @@
+import re
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
+
+
+def validate_password_strength(v: str) -> str:
+    if len(v) < 8:
+        raise ValueError("La contraseña debe tener al menos 8 caracteres")
+    if not re.search(r"[A-Z]", v):
+        raise ValueError("La contraseña debe contener al menos una mayúscula")
+    if not re.search(r"[a-z]", v):
+        raise ValueError("La contraseña debe contener al menos una minúscula")
+    if not re.search(r"\d", v):
+        raise ValueError("La contraseña debe contener al menos un número")
+    return v
+
 
 # para el MVP
 class UserRegister(BaseModel):
     nombre: str
     email: EmailStr
     password: str
+
+    @field_validator("password")
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return validate_password_strength(v)
 
 class LoginRequestDTO(BaseModel):
     email: EmailStr
@@ -52,12 +71,27 @@ class RecoveryResetDTO(BaseModel):
     code: str
     new_password: str
 
+    @field_validator("new_password")
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return validate_password_strength(v)
+
 
 class ChangePasswordRequest(BaseModel):
     old_password: str
     new_password: str
 
+    @field_validator("new_password")
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return validate_password_strength(v)
+
 
 class ChangePasswordWithCodeRequest(BaseModel):
     code: str
     new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def check_password(cls, v: str) -> str:
+        return validate_password_strength(v)

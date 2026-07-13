@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from src.core.security import get_current_user
+from src.core.rate_limit import limiter
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.modules.auth.presentation import dependencies as deps
 from src.modules.auth.presentation.schemas import (
@@ -30,7 +31,9 @@ router = APIRouter()
 
 
 @router.post("/register", response_model=LoginResponseDTO, status_code=status.HTTP_201_CREATED)
+@limiter.limit("3/minute")
 async def register(
+    request: Request,
     data: UserRegister,
     usecase: RegisterUser = Depends(deps.register_user_service),
 ):
@@ -38,7 +41,9 @@ async def register(
 
 
 @router.post("/login", response_model=LoginResponseDTO, status_code=status.HTTP_200_OK)
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     data: LoginRequestDTO,
     usecase: LoginUser = Depends(deps.login_user_service),
 ):
@@ -58,7 +63,9 @@ async def me(
 
 
 @router.post("/recovery/request", status_code=status.HTTP_200_OK)
+@limiter.limit("3/minute")
 async def request_recovery(
+    request: Request,
     data: RecoveryRequestDTO,
     generate_uc: GenerateRecoveryCode = Depends(deps.generate_recovery_code_service),
     send_uc: SendRecoveryCode = Depends(deps.send_recovery_code_service),
@@ -68,7 +75,9 @@ async def request_recovery(
 
 
 @router.post("/recovery/verify", status_code=status.HTTP_200_OK)
+@limiter.limit("3/minute")
 async def verify_code(
+    request: Request,
     data: RecoveryVerifyDTO,
     usecase_code: VerifyRecoveryCode = Depends(deps.verify_recovery_code_service),
     usecase_auth: VerifyUser = Depends(deps.verify_user_service),
@@ -79,7 +88,9 @@ async def verify_code(
 
 
 @router.post("/recovery/reset", status_code=status.HTTP_200_OK)
+@limiter.limit("3/minute")
 async def reset_password(
+    request: Request,
     data: RecoveryResetDTO,
     usecase_verify: VerifyRecoveryCode = Depends(deps.verify_recovery_code_service),
     usecase_reset: ResetPassword = Depends(deps.reset_password_service),
@@ -128,7 +139,9 @@ async def request_password_change_code(
 
 
 @router.post("/password/verify", status_code=status.HTTP_200_OK)
+@limiter.limit("3/minute")
 async def change_password_with_code(
+    request: Request,
     data: ChangePasswordWithCodeRequest,
     user: AuthenticatedUser = Depends(get_current_user),
     usecase: ChangePasswordWithCode = Depends(deps.change_password_with_code_service),

@@ -6,13 +6,21 @@ from src.core.logging import get_logger
 
 logger = get_logger("http")
 
+SECURITY_HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+}
+
 def register_middlewares(app: FastAPI):
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.ORIGINS,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+        allow_headers=["Authorization", "Content-Type"],
     )
 
     @app.middleware("http")
@@ -21,6 +29,8 @@ def register_middlewares(app: FastAPI):
         try:
             response = await call_next(request)
             process_time = time.time() - start_time
+            for header, value in SECURITY_HEADERS.items():
+                response.headers[header] = value
             logger.info(f"{request.method} {request.url.path} - Status: {response.status_code} - {process_time:.4f}s")
             return response
         except Exception as e:
