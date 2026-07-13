@@ -12,7 +12,7 @@
           "v1 · Cliente"
         ],
         "summary": "Ocr Extraction",
-        "description": "§1 · Extraer datos de cédula y póliza mediante OCR.",
+        "description": "§1 · Extraer y validar datos de póliza e INE (extracción estructurada + validación cruzada).",
         "operationId": "ocr_extraction_api_v1_cliente_onboarding_ocr_post",
         "requestBody": {
           "content": {
@@ -57,7 +57,7 @@
           "v1 · Cliente"
         ],
         "summary": "Confirmar Datos",
-        "description": "§1 · Confirmar y guardar datos extraídos del onboarding.",
+        "description": "§1 · Confirmar datos del onboarding: guardar perfil + registrar vehículo.",
         "operationId": "confirmar_datos_api_v1_cliente_onboarding_confirmar_datos_post",
         "requestBody": {
           "content": {
@@ -5815,13 +5815,55 @@
           "curp_rfc": {
             "type": "string",
             "title": "Curp Rfc"
+          },
+          "vehiculo_marca": {
+            "type": "string",
+            "title": "Vehiculo Marca"
+          },
+          "vehiculo_modelo": {
+            "type": "string",
+            "title": "Vehiculo Modelo"
+          },
+          "vehiculo_anio": {
+            "type": "integer",
+            "title": "Vehiculo Anio"
+          },
+          "vehiculo_placas": {
+            "type": "string",
+            "title": "Vehiculo Placas"
+          },
+          "vehiculo_vin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehiculo Vin"
+          },
+          "vehiculo_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehiculo Color"
           }
         },
         "type": "object",
         "required": [
           "numero_poliza",
           "vigencia_poliza",
-          "curp_rfc"
+          "curp_rfc",
+          "vehiculo_marca",
+          "vehiculo_modelo",
+          "vehiculo_anio",
+          "vehiculo_placas"
         ],
         "title": "ConfirmDataRequestDTO"
       },
