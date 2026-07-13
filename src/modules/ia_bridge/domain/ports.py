@@ -9,6 +9,19 @@ class OcrPort(Protocol):
     async def extract_text(self, pdf_bytes: bytes, filename: str, content_type: str) -> dict[str, Any]: ...
 
 
+class OcrStructuredPort(Protocol):
+    async def extract_poliza(self, pdf_bytes: bytes, filename: str) -> dict[str, Any]: ...
+    async def extract_ine(self, file_bytes: bytes, filename: str, content_type: str) -> dict[str, Any]: ...
+    async def extract_and_validate(
+        self,
+        poliza_bytes: bytes,
+        poliza_filename: str,
+        ine_bytes: bytes,
+        ine_filename: str,
+        ine_content_type: str,
+    ) -> dict[str, Any]: ...
+
+
 class TranscribirPort(Protocol):
     async def transcribe(self, audio_bytes: bytes, filename: str, content_type: str) -> dict[str, Any]: ...
     async def get_status(self, job_id: str) -> dict[str, Any]: ...

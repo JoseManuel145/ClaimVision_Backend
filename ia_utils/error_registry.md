@@ -144,3 +144,25 @@ sqlalchemy.exc.InvalidRequestError: Table 'perfiles_clientes' is already defined
 ### Como se soluciono
 * **Análisis de Causa Raíz:** Durante el desarrollo modular por subentidades, la tabla `perfiles_clientes` fue definida tanto en el módulo de `cliente` (`cliente_profile_table.py`) como en el módulo de `aseguradora` (`perfil_cliente_table.py`) compartiendo el mismo nombre `__tablename__ = "perfiles_clientes"`. SQLAlchemy rastrea y asocia las tablas de una base de forma global (Metadata), por lo que declarar múltiples modelos bajo la misma tabla sin configuración previa arroja un error de redefinición de metadatos.
 * **Refactorización Aplicada:** Se agregó el atributo `__table_args__ = {'extend_existing': True}` al modelo `PerfilClienteTable` dentro del módulo de aseguradora. Esto le indica al ORM que asocie este modelo a la tabla ya existente generada por el primer módulo que la declare durante el arranque, permitiendo convivir las definiciones en la misma metadata.
+
+---
+
+## 9. Importación cruzada entre módulos: ia_bridge y cliente/aseguradora
+### Descripción del problema
+* **Contexto/Acción:** Al implementar el flujo de creación de vehículos desde póliza OCR, se detectó que el módulo `cliente` necesitaba acceder a `OcrStructuredService` (de `ia_bridge`) y a `VehiculoAdapter`/`VehiculoModulePort` (de `aseguradora`). Esto potencialmente crea dependencias circulares o violaciones de capa si no se gestiona correctamente.
+* **Causa Raíz:** El módulo `cliente` no tiene acceso directo a los servicios de `ia_bridge` ni a los puertos de `aseguradora` para crear vehículos. La solución requiere inyectar estas dependencias a través de `dependencies.py` en la capa de presentación, manteniendo el patrón de arquitectura hexagonal.
+* **Refactorización Aplicada:**
+  1. Se creó `CreateVehicleFromPoliza` en `cliente/application/` que depende de `OcrStructuredPort`, `VehiculoModulePort` y `ClienteRepositoryPort` (puertos abstractos).
+  2. La inyección de dependencias concretas (`OcrStructuredService`, `VehiculoAdapter`, `ClienteRepository`) se realizó exclusivamente en `cliente_v1_dependencies.py`.
+  3. Se aplicó el mismo patrón para `CreateVehiculoFromPoliza` en el módulo `aseguradora`.
+  4. Los puertos se definieron en los módulos correspondientes (`ia_bridge/domain/ports.py`, `aseguradora/domain/ports/`) respetando la separación por contexto de negocio.
+
+---
+
+## 10. Manejo de content_type en uploads de imagen (INE)
+### Descripción del problema
+* **Contexto/Acción:** El endpoint `POST /api/v1/ocr/extract-ine` acepta tanto imágenes (JPG/PNG) como PDFs. El `content_type` del archivo subido puede variar según el navegador/cliente (`image/jpeg`, `image/jpg`, `image/png`, `application/pdf`).
+* **Refactorización Aplicada:**
+  1. Se validó el `content_type` contra un conjunto de tipos permitidos (`allowed_types`) en el endpoint del IA Service.
+  2. Se propagó el `content_type` desde el Backend hacia el IA Service para que `ExtractIneUseCase` decida si usar `ImageOCRService` (Tesseract directo) o `OCRService` (PyMuPDF + fallback Tesseract).
+  3. En `OcrStructuredService` del Backend, se pasó el `content_type` original del archivo al servicio de IA para mantener la compatibilidad con ambos formatos.
