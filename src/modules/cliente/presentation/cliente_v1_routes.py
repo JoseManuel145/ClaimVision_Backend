@@ -66,11 +66,17 @@ async def ocr_extraction(
     user: AuthenticatedUser = Depends(get_cliente),
     uc: ProcessOcr = Depends(process_ocr_service),
 ):
-    """§1 · Extraer datos de cédula y póliza mediante OCR."""
+    """§1 · Extraer y validar datos de póliza e INE (extracción estructurada + validación cruzada)."""
     try:
-        cedula_bytes = await cedula.read()
         poliza_bytes = await poliza.read()
-        return await uc.execute(cedula_bytes, poliza_bytes)
+        cedula_bytes = await cedula.read()
+        return await uc.execute(
+            poliza_bytes=poliza_bytes,
+            poliza_filename=poliza.filename or "poliza.pdf",
+            ine_bytes=cedula_bytes,
+            ine_filename=cedula.filename or "ine.jpg",
+            ine_content_type=cedula.content_type or "image/jpeg",
+        )
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -83,14 +89,19 @@ async def confirmar_datos(
     uc: ConfirmData = Depends(confirm_data_service),
     audit: AuditLogger = Depends(get_audit_logger),
 ):
-    """§1 · Confirmar y guardar datos extraídos del onboarding."""
+    """§1 · Confirmar datos del onboarding: guardar perfil + registrar vehículo."""
     try:
-        uc.execute(usuario_id=user.usuario_id, data=data)
+        result = uc.execute(
+            usuario_id=user.usuario_id,
+            aseguradora_id=user.aseguradora_id,
+            data=data,
+        )
         audit.record(
             evento_modulo="cliente.onboarding", accion="confirmar_datos",
             usuario=user, request=request,
+            metadata={"vehiculo_id": result.get("vehiculo_id")},
         )
-        return {"message": "Datos de onboarding confirmados y guardados de forma segura."}
+        return result
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

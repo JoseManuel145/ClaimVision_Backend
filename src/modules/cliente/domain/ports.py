@@ -1,4 +1,4 @@
-from typing import Protocol, Dict, Any
+from typing import Protocol
 from src.modules.cliente.domain.models import ClienteProfile
 
 class ClienteRepositoryPort(Protocol):
@@ -6,5 +6,12 @@ class ClienteRepositoryPort(Protocol):
     def save(self, profile: ClienteProfile) -> ClienteProfile: ...
     def update(self, profile: ClienteProfile) -> ClienteProfile: ...
 
-class OcrPort(Protocol):
-    async def extract_data(self, cedula_bytes: bytes, poliza_bytes: bytes) -> Dict[str, Any]: ...
+class OcrStructuredPort(Protocol):
+    async def extract_and_validate(
+        self,
+        poliza_bytes: bytes,
+        poliza_filename: str,
+        ine_bytes: bytes,
+        ine_filename: str,
+        ine_content_type: str,
+    ) -> dict: ...

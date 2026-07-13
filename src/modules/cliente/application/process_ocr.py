@@ -1,13 +1,22 @@
-from typing import Dict, Any
-from src.modules.cliente.domain.ports import OcrPort
+from src.modules.cliente.domain.ports import OcrStructuredPort
+
 
 class ProcessOcr:
-    def __init__(self, ocr_port: OcrPort):
+    def __init__(self, ocr_port: OcrStructuredPort):
         self.ocr_port = ocr_port
 
-    async def execute(self, cedula_bytes: bytes, poliza_bytes: bytes) -> Dict[str, Any]:
-        """
-        Orquesta la llamada al microservicio externo de OCR.
-        Retorna los datos extraídos en crudo (ej: {"curp": "...", "numero_poliza": "..."})
-        """
-        return await self.ocr_port.extract_data(cedula_bytes, poliza_bytes)
+    async def execute(
+        self,
+        poliza_bytes: bytes,
+        poliza_filename: str,
+        ine_bytes: bytes,
+        ine_filename: str,
+        ine_content_type: str,
+    ) -> dict:
+        return await self.ocr_port.extract_and_validate(
+            poliza_bytes,
+            poliza_filename,
+            ine_bytes,
+            ine_filename,
+            ine_content_type,
+        )
