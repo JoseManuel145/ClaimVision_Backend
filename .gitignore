@@ -2,10 +2,7 @@ __pycache__/
 .venv/
 .env
 .idea/
-create_superadmin.py
 requirements.txt    
-create_test.py
 Plan.md
 graphify-out/cache/*
-generate_openapi.py
-clean_db.py
+scripts/*
