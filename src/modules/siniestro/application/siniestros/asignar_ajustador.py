@@ -2,12 +2,14 @@ from src.modules.siniestro.domain.models.siniestro_model import SiniestroModel
 from src.modules.siniestro.domain.ports.siniestro_repository_port import SiniestroRepositoryPort
 from src.modules.siniestro.domain.ports.ajustador_checker_port import AjustadorCheckerPort
 from src.shared.domain.models import EstatusSiniestro
+from src.shared.infra.messaging.siniestro_notifier import SiniestroNotifier
 from src.core.exceptions import NotFoundError, BusinessRuleError
 
 class AsignarAjustador:
-    def __init__(self, repo: SiniestroRepositoryPort, ajustador_checker: AjustadorCheckerPort):
+    def __init__(self, repo: SiniestroRepositoryPort, ajustador_checker: AjustadorCheckerPort, notifier: SiniestroNotifier | None = None):
         self.repo = repo
         self.ajustador_checker = ajustador_checker
+        self.notifier = notifier
 
     def execute(self, siniestro_id: str, ajustador_id: str, aseguradora_id: str) -> SiniestroModel:
         siniestro = self.repo.get_by_id(siniestro_id)
@@ -25,4 +27,14 @@ class AsignarAjustador:
 
         siniestro.ajustador_id = ajustador_id
         siniestro.estatus = EstatusSiniestro.ASIGNADO_A_AJUSTADOR.value
-        return self.repo.update(siniestro)
+        resultado = self.repo.update(siniestro)
+
+        if self.notifier:
+            self.notifier.notify_status_change(
+                estatus=resultado.estatus,
+                siniestro_id=resultado.id,
+                cliente_id=resultado.cliente_id,
+                ajustador_id=ajustador_id,
+            )
+
+        return resultado

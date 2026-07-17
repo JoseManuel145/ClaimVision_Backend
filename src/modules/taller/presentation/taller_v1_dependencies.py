@@ -8,6 +8,7 @@ from src.modules.siniestro.infra.db.repositories.peritaje_repository import Peri
 from src.modules.taller.infra.db.repositories.cotizacion_repository import CotizacionRepository
 from src.modules.taller.infra.db.repositories.perfil_taller_repository import PerfilTallerRepository
 from src.modules.taller.infra.pdf.supabase_storage_repository import SupabasePdfStorage
+from src.core.messaging.di import get_siniestro_notifier
 
 from src.modules.taller.application.expedientes.list_expedientes import ListExpedientesTallerUseCase
 from src.modules.taller.application.expedientes.get_expediente import GetExpedienteTallerUseCase
@@ -60,11 +61,16 @@ def concluir_trabajo_service(session: Session = Depends(get_session)) -> Conclui
         SiniestroRepository(session),
         CotizacionRepository(session),
         PerfilTallerRepository(session),
+        get_siniestro_notifier(session),
     )
 
 
 def listo_entrega_service(session: Session = Depends(get_session)) -> MarcarListoEntrega:
-    return MarcarListoEntrega(SiniestroRepository(session), PerfilTallerRepository(session))
+    return MarcarListoEntrega(
+        SiniestroRepository(session),
+        PerfilTallerRepository(session),
+        get_siniestro_notifier(session),
+    )
 
 
 def subir_pdf_service() -> SupabasePdfStorage:

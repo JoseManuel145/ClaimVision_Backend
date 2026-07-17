@@ -95,3 +95,7 @@ class ChangePasswordWithCodeRequest(BaseModel):
     @classmethod
     def check_password(cls, v: str) -> str:
         return validate_password_strength(v)
+
+
+class DeviceTokenRequestDTO(BaseModel):
+    token: str

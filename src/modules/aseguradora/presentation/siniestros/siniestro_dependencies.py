@@ -6,6 +6,7 @@ from src.modules.siniestro.infra.db.repositories.siniestro_repository import Sin
 from src.modules.siniestro.infra.db.repositories.imagen_siniestro_repository import ImagenSiniestroRepository
 from src.modules.siniestro.infra.db.repositories.peritaje_repository import PeritajeAjustadorRepository
 from src.modules.taller.infra.db.repositories.cotizacion_repository import CotizacionRepository
+from src.core.messaging.di import get_siniestro_notifier
 
 from src.modules.aseguradora.application.siniestros.list_siniestros_aseguradora import ListSiniestrosAseguradora
 from src.modules.aseguradora.application.siniestros.get_siniestro_aseguradora import GetSiniestroAseguradora
@@ -36,4 +37,4 @@ def rechazar_cotizacion_service(session: Session = Depends(get_session)) -> Rech
 
 
 def autorizar_entrega_service(session: Session = Depends(get_session)) -> AutorizarEntregaV1:
-    return AutorizarEntregaV1(SiniestroRepository(session))
+    return AutorizarEntregaV1(SiniestroRepository(session), get_siniestro_notifier(session))

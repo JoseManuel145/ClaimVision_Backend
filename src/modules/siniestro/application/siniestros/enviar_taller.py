@@ -2,12 +2,14 @@ from src.modules.siniestro.domain.models.siniestro_model import SiniestroModel
 from src.modules.siniestro.domain.ports.siniestro_repository_port import SiniestroRepositoryPort
 from src.modules.siniestro.domain.ports.taller_checker_port import TallerCheckerPort
 from src.shared.domain.models import EstatusSiniestro
+from src.shared.infra.messaging.siniestro_notifier import SiniestroNotifier
 from src.core.exceptions import NotFoundError, BusinessRuleError
 
 class EnviarTaller:
-    def __init__(self, repo: SiniestroRepositoryPort, taller_checker: TallerCheckerPort):
+    def __init__(self, repo: SiniestroRepositoryPort, taller_checker: TallerCheckerPort, notifier: SiniestroNotifier | None = None):
         self.repo = repo
         self.taller_checker = taller_checker
+        self.notifier = notifier
 
     def execute(self, siniestro_id: str, taller_id: str, aseguradora_id: str) -> SiniestroModel:
         siniestro = self.repo.get_by_id(siniestro_id)
@@ -26,7 +28,13 @@ class EnviarTaller:
         siniestro.taller_id = taller_id
         siniestro.estatus = EstatusSiniestro.ASIGNADO_A_TALLER.value
         
-        # Lógica de "Disociación Legal de Datos LFPDPPP" se maneja en el envío al taller
-        # al omitir nombre y teléfono del cliente (eso ocurre en la lectura por el taller).
-        
-        return self.repo.update(siniestro)
+        resultado = self.repo.update(siniestro)
+
+        if self.notifier:
+            self.notifier.notify_status_change(
+                estatus=resultado.estatus,
+                siniestro_id=resultado.id,
+                cliente_id=resultado.cliente_id,
+            )
+
+        return resultado

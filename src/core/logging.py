@@ -1,5 +1,7 @@
 import logging
+import os
 import sys
+from logging.handlers import RotatingFileHandler
 
 from src.core.config import settings
 
@@ -7,21 +9,28 @@ from src.core.config import settings
 def setup_logging() -> None:
     """Configura el sistema de logging de toda la app."""
 
-    # Formato legible en desarrollo, fácil de parsear en producción
     log_format = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
     date_format = "%Y-%m-%d %H:%M:%S"
 
-    # Handler principal — siempre a stdout (buena práctica en APIs)
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(logging.Formatter(fmt=log_format, datefmt=date_format))
 
-    # Logger raíz de tu app — todos los módulos heredan de este
     app_logger = logging.getLogger("ClaimVision")
-    app_logger.setLevel(settings.LOG_LEVEL)  # viene del .env
+    app_logger.setLevel(settings.LOG_LEVEL)
     app_logger.addHandler(handler)
-    app_logger.propagate = False  # no duplica logs al logger raíz de Python
+    app_logger.propagate = False
 
-    # Silencias librerías ruidosas pero conservas sus warnings/errors
+    log_dir = "/app/logs"
+    os.makedirs(log_dir, exist_ok=True)
+    file_handler = RotatingFileHandler(
+        os.path.join(log_dir, "backend.log"),
+        maxBytes=5 * 1024 * 1024,
+        backupCount=3,
+        encoding="utf-8",
+    )
+    file_handler.setFormatter(logging.Formatter(fmt=log_format, datefmt=date_format))
+    app_logger.addHandler(file_handler)
+
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy.pool").setLevel(logging.WARNING)
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
