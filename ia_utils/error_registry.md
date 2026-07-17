@@ -166,3 +166,37 @@ sqlalchemy.exc.InvalidRequestError: Table 'perfiles_clientes' is already defined
   1. Se validó el `content_type` contra un conjunto de tipos permitidos (`allowed_types`) en el endpoint del IA Service.
   2. Se propagó el `content_type` desde el Backend hacia el IA Service para que `ExtractIneUseCase` decida si usar `ImageOCRService` (Tesseract directo) o `OCRService` (PyMuPDF + fallback Tesseract).
   3. En `OcrStructuredService` del Backend, se pasó el `content_type` original del archivo al servicio de IA para mantener la compatibilidad con ambos formatos.
+
+---
+
+## 11. PyMuPDF OCR produce texto basura en PDFs escaneados de INE
+### Descripción del problema
+* **Contexto/Acción:** El endpoint `POST /api/v1/ocr/extract-ine` recibía un PDF escaneado de INE pero retornaba todos los campos vacíos.
+* **Traceback/Mensaje de la Consola:** Sin traceback, el endpoint respondía 200 OK pero con strings vacíos en todos los campos.
+* **Causa Raíz:** `PyMuPDFOCRService` usaba `page.get_pixmap(dpi=300)` para renderizar la página del PDF como imagen y pasarla a Tesseract. Sin embargo, PyMuPDF no renderiza correctamente las imágenes embebidas en PDFs escaneados, produciendo una imagen distorsionada que Tesseract no puede leer.
+* **Refactorización Aplicada:**
+  1. Se agregó un paso intermedio en `PyMuPDFOCRService`: extraer las imágenes embebidas del PDF directamente usando `doc.extract_image(xref)` en lugar de renderizar la página completa.
+  2. El flujo de extracción ahora tiene 3 pasos: (1) texto directo → (2) imágenes embebidas → (3) renderizado de página como fallback.
+  3. Se incrementó el DPI de renderizado de 300 a 400 para el caso fallback.
+  4. Se cambiaron los campos `sexo`, `fecha_nacimiento`, `domicilio` y `clave_elector` en `IneExtractedResponse` a `Optional[str] = None` para manejar casos donde la LLM retorna `null`.
+
+---
+
+## 12. Validación de calidad de imagen para INE y Póliza
+### Descripción del problema
+* **Contexto/Acción:** El endpoint `POST /api/v1/ocr/extract-ine` aceptaba cualquier imagen/PDF sin validar calidad, resultando en extracción fallida cuando la imagen era borrosa, oscura o de baja resolución.
+* **Causa Raíz:** No existía validación previa al OCR. Imágenes de baja calidad pasaban directamente al pipeline de extracción, produciendo resultados vacíos o incorrectos.
+
+### Como se soluciono
+* **Refactorización Aplicada:**
+  1. Se creó el módulo `app/modules/ocr/infra/validation/` con:
+     - `models.py`: Modelo `ValidationResult` con campos `is_valid`, `errors`, `warnings`, y métricas de imagen.
+     - `image_validator.py`: Clase `ImageValidator` con métodos `validate_ine_image()` y `validate_poliza_pdf()` que verifican:
+       - Resolución mínima (INE: 800x500, Póliza: 1000x700)
+       - Nitidez (varianza Laplaciana > 50 para INE, > 30 para Póliza)
+       - Brillo (rango 50-220 para INE, 60-220 para Póliza)
+       - Aspecto (tolerancia 25%, advertencia pero no rechazo)
+  2. Se integró la validación en `routes.py` antes de la extracción OCR.
+  3. Se agregó check de calidad OCR en `ExtractIneUseCase` (mínimo 50 caracteres).
+  4. Se mejoró el manejo de errores en `ia_bridge` para preservar mensajes del IA Service.
+  5. Se documentó el estándar en `DOCUMENTACION_ESTANDARES_CAPTURA.md` para el frontend.

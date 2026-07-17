@@ -4638,6 +4638,50 @@
         ]
       }
     },
+    "/api/v1/auth/device-token": {
+      "post": {
+        "tags": [
+          "v1 · Auth"
+        ],
+        "summary": "Register Device Token",
+        "operationId": "register_device_token_api_v1_auth_device_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceTokenRequestDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/ia/predict": {
       "post": {
         "tags": [
@@ -6336,6 +6380,19 @@
           "talleres_pendientes"
         ],
         "title": "DashboardResumenDTO"
+      },
+      "DeviceTokenRequestDTO": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "DeviceTokenRequestDTO"
       },
       "DisponibilidadRequest": {
         "properties": {
