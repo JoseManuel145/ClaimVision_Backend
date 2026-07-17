@@ -1,9 +1,12 @@
 import logging
 import os
 import sys
+from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
 from src.core.config import settings
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def setup_logging() -> None:
@@ -20,10 +23,10 @@ def setup_logging() -> None:
     app_logger.addHandler(handler)
     app_logger.propagate = False
 
-    log_dir = "/app/logs"
+    log_dir = PROJECT_ROOT / "logs"
     os.makedirs(log_dir, exist_ok=True)
     file_handler = RotatingFileHandler(
-        os.path.join(log_dir, "backend.log"),
+        log_dir / "backend.log",
         maxBytes=5 * 1024 * 1024,
         backupCount=3,
         encoding="utf-8",
