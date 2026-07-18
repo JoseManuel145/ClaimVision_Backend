@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.core.database import get_session
 from src.core.supabase import get_supabase_client
+from src.core.logging import get_logger
 from src.modules.siniestro.infra.db.repositories.siniestro_repository import SiniestroRepository
 from src.modules.siniestro.infra.db.repositories.peritaje_repository import PeritajeAjustadorRepository
 from src.modules.taller.infra.db.repositories.cotizacion_repository import CotizacionRepository
@@ -20,6 +21,8 @@ from src.modules.taller.application.get_perfil_taller import GetPerfilTaller
 from src.modules.taller.application.actualizar_perfil_taller import ActualizarPerfilTaller
 from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
 from src.modules.aseguradora.infra.db.repositories.taller_repository import TallerRepository
+
+logger = get_logger("deps")
 
 
 def get_perfil_taller_service(session: Session = Depends(get_session)) -> GetPerfilTaller:
@@ -56,12 +59,20 @@ def editar_cotizacion_service(session: Session = Depends(get_session)) -> Editar
     return EditarCotizacion(CotizacionRepository(session), PerfilTallerRepository(session))
 
 
+def _safe_notifier(session: Session):
+    try:
+        return get_siniestro_notifier(session)
+    except Exception as e:
+        logger.warning(f"No se pudo inicializar el notificador de siniestros: {e}")
+        return None
+
+
 def concluir_trabajo_service(session: Session = Depends(get_session)) -> ConcluirExpedienteUseCase:
     return ConcluirExpedienteUseCase(
         SiniestroRepository(session),
         CotizacionRepository(session),
         PerfilTallerRepository(session),
-        get_siniestro_notifier(session),
+        _safe_notifier(session),
     )
 
 
@@ -69,7 +80,7 @@ def listo_entrega_service(session: Session = Depends(get_session)) -> MarcarList
     return MarcarListoEntrega(
         SiniestroRepository(session),
         PerfilTallerRepository(session),
-        get_siniestro_notifier(session),
+        _safe_notifier(session),
     )
 
 
