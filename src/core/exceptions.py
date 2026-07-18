@@ -166,7 +166,12 @@ def register_exception_handlers(app: FastAPI):
 
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
-        logger.error(f"Error no manejado: {str(exc)}", exc_info=True)
+        logger.error(
+            "Error no manejado | %s %s | tipo=%s | detalle=%s",
+            request.method, request.url.path,
+            type(exc).__name__, str(exc),
+            exc_info=True,
+        )
         return JSONResponse(
             status_code=500,
             content={"error": "Ocurrió un error interno en el servidor."}

@@ -1,7 +1,6 @@
 from fastapi import Depends
 from src.core.database import get_session
 from sqlalchemy.orm import Session
-from src.core.supabase import get_supabase_client
 from src.modules.siniestro.infra.db.repositories.siniestro_repository import SiniestroRepository
 from src.modules.siniestro.infra.db.repositories.peritaje_repository import PeritajeAjustadorRepository
 from src.modules.taller.infra.db.repositories.cotizacion_repository import CotizacionRepository
@@ -29,8 +28,7 @@ def get_pdf_generator():
     return ReportLabPdfGenerator()
 
 def get_pdf_storage():
-    client = get_supabase_client()
-    return SupabasePdfStorage(client)
+    return SupabasePdfStorage()
 
 def list_expedientes_taller_service(
     siniestro_repo=Depends(get_siniestro_repo),

@@ -2,7 +2,10 @@ from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile, 
 from sqlalchemy.orm import Session
 
 from src.core.database import get_session
+from src.core.logging import get_logger
 from src.core.security import require_roles
+
+logger = get_logger("taller.routes")
 from src.core.exceptions import NotFoundError, ForbiddenError
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.shared.presentation.pagination import Page, offset_from_page
@@ -133,10 +136,16 @@ async def crear_cotizacion(
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§6 · Crea cotización → estatus_cotizacion = Pendiente_Aprobacion. Recibe PDF del desglose."""
+    logger.info(
+        "crear_cotizacion siniestro_id=%s usuario_id=%s filename=%s content_type=%s size=%d",
+        id, user.usuario_id, desglose_pdf.filename, desglose_pdf.content_type,
+        desglose_pdf.size or 0,
+    )
     pdf_bytes = await desglose_pdf.read()
     filename = desglose_pdf.filename or f"cotizacion_{id}.pdf"
     content_type = desglose_pdf.content_type or "application/pdf"
     pdf_url = storage.upload_pdf(pdf_bytes, filename, content_type)
+    logger.info("PDF subido exitosamente url=%s", pdf_url)
 
     cot = uc.execute(
         usuario_id=user.usuario_id, siniestro_id=id,
@@ -179,6 +188,7 @@ def concluir_trabajo(
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     """§6 · → estatus = Trabajo_Concluido (requiere cotización aprobada)."""
+    logger.info("concluir_trabajo siniestro_id=%s usuario_id=%s", id, user.usuario_id)
     uc.execute(siniestro_id=id, usuario_id=user.usuario_id)
     audit.record(evento_modulo=EVENTO, accion="concluir_trabajo", usuario=user, request=request,
                  metadata={"siniestro_id": id})
