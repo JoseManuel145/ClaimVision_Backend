@@ -1,4 +1,5 @@
 import uuid
+import asyncio
 import httpx
 from src.core.config import settings
 from src.core.logging import get_logger
@@ -22,10 +23,11 @@ class SupabasePdfStorage(PdfStoragePort):
     def _headers(self) -> dict:
         return {
             "Authorization": f"Bearer {self.supabase_key}",
+            "apikey": self.supabase_key,
             "Content-Type": "application/pdf",
         }
 
-    def upload_pdf(self, file_bytes: bytes, filename: str, content_type: str = "application/pdf") -> str:
+    def _do_upload(self, file_bytes: bytes, filename: str, content_type: str) -> str:
         unique_path = f"{uuid.uuid4()}_{filename}"
         upload_url = f"{self.supabase_url}/storage/v1/object/{self.bucket_name}/{unique_path}"
 
@@ -36,6 +38,7 @@ class SupabasePdfStorage(PdfStoragePort):
                     content=file_bytes,
                     headers={
                         "Authorization": f"Bearer {self.supabase_key}",
+                        "apikey": self.supabase_key,
                         "Content-Type": content_type,
                     },
                 )
@@ -65,3 +68,6 @@ class SupabasePdfStorage(PdfStoragePort):
             self.bucket_name, unique_path, public_url,
         )
         return public_url
+
+    async def upload_pdf(self, file_bytes: bytes, filename: str, content_type: str = "application/pdf") -> str:
+        return await asyncio.to_thread(self._do_upload, file_bytes, filename, content_type)

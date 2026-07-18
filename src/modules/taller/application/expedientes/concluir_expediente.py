@@ -36,7 +36,7 @@ class ConcluirExpedienteUseCase:
             
         resultado = self.siniestro_repo.update_estatus(siniestro_id, EstatusSiniestro.TRABAJO_CONCLUIDO.value)
 
-        if self.notifier:
+        if resultado and self.notifier:
             self.notifier.notify_status_change(
                 estatus=resultado.estatus,
                 siniestro_id=resultado.id,

@@ -164,19 +164,6 @@ def register_exception_handlers(app: FastAPI):
             content={"error": "Registro duplicado o conflicto de integridad en la base de datos."}
         )
 
-    @app.exception_handler(Exception)
-    async def global_exception_handler(request: Request, exc: Exception):
-        logger.error(
-            "Error no manejado | %s %s | tipo=%s | detalle=%s",
-            request.method, request.url.path,
-            type(exc).__name__, str(exc),
-            exc_info=True,
-        )
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Ocurrió un error interno en el servidor."}
-        )
-
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         status_code = exc.status_code
@@ -194,6 +181,19 @@ def register_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=status_code,
             content={"error": detail}
+        )
+
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        logger.error(
+            "Error no manejado | %s %s | tipo=%s | detalle=%s",
+            request.method, request.url.path,
+            type(exc).__name__, str(exc),
+            exc_info=True,
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Ocurrió un error interno en el servidor."}
         )
 
     @app.exception_handler(RequestValidationError)

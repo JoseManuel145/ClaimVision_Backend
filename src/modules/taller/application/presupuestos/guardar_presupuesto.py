@@ -27,7 +27,7 @@ class GuardarPresupuestoUseCase:
         self.pdf_generator = pdf_generator
         self.pdf_storage = pdf_storage
 
-    def execute(
+    async def execute(
         self, 
         siniestro_id: str, 
         usuario_id: str, 
@@ -69,7 +69,7 @@ class GuardarPresupuestoUseCase:
         
         # Upload PDF
         filename = f"cotizacion_{siniestro_id}.pdf"
-        pdf_url = self.pdf_storage.upload_pdf(pdf_bytes, filename)
+        pdf_url = await self.pdf_storage.upload_pdf(pdf_bytes, filename)
         
         cotizacion_existente = self.cotizacion_repo.get_by_siniestro(siniestro_id)
         

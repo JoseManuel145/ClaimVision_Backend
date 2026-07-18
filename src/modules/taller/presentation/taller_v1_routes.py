@@ -144,7 +144,7 @@ async def crear_cotizacion(
     pdf_bytes = await desglose_pdf.read()
     filename = desglose_pdf.filename or f"cotizacion_{id}.pdf"
     content_type = desglose_pdf.content_type or "application/pdf"
-    pdf_url = storage.upload_pdf(pdf_bytes, filename, content_type)
+    pdf_url = await storage.upload_pdf(pdf_bytes, filename, content_type)
     logger.info("PDF subido exitosamente url=%s", pdf_url)
 
     cot = uc.execute(
