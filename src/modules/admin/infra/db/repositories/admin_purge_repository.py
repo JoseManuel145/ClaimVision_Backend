@@ -11,6 +11,7 @@ from src.modules.aseguradora.infra.db.tables.perfil_cliente_table import PerfilC
 from src.modules.aseguradora.infra.db.tables.ajustador_table import AjustadorTable
 from src.modules.aseguradora.infra.db.tables.convenio_table import ConvenioAseguradoraTallerTable
 from src.modules.aseguradora.infra.db.tables.taller_table import TallerTable
+from src.modules.aseguradora.infra.db.tables.vehiculo_table import VehiculoTable
 from src.modules.admin.infra.db.tables.aseguradora_table import AseguradoraTable
 from src.modules.auth.infra.db.tables.user_table import UserTable
 
@@ -79,28 +80,47 @@ class AdminPurgeRepository:
                 )
             ).rowcount
 
-            # 7. siniestros
+            # 7. vehiculos
+            # eliminar antes de perfiles_clientes (FK constraint)
+            vehiculos_subq = select(VehiculoTable.id).where(
+                VehiculoTable.cliente_id.in_(
+                    select(PerfilClienteTable.id).where(
+                        PerfilClienteTable.usuario_id.in_(usuarios_subq)
+                    )
+                )
+            )
+            result["vehiculos"] = self.session.execute(
+                sa_delete(VehiculoTable).where(
+                    VehiculoTable.cliente_id.in_(
+                        select(PerfilClienteTable.id).where(
+                            PerfilClienteTable.usuario_id.in_(usuarios_subq)
+                        )
+                    )
+                )
+            ).rowcount
+
+            # 9. siniestros
             result["siniestros"] = self.session.execute(
                 sa_delete(SiniestroTable).where(
                     SiniestroTable.aseguradora_id == aseguradora_id
                 )
             ).rowcount
 
-            # 8. perfiles_clientes
+            # 10. perfiles_clientes
             result["perfiles_clientes"] = self.session.execute(
                 sa_delete(PerfilClienteTable).where(
                     PerfilClienteTable.usuario_id.in_(usuarios_subq)
                 )
             ).rowcount
 
-            # 9. ajustadores
+            # 11. ajustadores
             result["ajustadores"] = self.session.execute(
                 sa_delete(AjustadorTable).where(
                     AjustadorTable.usuario_id.in_(usuarios_subq)
                 )
             ).rowcount
 
-            # 10. perfiles_taller_usuarios
+            # 12. perfiles_taller_usuarios
             result["perfiles_taller_usuarios"] = self.session.execute(
                 sa_delete(PerfilTallerUsuariosTable).where(
                     PerfilTallerUsuariosTable.usuario_id.in_(usuarios_subq)

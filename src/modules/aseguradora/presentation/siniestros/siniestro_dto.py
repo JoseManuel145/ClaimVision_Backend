@@ -1,6 +1,8 @@
+import uuid
 from typing import List, Optional
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
+from src.core.exceptions import BusinessRuleError
 
 from src.modules.siniestro.presentation.siniestros.siniestro_dto import (
     SiniestroResponseDTO,
@@ -16,6 +18,15 @@ class AsignarAjustadorDTO(BaseModel):
 
 class EnviarTallerDTO(BaseModel):
     taller_id: str
+
+    @field_validator("taller_id")
+    @classmethod
+    def validar_uuid(cls, v: str) -> str:
+        try:
+            uuid.UUID(v)
+        except (ValueError, AttributeError):
+            raise BusinessRuleError(f"El ID del taller '{v}' no es un UUID válido.")
+        return v
 
 
 class RechazarCotizacionRequest(BaseModel):
