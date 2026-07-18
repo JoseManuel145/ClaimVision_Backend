@@ -10,6 +10,7 @@ from src.modules.aseguradora.infra.db.repositories.taller_repository import Tall
 from src.modules.siniestro.infra.storage.supabase_storage import SupabaseStorageAdapter
 from src.core.supabase import get_supabase_client
 from src.core.messaging.di import get_siniestro_notifier
+from src.shared.infra.messaging.siniestro_notifier import SiniestroNotifier
 
 from src.modules.siniestro.application.siniestros.inicializar_siniestro import InicializarSiniestro
 from src.modules.siniestro.application.siniestros.subir_imagen_siniestro import SubirImagenSiniestro
