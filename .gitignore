@@ -6,3 +6,5 @@ requirements.txt
 Plan.md
 graphify-out/cache/*
 scripts/*
+claimvision-b0f20-firebase-adminsdk-fbsvc-7d8c9c7251.json
+logs/

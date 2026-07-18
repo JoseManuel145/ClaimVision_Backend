@@ -14,6 +14,7 @@ from src.modules.auth.presentation.schemas import (
     RecoveryResetDTO,
     ChangePasswordRequest,
     ChangePasswordWithCodeRequest,
+    DeviceTokenRequestDTO,
 )
 from src.modules.auth.application.login_user import LoginUser
 from src.modules.auth.application.register_user import RegisterUser
@@ -26,6 +27,7 @@ from src.modules.auth.application.confirm_consent import ConfirmConsent
 from src.modules.auth.application.change_password import ChangePassword
 from src.modules.auth.application.request_password_change_code import RequestPasswordChangeCode
 from src.modules.auth.application.change_password_with_code import ChangePasswordWithCode
+from src.modules.auth.application.register_device_token import RegisterDeviceToken
 
 router = APIRouter()
 
@@ -124,6 +126,8 @@ async def change_password(
         return {"message": "Contraseña actualizada exitosamente"}
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error al cambiar contraseña")
 
 
 @router.post("/password/request-code", status_code=status.HTTP_200_OK)
@@ -136,6 +140,8 @@ async def request_password_change_code(
         return {"message": "Código de verificación enviado a tu correo"}
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error al enviar código de verificación")
 
 
 @router.post("/password/verify", status_code=status.HTTP_200_OK)
@@ -151,3 +157,15 @@ async def change_password_with_code(
         return {"message": "Contraseña actualizada exitosamente"}
     except ValueError as ve:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error al cambiar contraseña")
+
+
+@router.post("/device-token", status_code=status.HTTP_201_CREATED)
+def register_device_token(
+    data: DeviceTokenRequestDTO,
+    user: AuthenticatedUser = Depends(get_current_user),
+    usecase: RegisterDeviceToken = Depends(deps.register_device_token_service),
+):
+    usecase.execute(user.usuario_id, data.token)
+    return {"ok": True}

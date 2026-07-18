@@ -9,6 +9,7 @@ from src.modules.auth.infra.security.password_service import PasswordService
 from src.modules.auth.infra.messaging.email_service import EmailService
 from src.modules.auth.infra.jwt.token_service import JwtTokenService
 from src.modules.auth.infra.db.repositories.login_attempt_repository import InMemoryLoginAttemptRepository
+from src.shared.infra.device_token.device_token_repository import DeviceTokenRepository
 
 # Instancia global para mantener estado en memoria
 in_memory_login_attempt_repo = InMemoryLoginAttemptRepository()
@@ -28,6 +29,7 @@ from src.modules.auth.application import (
 from src.modules.auth.application.change_password import ChangePassword
 from src.modules.auth.application.request_password_change_code import RequestPasswordChangeCode
 from src.modules.auth.application.change_password_with_code import ChangePasswordWithCode
+from src.modules.auth.application.register_device_token import RegisterDeviceToken
 
 def verify_token_service():
     token_service = JwtTokenService()
@@ -91,3 +93,8 @@ def change_password_with_code_service(session=Depends(get_session)):
     password_service = PasswordService()
     recovery_repo = RecoveryCodeService(session)
     return ChangePasswordWithCode(repo, password_service, recovery_repo)
+
+
+def register_device_token_service(session=Depends(get_session)):
+    token_repo = DeviceTokenRepository(session)
+    return RegisterDeviceToken(token_repo)

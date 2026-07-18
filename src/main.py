@@ -9,6 +9,7 @@ from src.core.exceptions import register_exception_handlers
 from src.core.routers import api_router
 from src.core.database import Base, engine
 from src.core.rate_limit import limiter
+from src.shared.infra.messaging.fcm_client import init_firebase
 
 setup_logging()
 
@@ -33,8 +34,9 @@ register_exception_handlers(app)
 app.include_router(api_router, prefix="/api")
 
 @app.on_event("startup")
-def create_missing_tables():
+def startup_event():
     Base.metadata.create_all(bind=engine)
+    init_firebase()
 
 @app.get("/", tags=["Root"])
 def root():

@@ -32,4 +32,4 @@ class RequestPasswordChangeCode:
         )
         self.recovery_repo.save(recovery)
 
-        await self.email_port.send_code(user.email, plain_code)
+        self.email_port.send_code(user.email, plain_code)

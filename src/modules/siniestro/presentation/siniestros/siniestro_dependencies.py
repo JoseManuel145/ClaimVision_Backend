@@ -9,6 +9,7 @@ from src.modules.aseguradora.infra.db.repositories.ajustador_repository import A
 from src.modules.aseguradora.infra.db.repositories.taller_repository import TallerRepository
 from src.modules.siniestro.infra.storage.supabase_storage import SupabaseStorageAdapter
 from src.core.supabase import get_supabase_client
+from src.core.messaging.di import get_siniestro_notifier
 
 from src.modules.siniestro.application.siniestros.inicializar_siniestro import InicializarSiniestro
 from src.modules.siniestro.application.siniestros.subir_imagen_siniestro import SubirImagenSiniestro
@@ -63,18 +64,23 @@ def list_siniestros_service(repo: SiniestroRepository = Depends(get_siniestro_re
 
 def asignar_ajustador_service(
     repo: SiniestroRepository = Depends(get_siniestro_repo),
-    checker: AjustadorCheckerAdapter = Depends(get_ajustador_checker)
+    checker: AjustadorCheckerAdapter = Depends(get_ajustador_checker),
+    notifier: SiniestroNotifier = Depends(get_siniestro_notifier),
 ) -> AsignarAjustador:
-    return AsignarAjustador(repo, checker)
+    return AsignarAjustador(repo, checker, notifier)
 
 def enviar_taller_service(
     repo: SiniestroRepository = Depends(get_siniestro_repo),
-    checker: TallerCheckerAdapter = Depends(get_taller_checker)
+    checker: TallerCheckerAdapter = Depends(get_taller_checker),
+    notifier: SiniestroNotifier = Depends(get_siniestro_notifier),
 ) -> EnviarTaller:
-    return EnviarTaller(repo, checker)
+    return EnviarTaller(repo, checker, notifier)
 
-def autorizar_entrega_service(repo: SiniestroRepository = Depends(get_siniestro_repo)) -> AutorizarEntrega:
-    return AutorizarEntrega(repo)
+def autorizar_entrega_service(
+    repo: SiniestroRepository = Depends(get_siniestro_repo),
+    notifier: SiniestroNotifier = Depends(get_siniestro_notifier),
+) -> AutorizarEntrega:
+    return AutorizarEntrega(repo, notifier)
 
 def editar_siniestro_service(repo: SiniestroRepository = Depends(get_siniestro_repo)) -> EditarSiniestro:
     return EditarSiniestro(repo)
