@@ -50,6 +50,7 @@ class LoginResponseDTO(BaseModel):
     email: str
     rol: str
     aseguradora_id: str | None
+    primer_cambio_password: bool
 
 class ConsentRequestDTO(BaseModel):
     aviso_privacidad: bool

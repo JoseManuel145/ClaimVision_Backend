@@ -50,4 +50,5 @@ class LoginUser:
             "email": user.email,
             "rol": user.rol,
             "aseguradora_id": user.aseguradora_id,
+            "primer_cambio_password": user.primer_cambio_password,
         }

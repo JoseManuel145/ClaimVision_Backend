@@ -6,6 +6,7 @@ from src.modules.aseguradora.infra.adapters.cliente_adapter import ClienteAdapte
 from src.modules.aseguradora.application.clientes.list_clientes import ListClientes
 from src.modules.aseguradora.application.clientes.get_cliente import GetCliente
 from src.modules.aseguradora.application.clientes.create_cliente import CreateClienteByAseguradora
+from src.modules.aseguradora.application.clientes.update_cliente import UpdateCliente
 from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
 from src.modules.auth.infra.security.password_service import PasswordService
 from src.modules.cliente.infra.db.repositories.cliente_repository import ClienteRepository as ClienteModuleRepository
@@ -30,3 +31,7 @@ def list_clientes_service(module: ClienteAdapter = Depends(_adapter)) -> ListCli
 
 def get_cliente_service(module: ClienteAdapter = Depends(_adapter)) -> GetCliente:
     return GetCliente(module)
+
+
+def update_cliente_service(module: ClienteAdapter = Depends(_adapter)) -> UpdateCliente:
+    return UpdateCliente(module)

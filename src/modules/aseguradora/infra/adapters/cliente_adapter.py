@@ -73,6 +73,33 @@ class ClienteAdapter(ClienteModulePort):
             raise NotFoundError("Cliente no encontrado")
         return cliente
 
+    def actualizar(
+        self,
+        cliente_id: str,
+        nombre: str | None = None,
+        email: str | None = None,
+        telefono: str | None = None,
+        numero_poliza: str | None = None,
+        vigencia_poliza=None,
+    ) -> ClienteModel:
+        cliente = self.repo.get_by_id(cliente_id)
+        if not cliente:
+            raise NotFoundError("Cliente no encontrado")
+
+        if numero_poliza is not None:
+            cliente.numero_poliza = numero_poliza
+        if vigencia_poliza is not None:
+            cliente.vigencia_poliza = vigencia_poliza
+        cliente.updated_at = datetime.now(timezone.utc)
+        self.repo.update(cliente)
+
+        if any(v is not None for v in (nombre, email, telefono)):
+            self.auth_repo.update_user_profile(
+                cliente.usuario_id, nombre=nombre, email=email, telefono=telefono
+            )
+
+        return self.repo.get_by_id(cliente_id)
+
     def listar(
         self,
         aseguradora_id: str,

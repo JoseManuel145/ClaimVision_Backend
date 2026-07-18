@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse, Response
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.orm.exc import StaleDataError
+from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from src.core.logging import get_logger
 
@@ -151,6 +152,16 @@ def register_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={"error": "Conflicto de concurrencia: el registro fue modificado por otro usuario. Recarge e intente de nuevo."}
+        )
+
+    @app.exception_handler(IntegrityError)
+    async def integrity_error_handler(request: Request, exc: IntegrityError):
+        method = request.method
+        path = request.url.path
+        logger.warning(f"HTTP 409 | {method} {path} | Conflicto de integridad: {str(exc.orig)}")
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"error": "Registro duplicado o conflicto de integridad en la base de datos."}
         )
 
     @app.exception_handler(Exception)
