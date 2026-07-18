@@ -2,6 +2,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Tuple
 
+from sqlalchemy.exc import IntegrityError
+
 from src.modules.taller.domain.ports.taller_module_port import TallerModulePort
 from src.modules.aseguradora.domain.models.taller_model import TallerModel
 from src.modules.aseguradora.domain.ports.taller_repository_port import TallerRepositoryPort
@@ -11,7 +13,7 @@ from src.modules.auth.domain.ports import AuthPort, PasswordPort
 from src.modules.auth.domain.models import User
 from src.modules.admin.domain.models import AuditLog
 from src.shared.domain.models import Rol, EstadoUsuario
-from src.core.exceptions import NotFoundError, BusinessRuleError
+from src.core.exceptions import NotFoundError, BusinessRuleError, ConflictError
 
 
 class TallerAdapter(TallerModulePort):
@@ -47,7 +49,10 @@ class TallerAdapter(TallerModulePort):
             created_at=datetime.now(),
             updated_at=datetime.now(),
         )
-        taller = self.taller_repo.save(model)
+        try:
+            taller = self.taller_repo.save(model)
+        except IntegrityError:
+            raise ConflictError("Ya existe un taller registrado con ese RFC")
         self.taller_repo.vincular_taller_aseguradora(taller.id, aseguradora_id)
         return taller
 

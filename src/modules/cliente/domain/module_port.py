@@ -15,6 +15,16 @@ class ClienteModulePort(Protocol):
 
     def obtener(self, cliente_id: str) -> ClienteModel: ...
 
+    def actualizar(
+        self,
+        cliente_id: str,
+        nombre: str | None = None,
+        email: str | None = None,
+        telefono: str | None = None,
+        numero_poliza: str | None = None,
+        vigencia_poliza=None,
+    ) -> ClienteModel: ...
+
     def listar(
         self,
         aseguradora_id: str,

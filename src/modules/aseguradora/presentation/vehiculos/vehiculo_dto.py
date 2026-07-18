@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import Optional
 
@@ -23,12 +23,12 @@ class VehiculoResponseDTO(BaseModel):
 
 class VehiculoCreateDTO(BaseModel):
     cliente_id: str
-    marca: str
-    modelo: str
-    anio: int
-    placas: str
-    vin: Optional[str] = None
-    color: Optional[str] = None
+    marca: str = Field(..., min_length=1, max_length=100)
+    modelo: str = Field(..., min_length=1, max_length=100)
+    anio: int = Field(..., ge=1900, le=2030)
+    placas: str = Field(..., min_length=5, max_length=10)
+    vin: Optional[str] = Field(None, max_length=17)
+    color: Optional[str] = Field(None, max_length=50)
 
 
 class VehiculoUpdateDTO(BaseModel):

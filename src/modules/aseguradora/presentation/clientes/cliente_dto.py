@@ -23,3 +23,11 @@ class ClienteCreateDTO(BaseModel):
     email: str
     telefono: str
     password_temporal: str
+
+
+class ClienteUpdateDTO(BaseModel):
+    nombre: str | None = None
+    email: str | None = None
+    telefono: str | None = None
+    numero_poliza: str | None = None
+    vigencia_poliza: date | None = None

@@ -22,10 +22,10 @@ class OperadorTallerRequestDTO(BaseModel):
     puesto: str = Field(default="Operador")
 
 class TallerCreateDTO(BaseModel):
-    nombre_comercial: str
-    rfc: str
-    direccion_tecnica: str
-    telefono_contacto: str
+    nombre_comercial: str = Field(..., min_length=1, max_length=200)
+    rfc: str = Field(..., min_length=12, max_length=13, pattern=r'^[A-ZÑ&]{3,4}\d{6}[A-Za-z\d]{3}$')
+    direccion_tecnica: str = Field(..., min_length=5, max_length=500)
+    telefono_contacto: str = Field(..., min_length=10, max_length=15)
 
 class TallerUpdateDTO(BaseModel):
     nombre_comercial: Optional[str] = None

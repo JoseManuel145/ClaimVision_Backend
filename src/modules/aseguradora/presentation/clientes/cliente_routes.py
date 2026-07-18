@@ -8,10 +8,12 @@ from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
 from src.modules.aseguradora.presentation.clientes.cliente_dto import (
     ClienteCreateDTO,
     ClienteResponseDTO,
+    ClienteUpdateDTO,
 )
 from src.modules.aseguradora.application.clientes.create_cliente import CreateClienteByAseguradora
 from src.modules.aseguradora.application.clientes.list_clientes import ListClientes
 from src.modules.aseguradora.application.clientes.get_cliente import GetCliente
+from src.modules.aseguradora.application.clientes.update_cliente import UpdateCliente
 from src.modules.aseguradora.presentation.clientes import cliente_dependencies
 
 router = APIRouter()
@@ -56,3 +58,21 @@ def obtener_cliente(
     uc: GetCliente = Depends(cliente_dependencies.get_cliente_service),
 ):
     return uc.execute(id)
+
+
+@router.put("/{id}", response_model=ClienteResponseDTO)
+def actualizar_cliente(
+    id: str,
+    dto: ClienteUpdateDTO,
+    request: Request,
+    user: AuthenticatedUser = Depends(get_operador),
+    uc: UpdateCliente = Depends(cliente_dependencies.update_cliente_service),
+    audit: AuditLogger = Depends(get_audit_logger),
+):
+    cliente = uc.execute(id, dto)
+    audit.record(
+        evento_modulo=EVENTO, accion="actualizar_cliente",
+        usuario=user, request=request,
+        metadata={"cliente_id": id},
+    )
+    return cliente
