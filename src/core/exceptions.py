@@ -205,7 +205,7 @@ def register_exception_handlers(app: FastAPI):
                 return {k: _sanitize(v) for k, v in obj.items()}
             if isinstance(obj, (list, tuple)):
                 return [_sanitize(i) for i in obj]
-            return obj
+            return str(obj)
 
         method = request.method
         path = request.url.path
