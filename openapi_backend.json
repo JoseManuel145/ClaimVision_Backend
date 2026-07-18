@@ -2336,6 +2336,61 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": [
+          "v1 · Aseguradora CRUD"
+        ],
+        "summary": "Actualizar Cliente",
+        "operationId": "actualizar_cliente_api_v1_aseguradora_crud_clientes__id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClienteUpdateDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClienteResponseDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/aseguradora/crud/talleres": {
@@ -6030,6 +6085,68 @@
         ],
         "title": "ClienteResponseDTO"
       },
+      "ClienteUpdateDTO": {
+        "properties": {
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "telefono": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Telefono"
+          },
+          "numero_poliza": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numero Poliza"
+          },
+          "vigencia_poliza": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigencia Poliza"
+          }
+        },
+        "type": "object",
+        "title": "ClienteUpdateDTO"
+      },
       "ConfirmDataRequestDTO": {
         "properties": {
           "numero_poliza": {
@@ -6699,6 +6816,10 @@
               }
             ],
             "title": "Aseguradora Id"
+          },
+          "primer_cambio_password": {
+            "type": "boolean",
+            "title": "Primer Cambio Password"
           }
         },
         "type": "object",
@@ -6707,7 +6828,8 @@
           "usuario_id",
           "email",
           "rol",
-          "aseguradora_id"
+          "aseguradora_id",
+          "primer_cambio_password"
         ],
         "title": "LoginResponseDTO"
       },
@@ -8623,18 +8745,27 @@
         "properties": {
           "nombre_comercial": {
             "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
             "title": "Nombre Comercial"
           },
           "rfc": {
             "type": "string",
+            "maxLength": 13,
+            "minLength": 12,
+            "pattern": "^[A-ZÑ&]{3,4}\\d{6}[A-Za-z\\d]{3}$",
             "title": "Rfc"
           },
           "direccion_tecnica": {
             "type": "string",
+            "maxLength": 500,
+            "minLength": 5,
             "title": "Direccion Tecnica"
           },
           "telefono_contacto": {
             "type": "string",
+            "maxLength": 15,
+            "minLength": 10,
             "title": "Telefono Contacto"
           }
         },
@@ -9398,24 +9529,33 @@
           },
           "marca": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Marca"
           },
           "modelo": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Modelo"
           },
           "anio": {
             "type": "integer",
+            "maximum": 2030.0,
+            "minimum": 1900.0,
             "title": "Anio"
           },
           "placas": {
             "type": "string",
+            "maxLength": 10,
+            "minLength": 5,
             "title": "Placas"
           },
           "vin": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 17
               },
               {
                 "type": "null"
@@ -9426,7 +9566,8 @@
           "color": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 50
               },
               {
                 "type": "null"
