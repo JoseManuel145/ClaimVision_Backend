@@ -15,7 +15,7 @@ def _to_domain(r: CotizacionTallerTable) -> CotizacionTallerModel:
         monto_refacciones=r.monto_refacciones,
         monto_total=r.monto_total,
         desglose_pdf_url=r.desglose_pdf_url,
-        estatus=r.estatus.value if hasattr(r.estatus, 'value') else (r.estatus or "Pendiente_Aprobacion"),
+        estatus=r.estatus or "Pendiente_Aprobacion",
         observaciones_tecnicas=r.observaciones_tecnicas,
         version=r.version,
         created_at=r.created_at,

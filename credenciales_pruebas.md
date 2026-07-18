@@ -48,6 +48,17 @@
 | Password | `OperPru123!` |
 | Rol | Operador_Taller |
 
+### Cliente
+
+| Campo | Valor |
+|-------|-------|
+| Email | `cliente.pruebas@ci.com` |
+| Password | `Cliente123!` |
+| Nombre | Cliente Pruebas CI |
+| Telefono | 5555555555 |
+| Rol | Cliente |
+| Poliza | PENDIENTE (completar vía onboarding) |
+
 ---
 
 ## Notas

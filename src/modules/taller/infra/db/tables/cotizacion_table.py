@@ -1,9 +1,8 @@
 import uuid
-from sqlalchemy import Column, String, Float, Integer, DateTime, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, String, Float, Integer, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from datetime import datetime, timezone
 from src.core.database import Base
-from src.shared.domain.models import EstatusCotizacion
 
 class CotizacionTallerTable(Base):
     __tablename__ = "cotizaciones_taller"
@@ -15,7 +14,7 @@ class CotizacionTallerTable(Base):
     monto_refacciones = Column(Float, nullable=False)
     monto_total = Column(Float, nullable=False)
     desglose_pdf_url = Column(String, nullable=False)
-    estatus = Column(SQLEnum(EstatusCotizacion, name="estatus_cotizacion"), nullable=False, default=EstatusCotizacion.PENDIENTE_APROBACION)
+    estatus = Column(String, nullable=False, default="Pendiente_Aprobacion")
     observaciones_tecnicas = Column(String, nullable=True)
     version = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
