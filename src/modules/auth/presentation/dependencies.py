@@ -30,6 +30,7 @@ from src.modules.auth.application.change_password import ChangePassword
 from src.modules.auth.application.request_password_change_code import RequestPasswordChangeCode
 from src.modules.auth.application.change_password_with_code import ChangePasswordWithCode
 from src.modules.auth.application.register_device_token import RegisterDeviceToken
+from src.modules.auth.application.delete_device_token import DeleteDeviceToken
 
 def verify_token_service():
     token_service = JwtTokenService()
@@ -98,3 +99,8 @@ def change_password_with_code_service(session=Depends(get_session)):
 def register_device_token_service(session=Depends(get_session)):
     token_repo = DeviceTokenRepository(session)
     return RegisterDeviceToken(token_repo)
+
+
+def delete_device_token_service(session=Depends(get_session)):
+    token_repo = DeviceTokenRepository(session)
+    return DeleteDeviceToken(token_repo)

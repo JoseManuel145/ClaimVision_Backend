@@ -28,6 +28,7 @@ from src.modules.auth.application.change_password import ChangePassword
 from src.modules.auth.application.request_password_change_code import RequestPasswordChangeCode
 from src.modules.auth.application.change_password_with_code import ChangePasswordWithCode
 from src.modules.auth.application.register_device_token import RegisterDeviceToken
+from src.modules.auth.application.delete_device_token import DeleteDeviceToken
 
 router = APIRouter()
 
@@ -169,3 +170,12 @@ def register_device_token(
 ):
     usecase.execute(user.usuario_id, data.token)
     return {"ok": True}
+
+
+@router.delete("/device-token", status_code=status.HTTP_204_NO_CONTENT)
+def delete_device_token(
+    data: DeviceTokenRequestDTO,
+    user: AuthenticatedUser = Depends(get_current_user),
+    usecase: DeleteDeviceToken = Depends(deps.delete_device_token_service),
+):
+    usecase.execute(user.usuario_id, data.token)
