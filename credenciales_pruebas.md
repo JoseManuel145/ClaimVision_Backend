@@ -16,7 +16,7 @@
 - **Plan:** Enterprise
 - **RFC:** PCI861205XXX
 - **Dominio:** pruebas-ci.com
-- **Estatus:** Suspendido
+- **Estatus:** Activo
 
 ### Gestor / Operador de la Aseguradora
 
@@ -48,7 +48,7 @@
 | Password | `OperPru123!` |
 | Rol | Operador_Taller |
 
-### Cliente
+### Cliente 1
 
 | Campo | Valor |
 |-------|-------|
@@ -59,10 +59,33 @@
 | Rol | Cliente |
 | Poliza | PENDIENTE (completar vía onboarding) |
 
+### Cliente 2 (con vehículo)
+
+| Campo | Valor |
+|-------|-------|
+| Email | `cliente.prueba.auto@pruebas-ci.com` |
+| Password | `Cliente123!` |
+| Nombre | Cliente Prueba Auto |
+| Telefono | 5551234567 |
+| Rol | Cliente |
+| Perfil ID | `8453fdc2-ebf8-4dcc-ab33-c1fc86efdba6` |
+| Usuario ID | `5b02ae35-f690-4be9-b3be-cd9df5b9bb1f` |
+| Poliza | PENDIENTE (completar vía onboarding) |
+
+#### Vehículo del Cliente 2
+
+| Campo | Valor |
+|-------|-------|
+| Vehiculo ID | `b840cec6-31d7-4cff-b26b-ded4bef78b8c` |
+| Marca | Nissan |
+| Modelo | Sentra |
+| Año | 2023 |
+| Placas | ABC-1234 |
+| VIN | 3N1AB8CV9NY300001 |
+| Color | Blanco |
+
 ---
 
 ## Notas
 
-- La aseguradora está en estado **Suspendido**. Para activarla, usar el endpoint:
-  `POST /api/v1/admin/aseguradoras/{id}/verificar`
 - Las contraseñas son temporales y deben cambiarse en el primer inicio de sesión.

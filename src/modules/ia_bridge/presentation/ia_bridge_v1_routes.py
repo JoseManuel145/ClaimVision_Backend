@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile, Form
+from fastapi import APIRouter, Depends, File, UploadFile, Form, Query
 from src.core.security import require_roles
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.modules.ia_bridge.application.predict_damage import PredictDamage
@@ -8,11 +8,22 @@ from src.modules.ia_bridge.application.extract_ine_data import ExtractIneData
 from src.modules.ia_bridge.application.extract_and_validate_data import ExtractAndValidateData
 from src.modules.ia_bridge.application.transcribe_audio import TranscribeAudio
 from src.modules.ia_bridge.application.analyze_text import AnalyzeText
+from src.modules.ia_bridge.application.get_ocr_history import GetOcrHistory
+from src.modules.ia_bridge.application.get_nlp_history import GetNlpHistory
+from src.modules.ia_bridge.application.get_nlp_detail import GetNlpDetail
+from src.modules.ia_bridge.application.get_prediction_history import GetPredictionHistory
+from src.modules.ia_bridge.application.get_health import GetSupervisedHealth, GetUnsupervisedHealth
 from src.modules.ia_bridge.presentation.ia_bridge_v1_schemas import (
     PredictResponse,
     OcrResponse,
     TranscribirResponse,
     AnalizarResponse,
+    OcrHistoryResponse,
+    NlpHistoryResponse,
+    NlpDetailResponse,
+    PredictionHistoryResponse,
+    SupervisedHealthResponse,
+    UnsupervisedHealthResponse,
 )
 from src.modules.ia_bridge.presentation.dependencies import (
     predict_service,
@@ -22,6 +33,12 @@ from src.modules.ia_bridge.presentation.dependencies import (
     extract_and_validate_service,
     transcribir_service,
     analizar_service,
+    get_ocr_history_service,
+    get_nlp_history_service,
+    get_nlp_detail_service,
+    get_prediction_history_service,
+    get_supervised_health_service,
+    get_unsupervised_health_service,
 )
 
 router = APIRouter()
@@ -114,3 +131,56 @@ async def analyze_text(
     uc: AnalyzeText = Depends(analizar_service),
 ):
     return await uc.execute(texto)
+
+
+@router.get("/ocr/history", response_model=OcrHistoryResponse)
+async def ocr_history(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
+    uc: GetOcrHistory = Depends(get_ocr_history_service),
+):
+    return await uc.execute(page, limit)
+
+
+@router.get("/nlp/history", response_model=NlpHistoryResponse)
+async def nlp_history(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
+    uc: GetNlpHistory = Depends(get_nlp_history_service),
+):
+    return await uc.execute(page, limit)
+
+
+@router.get("/nlp/{job_id}", response_model=NlpDetailResponse)
+async def nlp_detail(
+    job_id: str,
+    user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
+    uc: GetNlpDetail = Depends(get_nlp_detail_service),
+):
+    return await uc.execute(job_id)
+
+
+@router.get("/predict/history", response_model=PredictionHistoryResponse)
+async def prediction_history(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
+    uc: GetPredictionHistory = Depends(get_prediction_history_service),
+):
+    return await uc.execute(page, limit)
+
+
+@router.get("/predict/health", response_model=SupervisedHealthResponse)
+async def supervised_health(
+    uc: GetSupervisedHealth = Depends(get_supervised_health_service),
+):
+    return await uc.execute()
+
+
+@router.get("/unsupervised/health", response_model=UnsupervisedHealthResponse)
+async def unsupervised_health(
+    uc: GetUnsupervisedHealth = Depends(get_unsupervised_health_service),
+):
+    return await uc.execute()
