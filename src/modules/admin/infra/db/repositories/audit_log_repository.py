@@ -9,13 +9,13 @@ from src.modules.admin.infra.db.tables.audit_log_table import AuditLogTable
 from src.modules.auth.infra.db.tables.user_table import UserTable
 from src.core.security import decrypt_xsalsa20
 
-def _to_domain(obj: AuditLogTable, user: UserTable = None) -> AuditLog:
+def _to_domain(obj: AuditLogTable, user: UserTable = None, decrypt_name: bool = True) -> AuditLog:
     usuario_rol = None
     usuario_nombre = None
     usuario_email = None
     if user:
         usuario_rol = user.rol.value if hasattr(user.rol, 'value') else user.rol
-        if user.nombre_completo_cifrado:
+        if decrypt_name and user.nombre_completo_cifrado:
             try:
                 usuario_nombre = decrypt_xsalsa20(user.nombre_completo_cifrado)
             except Exception:
@@ -112,7 +112,7 @@ class AuditLogRepository(AuditLogRepositoryPort):
         stmt = stmt_base.order_by(AuditLogTable.created_at.desc()).offset(offset).limit(limit)
 
         results = self.db.execute(stmt).all()
-        return [_to_domain(r[0], r[1]) for r in results], total
+        return [_to_domain(r[0], r[1], decrypt_name=False) for r in results], total
 
     def get_detail(self, log_id: str) -> AuditLog | None:
         import uuid as _uuid

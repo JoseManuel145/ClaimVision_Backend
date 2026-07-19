@@ -6258,6 +6258,17 @@
             ],
             "title": "Usuario Rol"
           },
+          "usuario_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario Email"
+          },
           "aseguradora_id": {
             "anyOf": [
               {
@@ -6343,17 +6354,6 @@
               }
             ],
             "title": "Usuario Nombre"
-          },
-          "usuario_email": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Usuario Email"
           }
         },
         "type": "object",
@@ -6404,6 +6404,17 @@
               }
             ],
             "title": "Usuario Rol"
+          },
+          "usuario_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario Email"
           },
           "aseguradora_id": {
             "anyOf": [

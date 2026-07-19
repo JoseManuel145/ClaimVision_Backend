@@ -53,6 +53,7 @@ class AuditResponse(BaseModel):
     id: str | None
     usuario_id: str | None
     usuario_rol: str | None = None
+    usuario_email: str | None = None
     aseguradora_id: str | None
     evento_modulo: str | None
     accion_realizada: AccionAudit | str | None
@@ -63,7 +64,6 @@ class AuditResponse(BaseModel):
 
 class AuditDetailResponse(AuditResponse):
     usuario_nombre: str | None = None
-    usuario_email: str | None = None
 
 class AuditoriaResumenResponse(BaseModel):
     total_eventos: int
