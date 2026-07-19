@@ -3792,6 +3792,86 @@
               "default": 20,
               "title": "Page Size"
             }
+          },
+          {
+            "name": "fecha_inicio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Inicio"
+            }
+          },
+          {
+            "name": "fecha_fin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Fin"
+            }
+          },
+          {
+            "name": "accion_realizada",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Accion Realizada"
+            }
+          },
+          {
+            "name": "evento_modulo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Evento Modulo"
+            }
+          },
+          {
+            "name": "usuario_rol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Usuario Rol"
+            }
           }
         ],
         "responses": {
@@ -3801,6 +3881,222 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Page_AuditResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/auditoria/logs/export": {
+      "get": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Exportar Auditoria Csv",
+        "description": "§6 · Exportar logs de auditoría en formato CSV.",
+        "operationId": "exportar_auditoria_csv_api_v1_admin_auditoria_logs_export_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fecha_inicio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Inicio"
+            }
+          },
+          {
+            "name": "fecha_fin",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fecha Fin"
+            }
+          },
+          {
+            "name": "accion_realizada",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Accion Realizada"
+            }
+          },
+          {
+            "name": "evento_modulo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Evento Modulo"
+            }
+          },
+          {
+            "name": "usuario_rol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Usuario Rol"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/auditoria/logs/{log_id}": {
+      "get": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Consultar Auditoria Detalle",
+        "description": "§6 · Obtener el detalle de un log de auditoría.",
+        "operationId": "consultar_auditoria_detalle_api_v1_admin_auditoria_logs__log_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "log_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Log Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/auditoria/resumen": {
+      "get": {
+        "tags": [
+          "v1 · Admin"
+        ],
+        "summary": "Consultar Auditoria Resumen",
+        "description": "§6 · Obtener un resumen/KPIs de la auditoría.",
+        "operationId": "consultar_auditoria_resumen_api_v1_admin_auditoria_resumen_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "dias",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 30,
+              "title": "Dias"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditoriaResumenResponse"
                 }
               }
             }
@@ -5135,6 +5431,278 @@
         ]
       }
     },
+    "/api/v1/ia/ocr/history": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Ocr History",
+        "operationId": "ocr_history_api_v1_ia_ocr_history_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OcrHistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ia/nlp/history": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Nlp History",
+        "operationId": "nlp_history_api_v1_ia_nlp_history_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NlpHistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ia/nlp/{job_id}": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Nlp Detail",
+        "operationId": "nlp_detail_api_v1_ia_nlp__job_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NlpDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ia/predict/history": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Prediction History",
+        "operationId": "prediction_history_api_v1_ia_predict_history_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictionHistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ia/predict/health": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Supervised Health",
+        "operationId": "supervised_health_api_v1_ia_predict_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisedHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ia/unsupervised/health": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Unsupervised Health",
+        "operationId": "unsupervised_health_api_v1_ia_unsupervised_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnsupervisedHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "tags": [
@@ -5157,6 +5725,57 @@
   },
   "components": {
     "schemas": {
+      "AccionAudit": {
+        "type": "string",
+        "enum": [
+          "actualizar_ajustador",
+          "actualizar_cliente",
+          "actualizar_consentimientos",
+          "actualizar_cotizacion",
+          "actualizar_disponibilidad",
+          "actualizar_suscripcion",
+          "actualizar_taller",
+          "actualizar_usuario",
+          "actualizar_vehiculo",
+          "agregar_dano",
+          "aprobar_cotizacion",
+          "asignar_ajustador",
+          "autorizar_entrega",
+          "bloqueo_arco",
+          "concluir_trabajo",
+          "confirmar_datos",
+          "crear_ajustador",
+          "crear_cliente",
+          "crear_cotizacion",
+          "crear_desde_poliza",
+          "crear_operador",
+          "crear_operador_taller",
+          "crear_taller",
+          "crear_usuario",
+          "crear_vehiculo",
+          "crear_vehiculo_desde_poliza",
+          "desbloqueo_arco",
+          "desincorporar_aseguradora",
+          "editar_peritaje",
+          "editar_siniestro",
+          "eliminar_ajustador",
+          "eliminar_taller",
+          "eliminar_usuario",
+          "eliminar_vehiculo",
+          "enviar_taller",
+          "listo_entrega",
+          "purga_aseguradora",
+          "reactivar_aseguradora",
+          "rechazar_cotizacion",
+          "registrar_ajustador",
+          "registrar_peritaje",
+          "registrar_aseguradora",
+          "reportar_siniestro",
+          "subir_imagen",
+          "verificar_aseguradora"
+        ],
+        "title": "AccionAudit"
+      },
       "AjustadorCreateDTO": {
         "properties": {
           "nombre": {
@@ -5604,7 +6223,7 @@
         ],
         "title": "AsignarAjustadorDTO"
       },
-      "AuditResponse": {
+      "AuditDetailResponse": {
         "properties": {
           "id": {
             "anyOf": [
@@ -5627,6 +6246,17 @@
               }
             ],
             "title": "Usuario Id"
+          },
+          "usuario_rol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario Rol"
           },
           "aseguradora_id": {
             "anyOf": [
@@ -5652,6 +6282,156 @@
           },
           "accion_realizada": {
             "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccionAudit"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accion Realizada"
+          },
+          "direccion_ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direccion Ip"
+          },
+          "user_agent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Agent"
+          },
+          "metadata_context": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata Context"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "usuario_nombre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario Nombre"
+          },
+          "usuario_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "usuario_id",
+          "aseguradora_id",
+          "evento_modulo",
+          "accion_realizada",
+          "direccion_ip",
+          "user_agent",
+          "metadata_context",
+          "created_at"
+        ],
+        "title": "AuditDetailResponse"
+      },
+      "AuditResponse": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "usuario_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario Id"
+          },
+          "usuario_rol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario Rol"
+          },
+          "aseguradora_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aseguradora Id"
+          },
+          "evento_modulo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evento Modulo"
+          },
+          "accion_realizada": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccionAudit"
+              },
               {
                 "type": "string"
               },
@@ -5714,6 +6494,45 @@
           "created_at"
         ],
         "title": "AuditResponse"
+      },
+      "AuditoriaResumenResponse": {
+        "properties": {
+          "total_eventos": {
+            "type": "integer",
+            "title": "Total Eventos"
+          },
+          "accesos_login": {
+            "type": "integer",
+            "title": "Accesos Login"
+          },
+          "cambios_configuracion": {
+            "type": "integer",
+            "title": "Cambios Configuracion"
+          },
+          "cambios_CRUD": {
+            "type": "integer",
+            "title": "Cambios Crud"
+          },
+          "dias": {
+            "type": "integer",
+            "title": "Dias"
+          },
+          "fecha_desde": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fecha Desde"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_eventos",
+          "accesos_login",
+          "cambios_configuracion",
+          "cambios_CRUD",
+          "dias",
+          "fecha_desde"
+        ],
+        "title": "AuditoriaResumenResponse"
       },
       "Body_analyze_text_api_v1_ia_nlp_analizar_post": {
         "properties": {
@@ -6833,6 +7652,180 @@
         ],
         "title": "LoginResponseDTO"
       },
+      "NlpDetailResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "texto": {
+            "type": "string",
+            "title": "Texto"
+          },
+          "duracion_seg": {
+            "type": "number",
+            "title": "Duracion Seg"
+          },
+          "entidades": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Entidades"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "filename",
+          "texto",
+          "duracion_seg",
+          "entidades",
+          "created_at"
+        ],
+        "title": "NlpDetailResponse"
+      },
+      "NlpHistoryItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "texto": {
+            "type": "string",
+            "title": "Texto"
+          },
+          "duracion_seg": {
+            "type": "number",
+            "title": "Duracion Seg"
+          },
+          "entidades": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Entidades"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "filename",
+          "texto",
+          "duracion_seg",
+          "entidades",
+          "created_at"
+        ],
+        "title": "NlpHistoryItem"
+      },
+      "NlpHistoryResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/NlpHistoryItem"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ],
+        "title": "NlpHistoryResponse"
+      },
+      "OcrHistoryItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "page_count": {
+            "type": "integer",
+            "title": "Page Count"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "filename",
+          "page_count",
+          "created_at"
+        ],
+        "title": "OcrHistoryItem"
+      },
+      "OcrHistoryResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OcrHistoryItem"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ],
+        "title": "OcrHistoryResponse"
+      },
       "OcrResponse": {
         "properties": {
           "id": {
@@ -7627,6 +8620,88 @@
           "created_at"
         ],
         "title": "PredictResponse"
+      },
+      "PredictionHistoryItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "class_id": {
+            "type": "integer",
+            "title": "Class Id"
+          },
+          "tipo_dano": {
+            "type": "string",
+            "title": "Tipo Dano"
+          },
+          "severidad": {
+            "type": "string",
+            "title": "Severidad"
+          },
+          "confianza": {
+            "type": "number",
+            "title": "Confianza"
+          },
+          "prob_dist": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Prob Dist"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "filename",
+          "class_id",
+          "tipo_dano",
+          "severidad",
+          "confianza",
+          "prob_dist",
+          "created_at"
+        ],
+        "title": "PredictionHistoryItem"
+      },
+      "PredictionHistoryResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PredictionHistoryItem"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ],
+        "title": "PredictionHistoryResponse"
       },
       "PurgeAseguradoraResponse": {
         "properties": {
@@ -8676,6 +9751,42 @@
         ],
         "title": "SiniestrosPorMesDTO"
       },
+      "SupervisedHealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "model_loaded": {
+            "type": "boolean",
+            "title": "Model Loaded"
+          },
+          "device": {
+            "type": "string",
+            "title": "Device"
+          },
+          "num_classes": {
+            "type": "integer",
+            "title": "Num Classes"
+          },
+          "class_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Class Names"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "model_loaded",
+          "device",
+          "num_classes",
+          "class_names"
+        ],
+        "title": "SupervisedHealthResponse"
+      },
       "TallerAdminResponseDTO": {
         "properties": {
           "id": {
@@ -9247,6 +10358,35 @@
           "progress"
         ],
         "title": "TranscribirResponse"
+      },
+      "UnsupervisedHealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "model_loaded": {
+            "type": "boolean",
+            "title": "Model Loaded"
+          },
+          "k_value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "K Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "model_loaded"
+        ],
+        "title": "UnsupervisedHealthResponse"
       },
       "UpdateAseguradoraDTO": {
         "properties": {

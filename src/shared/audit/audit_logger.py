@@ -69,6 +69,9 @@ class AuditLogger:
             log = AuditLog(
                 id=str(uuid.uuid4()),
                 usuario_id=usuario_id or (usuario.usuario_id if usuario else None),
+                usuario_rol=None,
+                usuario_nombre=None,
+                usuario_email=None,
                 aseguradora_id=aseguradora_id
                 or (usuario.aseguradora_id if usuario else None),
                 evento_modulo=evento_modulo,
