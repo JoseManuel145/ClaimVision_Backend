@@ -31,6 +31,8 @@ from src.modules.taller.application.get_perfil_taller import GetPerfilTaller
 from src.modules.taller.application.actualizar_perfil_taller import ActualizarPerfilTaller
 from src.modules.taller.infra.pdf.supabase_storage_repository import SupabasePdfStorage
 from src.modules.taller.presentation import taller_v1_dependencies as deps
+from src.shared.infra.storage.url_resolver import resolve_storage_url
+from src.core.supabase import get_supabase_client
 
 router = APIRouter()
 
@@ -110,14 +112,23 @@ def detalle_orden(
     id: str,
     user: AuthenticatedUser = Depends(get_taller),
     uc: GetExpedienteTallerUseCase = Depends(deps.get_orden_service),
+    client=Depends(get_supabase_client),
 ):
     """§6 · Expediente técnico (siniestro + peritaje validado + cotización)."""
     exp = uc.execute(siniestro_id=id, usuario_id=user.usuario_id)
     base = SiniestroResponseDTO.model_validate(exp.siniestro)
+
+    cotizacion_dto = None
+    if exp.cotizacion:
+        cotizacion_dto = CotizacionV1DTO.model_validate(exp.cotizacion)
+        cotizacion_dto = cotizacion_dto.model_copy(
+            update={"desglose_pdf_url": resolve_storage_url(client, exp.cotizacion.desglose_pdf_url)}
+        )
+
     return TallerExpedienteDTO(
         **base.model_dump(),
         peritaje=PeritajeResponseDTO.model_validate(exp.peritaje_ajustador) if exp.peritaje_ajustador else None,
-        cotizacion=CotizacionV1DTO.model_validate(exp.cotizacion) if exp.cotizacion else None,
+        cotizacion=cotizacion_dto,
     )
 
 
@@ -134,6 +145,7 @@ async def crear_cotizacion(
     uc: CrearCotizacion = Depends(deps.crear_cotizacion_service),
     storage: SupabasePdfStorage = Depends(deps.subir_pdf_service),
     audit: AuditLogger = Depends(get_audit_logger),
+    client=Depends(get_supabase_client),
 ):
     """§6 · Crea cotización → estatus_cotizacion = Pendiente_Aprobacion. Recibe PDF del desglose."""
     logger.info(
@@ -155,7 +167,9 @@ async def crear_cotizacion(
     )
     audit.record(evento_modulo=EVENTO, accion="crear_cotizacion", usuario=user, request=request,
                  metadata={"siniestro_id": id, "cotizacion_id": cot.id})
-    return cot
+    dto = CotizacionV1DTO.model_validate(cot)
+    dto = dto.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})
+    return dto
 
 
 @router.patch("/cotizaciones/{id}", response_model=CotizacionV1DTO)
@@ -166,6 +180,7 @@ def editar_cotizacion(
     user: AuthenticatedUser = Depends(get_taller),
     uc: EditarCotizacion = Depends(deps.editar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
+    client=Depends(get_supabase_client),
 ):
     """§6 · Edita cotización mientras siga Pendiente_Aprobacion."""
     cot = uc.execute(
@@ -176,7 +191,9 @@ def editar_cotizacion(
     )
     audit.record(evento_modulo=EVENTO, accion="editar_cotizacion", usuario=user, request=request,
                  metadata={"cotizacion_id": id})
-    return cot
+    resp = CotizacionV1DTO.model_validate(cot)
+    resp = resp.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})
+    return resp
 
 
 @router.post("/siniestros/{id}/concluir-trabajo", status_code=status.HTTP_200_OK)

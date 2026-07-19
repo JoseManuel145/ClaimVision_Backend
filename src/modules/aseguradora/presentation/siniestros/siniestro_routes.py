@@ -35,6 +35,8 @@ from src.modules.siniestro.presentation.siniestros.siniestro_dependencies import
     editar_siniestro_service,
     enviar_taller_service,
 )
+from src.shared.infra.storage.url_resolver import resolve_storage_url
+from src.core.supabase import get_supabase_client
 
 router = APIRouter()
 
@@ -67,6 +69,7 @@ def detalle_siniestro(
     user: AuthenticatedUser = Depends(get_operador),
     uc: GetSiniestroAseguradora = Depends(deps.get_siniestro_service),
     db: Session = Depends(get_session),
+    client=Depends(get_supabase_client),
 ):
     siniestro, imagenes, peritaje, cotizacion = uc.execute(str(id), user.aseguradora_id)
 
@@ -89,11 +92,25 @@ def detalle_siniestro(
     )
 
     base = SiniestroResponseDTO.model_validate(siniestro)
+
+    imagenes_dtos = [
+        ImagenSiniestroResponseDTO.model_validate(i)
+        .model_copy(update={"imagen_url": resolve_storage_url(client, i.imagen_url)})
+        for i in imagenes
+    ]
+
+    cotizacion_dto = None
+    if cotizacion:
+        cotizacion_dto = CotizacionV1DTO.model_validate(cotizacion)
+        cotizacion_dto = cotizacion_dto.model_copy(
+            update={"desglose_pdf_url": resolve_storage_url(client, cotizacion.desglose_pdf_url)}
+        )
+
     return SiniestroDetalleAseguradoraDTO(
         **base.model_dump(),
-        imagenes=[ImagenSiniestroResponseDTO.model_validate(i) for i in imagenes],
+        imagenes=imagenes_dtos,
         peritaje=PeritajeResponseDTO.model_validate(peritaje) if peritaje else None,
-        cotizacion=CotizacionV1DTO.model_validate(cotizacion) if cotizacion else None,
+        cotizacion=cotizacion_dto,
         peritaje_ia=None,
         cliente_nombre=cliente_nombre,
         ajustador_nombre=ajustador_nombre,
@@ -167,11 +184,14 @@ def aprobar_cotizacion(
     user: AuthenticatedUser = Depends(get_operador),
     uc: AprobarCotizacion = Depends(deps.aprobar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
+    client=Depends(get_supabase_client),
 ):
     cot = uc.execute(str(id), user.aseguradora_id)
     audit.record(evento_modulo=EVENTO, accion="aprobar_cotizacion", usuario=user, request=request,
                  metadata={"cotizacion_id": str(id)})
-    return cot
+    dto = CotizacionV1DTO.model_validate(cot)
+    dto = dto.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})
+    return dto
 
 
 @router.post("/cotizaciones/{id}/rechazar", response_model=CotizacionV1DTO)
@@ -182,8 +202,11 @@ def rechazar_cotizacion(
     user: AuthenticatedUser = Depends(get_operador),
     uc: RechazarCotizacion = Depends(deps.rechazar_cotizacion_service),
     audit: AuditLogger = Depends(get_audit_logger),
+    client=Depends(get_supabase_client),
 ):
     cot = uc.execute(str(id), user.aseguradora_id, dto.motivo)
     audit.record(evento_modulo=EVENTO, accion="rechazar_cotizacion", usuario=user, request=request,
                  metadata={"cotizacion_id": str(id), "motivo": dto.motivo})
-    return cot
+    dto_resp = CotizacionV1DTO.model_validate(cot)
+    dto_resp = dto_resp.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})
+    return dto_resp

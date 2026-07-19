@@ -50,6 +50,8 @@ from src.modules.cliente.presentation.dependencies import (
     process_ocr_service,
     confirm_data_service,
 )
+from src.shared.infra.storage.url_resolver import resolve_storage_url
+from src.core.supabase import get_supabase_client
 
 router = APIRouter()
 
@@ -142,13 +144,18 @@ def detalle_siniestro(
     id: str,
     user: AuthenticatedUser = Depends(get_cliente),
     uc: GetSiniestroCliente = Depends(get_siniestro_cliente_service),
+    client=Depends(get_supabase_client),
 ):
     """§4 · Seguimiento (detalle + imágenes + timeline de estatus)."""
     siniestro, imagenes = uc.execute(user.usuario_id, id)
     base = SiniestroResponseDTO.model_validate(siniestro)
     return SiniestroDetalleClienteDTO(
         **base.model_dump(),
-        imagenes=[ImagenSiniestroResponseDTO.model_validate(i) for i in imagenes],
+        imagenes=[
+            ImagenSiniestroResponseDTO.model_validate(i)
+            .model_copy(update={"imagen_url": resolve_storage_url(client, i.imagen_url)})
+            for i in imagenes
+        ],
         timeline=construir_timeline(siniestro.estatus),
     )
 
@@ -166,6 +173,7 @@ async def registrar_imagen(
     uc: SubirImagenSiniestro = Depends(subir_imagen_siniestro_service),
     get_detalle: GetSiniestroCliente = Depends(get_siniestro_cliente_service),
     audit: AuditLogger = Depends(get_audit_logger),
+    client=Depends(get_supabase_client),
 ):
     """§4 · Sube una imagen directamente a Supabase Storage."""
     try:
@@ -179,7 +187,9 @@ async def registrar_imagen(
         evento_modulo=EVENTO, accion="subir_imagen", usuario=user,
         request=request, metadata={"siniestro_id": id, "imagen_id": imagen.id},
     )
-    return imagen
+    dto = ImagenSiniestroResponseDTO.model_validate(imagen)
+    dto = dto.model_copy(update={"imagen_url": resolve_storage_url(client, imagen.imagen_url)})
+    return dto
 
 
 def _perfil_completo(auth_repo, user: AuthenticatedUser, perfil_cliente) -> PerfilClienteResponse:

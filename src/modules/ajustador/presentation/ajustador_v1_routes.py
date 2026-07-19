@@ -38,6 +38,8 @@ from src.modules.ajustador.application.actualizar_geolocalizacion import Actuali
 from src.modules.ajustador.application.get_perfil_ajustador import GetPerfilAjustador
 from src.modules.ajustador.application.actualizar_perfil_ajustador import ActualizarPerfilAjustador
 from src.modules.ajustador.presentation import ajustador_dependencies as deps
+from src.shared.infra.storage.url_resolver import resolve_storage_url
+from src.core.supabase import get_supabase_client
 
 router = APIRouter()
 
@@ -95,13 +97,18 @@ def detalle_siniestro(
     id: str,
     user: AuthenticatedUser = Depends(get_ajustador),
     uc: GetMiSiniestro = Depends(deps.get_siniestro_service),
+    client=Depends(get_supabase_client),
 ):
     """§5 · Detalle + imágenes + peritaje del ajustador (peritaje_ia lo poblará §7)."""
     siniestro, imagenes, peritaje = uc.execute(user.usuario_id, id)
     base = SiniestroResponseDTO.model_validate(siniestro)
     return SiniestroDetalleAjustadorDTO(
         **base.model_dump(),
-        imagenes=[ImagenSiniestroResponseDTO.model_validate(i) for i in imagenes],
+        imagenes=[
+            ImagenSiniestroResponseDTO.model_validate(i)
+            .model_copy(update={"imagen_url": resolve_storage_url(client, i.imagen_url)})
+            for i in imagenes
+        ],
         peritaje=PeritajeResponseDTO.model_validate(peritaje) if peritaje else None,
         peritaje_ia=None,
     )
