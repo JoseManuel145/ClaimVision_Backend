@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from src.core.database import get_session
 from src.core.logging import get_logger
+from src.core.supabase import get_supabase_client
 from src.modules.siniestro.infra.db.repositories.siniestro_repository import SiniestroRepository
 from src.modules.siniestro.infra.db.repositories.peritaje_repository import PeritajeAjustadorRepository
 from src.modules.taller.infra.db.repositories.cotizacion_repository import CotizacionRepository
@@ -83,5 +84,5 @@ def listo_entrega_service(session: Session = Depends(get_session)) -> MarcarList
     )
 
 
-def subir_pdf_service() -> SupabasePdfStorage:
-    return SupabasePdfStorage()
+def subir_pdf_service(client=Depends(get_supabase_client)) -> SupabasePdfStorage:
+    return SupabasePdfStorage(client)
