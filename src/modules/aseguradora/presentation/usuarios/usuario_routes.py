@@ -7,6 +7,7 @@ from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
 from src.modules.aseguradora.application.usuarios.bloqueo_arco import BloqueoArcoAseguradora
 from src.modules.aseguradora.application.usuarios.desbloqueo_arco import DesbloqueoArcoAseguradora
 from src.modules.aseguradora.presentation.usuarios import usuario_dependencies
+from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
 
@@ -24,7 +25,7 @@ def aplicar_bloqueo_arco(
 ):
     uc.execute(user.aseguradora_id, id)
     audit.record(
-        evento_modulo=EVENTO, accion="bloqueo_arco",
+        evento_modulo=EVENTO, accion=AccionAudit.BLOQUEO_ARCO,
         usuario=user, request=request,
         metadata={"usuario_id": id},
     )
@@ -41,7 +42,7 @@ def aplicar_desbloqueo_arco(
 ):
     uc.execute(user.aseguradora_id, id)
     audit.record(
-        evento_modulo=EVENTO, accion="desbloqueo_arco",
+        evento_modulo=EVENTO, accion=AccionAudit.DESBLOQUEO_ARCO,
         usuario=user, request=request,
         metadata={"usuario_id": id},
     )

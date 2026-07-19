@@ -52,6 +52,7 @@ from src.modules.cliente.presentation.dependencies import (
 )
 from src.shared.infra.storage.url_resolver import resolve_storage_url
 from src.core.supabase import get_supabase_client
+from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
 
@@ -99,7 +100,7 @@ async def confirmar_datos(
             data=data,
         )
         audit.record(
-            evento_modulo="cliente.onboarding", accion="confirmar_datos",
+            evento_modulo="cliente.onboarding", accion=AccionAudit.CONFIRMAR_DATOS,
             usuario=user, request=request,
             metadata={"vehiculo_id": result.get("vehiculo_id")},
         )
@@ -119,7 +120,7 @@ def reportar_siniestro(
     """§4 · Reporte preliminar → estatus = Reportado_Preliminar."""
     siniestro = uc.execute(cliente_id=user.usuario_id, aseguradora_id=user.aseguradora_id, dto=dto)
     audit.record(
-        evento_modulo=EVENTO, accion="reportar_siniestro", usuario=user,
+        evento_modulo=EVENTO, accion=AccionAudit.REPORTAR_SINIESTRO, usuario=user,
         request=request, metadata={"siniestro_id": siniestro.id},
     )
     return siniestro
@@ -184,7 +185,7 @@ async def registrar_imagen(
     file_bytes = await file.read()
     imagen = uc.execute(id, file_bytes, file.filename or "unknown", file.content_type or "application/octet-stream")
     audit.record(
-        evento_modulo=EVENTO, accion="subir_imagen", usuario=user,
+        evento_modulo=EVENTO, accion=AccionAudit.SUBIR_IMAGEN, usuario=user,
         request=request, metadata={"siniestro_id": id, "imagen_id": imagen.id},
     )
     dto = ImagenSiniestroResponseDTO.model_validate(imagen)
@@ -248,7 +249,7 @@ def actualizar_consentimientos(
         ),
     )
     audit.record(
-        evento_modulo="cliente.consentimientos", accion="actualizar_consentimientos",
+        evento_modulo="cliente.consentimientos", accion=AccionAudit.ACTUALIZAR_CONSENTIMIENTOS,
         usuario=user, request=request,
     )
     return {"message": "Consentimientos registrados exitosamente."}
@@ -284,7 +285,7 @@ async def crear_vehiculo_desde_poliza(
     )
     audit.record(
         evento_modulo="cliente.vehiculos",
-        accion="crear_desde_poliza",
+        accion=AccionAudit.CREAR_DESDE_POLIZA,
         usuario=user,
         request=request,
         metadata={"vehiculo_id": vehiculo.id},

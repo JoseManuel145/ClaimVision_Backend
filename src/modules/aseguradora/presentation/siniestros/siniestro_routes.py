@@ -37,6 +37,7 @@ from src.modules.siniestro.presentation.siniestros.siniestro_dependencies import
 )
 from src.shared.infra.storage.url_resolver import resolve_storage_url
 from src.core.supabase import get_supabase_client
+from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
 
@@ -128,7 +129,7 @@ def editar_siniestro(
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     siniestro = uc.execute(siniestro_id=str(id), usuario_id=user.usuario_id, rol=user.rol, dto=dto)
-    audit.record(evento_modulo=EVENTO, accion="editar_siniestro", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.EDITAR_SINIESTRO, usuario=user, request=request,
                  metadata={"siniestro_id": str(id)})
     return siniestro
 
@@ -143,7 +144,7 @@ def asignar_ajustador(
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     siniestro = uc.execute(str(id), dto.ajustador_id, user.aseguradora_id)
-    audit.record(evento_modulo=EVENTO, accion="asignar_ajustador", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.ASIGNAR_AJUSTADOR, usuario=user, request=request,
                  metadata={"siniestro_id": str(id), "ajustador_id": dto.ajustador_id})
     return siniestro
 
@@ -158,7 +159,7 @@ def enviar_taller(
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     siniestro = uc.execute(str(id), dto.taller_id, user.aseguradora_id)
-    audit.record(evento_modulo=EVENTO, accion="enviar_taller", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.ENVIAR_TALLER, usuario=user, request=request,
                  metadata={"siniestro_id": str(id), "taller_id": dto.taller_id})
     return siniestro
 
@@ -172,7 +173,7 @@ def autorizar_entrega(
     audit: AuditLogger = Depends(get_audit_logger),
 ):
     siniestro = uc.execute(str(id), user.aseguradora_id)
-    audit.record(evento_modulo=EVENTO, accion="autorizar_entrega", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.AUTORIZAR_ENTREGA, usuario=user, request=request,
                  metadata={"siniestro_id": str(id)})
     return siniestro
 
@@ -187,7 +188,7 @@ def aprobar_cotizacion(
     client=Depends(get_supabase_client),
 ):
     cot = uc.execute(str(id), user.aseguradora_id)
-    audit.record(evento_modulo=EVENTO, accion="aprobar_cotizacion", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.APROBAR_COTIZACION, usuario=user, request=request,
                  metadata={"cotizacion_id": str(id)})
     dto = CotizacionV1DTO.model_validate(cot)
     dto = dto.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})
@@ -205,7 +206,7 @@ def rechazar_cotizacion(
     client=Depends(get_supabase_client),
 ):
     cot = uc.execute(str(id), user.aseguradora_id, dto.motivo)
-    audit.record(evento_modulo=EVENTO, accion="rechazar_cotizacion", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.RECHAZAR_COTIZACION, usuario=user, request=request,
                  metadata={"cotizacion_id": str(id), "motivo": dto.motivo})
     dto_resp = CotizacionV1DTO.model_validate(cot)
     dto_resp = dto_resp.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})

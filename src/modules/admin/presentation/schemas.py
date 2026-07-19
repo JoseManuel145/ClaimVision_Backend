@@ -45,18 +45,33 @@ class UpdateAseguradoraDTO(BaseModel):
     dominio_correo: Optional[str] = None
     contacto_legal_email: Optional[str] = None
 
+from src.shared.domain.models import AccionAudit
+
 class AuditResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str | None
     usuario_id: str | None
+    usuario_rol: str | None = None
     aseguradora_id: str | None
     evento_modulo: str | None
-    accion_realizada: str | None
+    accion_realizada: AccionAudit | str | None
     direccion_ip: str | None
     user_agent: str | None
     metadata_context: Dict[str, Any] | None
     created_at: datetime
+
+class AuditDetailResponse(AuditResponse):
+    usuario_nombre: str | None = None
+    usuario_email: str | None = None
+
+class AuditoriaResumenResponse(BaseModel):
+    total_eventos: int
+    accesos_login: int
+    cambios_configuracion: int
+    cambios_CRUD: int
+    dias: int
+    fecha_desde: datetime
 
 # ── Usuarios ─────────────────────────────────────────────────────────────
 

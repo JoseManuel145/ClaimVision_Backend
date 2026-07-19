@@ -22,6 +22,9 @@ class AseguradoraTenant:
 class AuditLog:
     id: str | None
     usuario_id: str | None
+    usuario_rol: str | None = None
+    usuario_nombre: str | None = None
+    usuario_email: str | None = None
     aseguradora_id: str | None
     evento_modulo: str | None
     accion_realizada: str | None

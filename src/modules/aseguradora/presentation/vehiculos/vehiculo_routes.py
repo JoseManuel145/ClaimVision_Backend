@@ -18,6 +18,7 @@ from src.modules.aseguradora.application.vehiculos.get_vehiculo import GetVehicu
 from src.modules.aseguradora.application.vehiculos.update_vehiculo import UpdateVehiculo
 from src.modules.aseguradora.application.vehiculos.delete_vehiculo import DeleteVehiculo
 from src.modules.aseguradora.presentation.vehiculos import vehiculo_dependencies
+from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
 
@@ -47,7 +48,7 @@ def crear_vehiculo(
         dto.anio, dto.placas, dto.vin, dto.color,
     )
     audit.record(
-        evento_modulo=EVENTO, accion="crear_vehiculo",
+        evento_modulo=EVENTO, accion=AccionAudit.CREAR_VEHICULO,
         usuario=user, request=request,
         metadata={"vehiculo_id": resultado.id},
     )
@@ -91,7 +92,7 @@ def actualizar_vehiculo(
         str(id), dto.marca, dto.modelo, dto.anio, dto.placas, dto.vin, dto.color,
     )
     audit.record(
-        evento_modulo=EVENTO, accion="actualizar_vehiculo",
+        evento_modulo=EVENTO, accion=AccionAudit.ACTUALIZAR_VEHICULO,
         usuario=user, request=request,
         metadata={"vehiculo_id": str(id)},
     )
@@ -108,7 +109,7 @@ def eliminar_vehiculo(
 ):
     uc.execute(str(id))
     audit.record(
-        evento_modulo=EVENTO, accion="eliminar_vehiculo",
+        evento_modulo=EVENTO, accion=AccionAudit.ELIMINAR_VEHICULO,
         usuario=user, request=request,
         metadata={"vehiculo_id": str(id)},
     )
@@ -133,7 +134,7 @@ async def crear_vehiculo_desde_poliza(
     )
     audit.record(
         evento_modulo=EVENTO,
-        accion="crear_vehiculo_desde_poliza",
+        accion=AccionAudit.CREAR_VEHICULO_DESDE_POLIZA,
         usuario=user,
         request=request,
         metadata={"vehiculo_id": vehiculo.id, "cliente_id": cliente_id},

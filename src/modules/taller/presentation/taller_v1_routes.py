@@ -33,6 +33,7 @@ from src.modules.taller.infra.pdf.supabase_storage_repository import SupabasePdf
 from src.modules.taller.presentation import taller_v1_dependencies as deps
 from src.shared.infra.storage.url_resolver import resolve_storage_url
 from src.core.supabase import get_supabase_client
+from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
 
@@ -165,7 +166,7 @@ async def crear_cotizacion(
         desglose_pdf_url=pdf_url, monto_total=monto_total,
         observaciones_tecnicas=observaciones_tecnicas,
     )
-    audit.record(evento_modulo=EVENTO, accion="crear_cotizacion", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.CREAR_COTIZACION, usuario=user, request=request,
                  metadata={"siniestro_id": id, "cotizacion_id": cot.id})
     dto = CotizacionV1DTO.model_validate(cot)
     dto = dto.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})
@@ -189,7 +190,7 @@ def editar_cotizacion(
         monto_total=dto.monto_total, desglose_pdf_url=dto.desglose_pdf_url,
         observaciones_tecnicas=dto.observaciones_tecnicas,
     )
-    audit.record(evento_modulo=EVENTO, accion="editar_cotizacion", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.EDITAR_COTIZACION, usuario=user, request=request,
                  metadata={"cotizacion_id": id})
     resp = CotizacionV1DTO.model_validate(cot)
     resp = resp.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})
@@ -207,7 +208,7 @@ def concluir_trabajo(
     """§6 · → estatus = Trabajo_Concluido (requiere cotización aprobada)."""
     logger.info("concluir_trabajo siniestro_id=%s usuario_id=%s", id, user.usuario_id)
     uc.execute(siniestro_id=id, usuario_id=user.usuario_id)
-    audit.record(evento_modulo=EVENTO, accion="concluir_trabajo", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.CONCLUIR_TRABAJO, usuario=user, request=request,
                  metadata={"siniestro_id": id})
     return {"message": "Trabajo concluido exitosamente.", "estatus": "Trabajo_Concluido"}
 
@@ -222,6 +223,6 @@ def listo_entrega(
 ):
     """§6 · → estatus = Listo_Para_Entrega."""
     siniestro = uc.execute(usuario_id=user.usuario_id, siniestro_id=id)
-    audit.record(evento_modulo=EVENTO, accion="listo_entrega", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.LISTO_ENTREGA, usuario=user, request=request,
                  metadata={"siniestro_id": id})
     return siniestro

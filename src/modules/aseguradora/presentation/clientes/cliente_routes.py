@@ -15,6 +15,7 @@ from src.modules.aseguradora.application.clientes.list_clientes import ListClien
 from src.modules.aseguradora.application.clientes.get_cliente import GetCliente
 from src.modules.aseguradora.application.clientes.update_cliente import UpdateCliente
 from src.modules.aseguradora.presentation.clientes import cliente_dependencies
+from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
 
@@ -32,7 +33,7 @@ def crear_cliente(
 ):
     cliente = uc.execute(user.aseguradora_id, dto)
     audit.record(
-        evento_modulo=EVENTO, accion="crear_cliente",
+        evento_modulo=EVENTO, accion=AccionAudit.CREAR_CLIENTE,
         usuario=user, request=request,
         metadata={"cliente_id": cliente.id},
     )
@@ -71,7 +72,7 @@ def actualizar_cliente(
 ):
     cliente = uc.execute(id, dto)
     audit.record(
-        evento_modulo=EVENTO, accion="actualizar_cliente",
+        evento_modulo=EVENTO, accion=AccionAudit.ACTUALIZAR_CLIENTE,
         usuario=user, request=request,
         metadata={"cliente_id": id},
     )

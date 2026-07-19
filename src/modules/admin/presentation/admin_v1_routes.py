@@ -15,6 +15,7 @@ from src.modules.admin.presentation.schemas import (
     UpdateSuscripcionDTO,
     UpdateAseguradoraDTO,
     AuditResponse,
+    AuditDetailResponse,
     OperadorAseguradoraRequestDTO,
     CreateUsuarioRequestDTO,
     UpdateUsuarioRequestDTO,
@@ -72,7 +73,7 @@ def registrar_aseguradora(
     """§5 · Registrar una nueva aseguradora en la plataforma."""
     resultado = uc.execute(user.usuario_id, data)
     audit.record(
-        evento_modulo=EVENTO, accion="registrar_aseguradora",
+        evento_modulo=EVENTO, accion=AccionAudit.REGISTRAR_ASEGURADORA,
         usuario=user, request=request,
         metadata={"aseguradora_id": resultado.id},
     )
@@ -91,7 +92,7 @@ def crear_operador_aseguradora(
     """§5 · Crear un operador para una aseguradora específica."""
     resultado = uc.execute(user.usuario_id, aseguradora_id, data)
     audit.record(
-        evento_modulo=EVENTO, accion="crear_operador",
+        evento_modulo=EVENTO, accion=AccionAudit.CREAR_OPERADOR,
         usuario=user, request=request,
         metadata={"aseguradora_id": aseguradora_id},
     )
@@ -154,7 +155,7 @@ def actualizar_aseguradora(
     try:
         resultado = uc.execute(user.usuario_id, aseguradora_id, data)
         audit.record(
-            evento_modulo=EVENTO, accion="actualizar_aseguradora",
+            evento_modulo=EVENTO, accion=AccionAudit.ACTUALIZAR_ASEGURADORA,
             usuario=user, request=request,
             metadata={"aseguradora_id": aseguradora_id},
         )
@@ -175,7 +176,7 @@ def verificar_aseguradora(
     try:
         resultado = uc.execute(user.usuario_id, aseguradora_id)
         audit.record(
-            evento_modulo=EVENTO, accion="verificar_aseguradora",
+            evento_modulo=EVENTO, accion=AccionAudit.VERIFICAR_ASEGURADORA,
             usuario=user, request=request,
             metadata={"aseguradora_id": aseguradora_id},
         )
@@ -197,7 +198,7 @@ def actualizar_suscripcion(
     try:
         resultado = uc.execute(user.usuario_id, aseguradora_id, data)
         audit.record(
-            evento_modulo=EVENTO, accion="actualizar_suscripcion",
+            evento_modulo=EVENTO, accion=AccionAudit.ACTUALIZAR_SUSCRIPCION,
             usuario=user, request=request,
             metadata={"aseguradora_id": aseguradora_id, "nuevo_plan": data.nuevo_plan},
         )
@@ -218,7 +219,7 @@ def desincorporar_aseguradora(
     try:
         resultado = uc.execute(user.usuario_id, aseguradora_id)
         audit.record(
-            evento_modulo=EVENTO, accion="desincorporar_aseguradora",
+            evento_modulo=EVENTO, accion=AccionAudit.DESINCORPORAR_ASEGURADORA,
             usuario=user, request=request,
             metadata={"aseguradora_id": aseguradora_id},
         )
@@ -239,7 +240,7 @@ def reactivar_aseguradora(
     try:
         resultado = uc.execute(user.usuario_id, aseguradora_id)
         audit.record(
-            evento_modulo=EVENTO, accion="reactivar_aseguradora",
+            evento_modulo=EVENTO, accion=AccionAudit.REACTIVAR_ASEGURADORA,
             usuario=user, request=request,
             metadata={"aseguradora_id": aseguradora_id},
         )
@@ -262,7 +263,7 @@ def aplicar_bloqueo_arco(
     try:
         uc.execute(user.usuario_id, usuario_id)
         audit.record(
-            evento_modulo=EVENTO, accion="bloqueo_arco",
+            evento_modulo=EVENTO, accion=AccionAudit.BLOQUEO_ARCO,
             usuario=user, request=request,
             metadata={"usuario_id": usuario_id},
         )
@@ -277,19 +278,115 @@ def aplicar_bloqueo_arco(
 def consultar_auditoria(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    fecha_inicio: Optional[str] = Query(None),
+    fecha_fin: Optional[str] = Query(None),
+    accion_realizada: Optional[str] = Query(None),
+    evento_modulo: Optional[str] = Query(None),
+    usuario_rol: Optional[str] = Query(None),
     user: AuthenticatedUser = Depends(get_admin_or_operador),
     uc: ConsultarAuditoriaUseCase = Depends(deps.consultar_auditoria_service),
 ):
     """§6 · Consultar logs de auditoría (paginado)."""
     try:
+        from datetime import datetime
+        
+        fi = datetime.fromisoformat(fecha_inicio.replace("Z", "+00:00")) if fecha_inicio else None
+        ff = datetime.fromisoformat(fecha_fin.replace("Z", "+00:00")) if fecha_fin else None
+        
         offset = offset_from_page(page, page_size)
         if user.rol == "Operador_Aseguradora":
             filtro_aseg = user.aseguradora_id
         else:
             filtro_aseg = None
-        items, total = uc.execute(offset=offset, limit=page_size, aseguradora_id=filtro_aseg)
+            
+        items, total = uc.execute(
+            offset=offset, limit=page_size, aseguradora_id=filtro_aseg,
+            fecha_inicio=fi, fecha_fin=ff, accion_realizada=accion_realizada,
+            evento_modulo=evento_modulo, usuario_rol=usuario_rol
+        )
         data = [AuditResponse.model_validate(i) for i in items]
         return Page.build(data=data, total=total, page=page, page_size=page_size)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+@router.get("/auditoria/logs/export")
+def exportar_auditoria_csv(
+    fecha_inicio: Optional[str] = Query(None),
+    fecha_fin: Optional[str] = Query(None),
+    accion_realizada: Optional[str] = Query(None),
+    evento_modulo: Optional[str] = Query(None),
+    usuario_rol: Optional[str] = Query(None),
+    user: AuthenticatedUser = Depends(get_admin_or_operador),
+    uc: ConsultarAuditoriaUseCase = Depends(deps.consultar_auditoria_service),
+):
+    """§6 · Exportar logs de auditoría en formato CSV."""
+    from fastapi.responses import StreamingResponse
+    import csv
+    import io
+    from datetime import datetime
+
+    try:
+        fi = datetime.fromisoformat(fecha_inicio.replace("Z", "+00:00")) if fecha_inicio else None
+        ff = datetime.fromisoformat(fecha_fin.replace("Z", "+00:00")) if fecha_fin else None
+        
+        if user.rol == "Operador_Aseguradora":
+            filtro_aseg = user.aseguradora_id
+        else:
+            filtro_aseg = None
+            
+        # Export limit up to 10000 records
+        items, _ = uc.execute(
+            offset=0, limit=10000, aseguradora_id=filtro_aseg,
+            fecha_inicio=fi, fecha_fin=ff, accion_realizada=accion_realizada,
+            evento_modulo=evento_modulo, usuario_rol=usuario_rol
+        )
+        
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["ID", "Usuario_ID", "Rol", "Nombre", "Email", "Aseguradora_ID", "Modulo", "Accion", "IP", "User_Agent", "Fecha"])
+        for item in items:
+            writer.writerow([
+                item.id, item.usuario_id, item.usuario_rol, item.usuario_nombre, item.usuario_email,
+                item.aseguradora_id, item.evento_modulo, item.accion_realizada, item.direccion_ip,
+                item.user_agent, item.created_at.isoformat()
+            ])
+            
+        output.seek(0)
+        return StreamingResponse(
+            iter([output.getvalue()]),
+            media_type="text/csv",
+            headers={"Content-Disposition": "attachment; filename=auditoria.csv"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+@router.get("/auditoria/logs/{log_id}", response_model=AuditDetailResponse)
+def consultar_auditoria_detalle(
+    log_id: str,
+    user: AuthenticatedUser = Depends(get_admin_or_operador),
+    uc: ConsultarAuditoriaUseCase = Depends(deps.consultar_auditoria_service),
+):
+    """§6 · Obtener el detalle de un log de auditoría."""
+    item = uc.get_detail(log_id)
+    if not item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Log not found")
+    if user.rol == "Operador_Aseguradora" and item.aseguradora_id != user.aseguradora_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No access to this log")
+    return AuditDetailResponse.model_validate(item)
+
+from src.modules.admin.presentation.schemas import AuditoriaResumenResponse
+from src.shared.domain.models import AccionAudit
+
+@router.get("/auditoria/resumen", response_model=AuditoriaResumenResponse)
+def consultar_auditoria_resumen(
+    dias: int = Query(30, ge=1, le=365),
+    user: AuthenticatedUser = Depends(get_admin),
+    uc: ConsultarAuditoriaUseCase = Depends(deps.consultar_auditoria_service),
+):
+    """§6 · Obtener un resumen/KPIs de la auditoría."""
+    try:
+        resultado = uc.get_resumen(dias=dias)
+        return AuditoriaResumenResponse(**resultado)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -338,7 +435,7 @@ def crear_usuario(
     try:
         resultado = uc.execute(user.usuario_id, data)
         audit.record(
-            evento_modulo=EVENTO, accion="crear_usuario",
+            evento_modulo=EVENTO, accion=AccionAudit.CREAR_USUARIO,
             usuario=user, request=request,
             metadata={"usuario_id": resultado["id"]},
         )
@@ -360,7 +457,7 @@ def actualizar_usuario(
     try:
         resultado = uc.execute(user.usuario_id, usuario_id, data)
         audit.record(
-            evento_modulo=EVENTO, accion="actualizar_usuario",
+            evento_modulo=EVENTO, accion=AccionAudit.ACTUALIZAR_USUARIO,
             usuario=user, request=request,
             metadata={"usuario_id": usuario_id},
         )
@@ -381,7 +478,7 @@ def eliminar_usuario(
     try:
         resultado = uc.execute(user.usuario_id, usuario_id)
         audit.record(
-            evento_modulo=EVENTO, accion="eliminar_usuario",
+            evento_modulo=EVENTO, accion=AccionAudit.ELIMINAR_USUARIO,
             usuario=user, request=request,
             metadata={"usuario_id": usuario_id, "soft_delete": True},
         )
@@ -481,7 +578,7 @@ def purgar_aseguradora(
     try:
         resultado = uc.execute(user.usuario_id, aseguradora_id)
         audit.record(
-            evento_modulo=EVENTO, accion="purga_aseguradora",
+            evento_modulo=EVENTO, accion=AccionAudit.PURGA_ASEGURADORA,
             usuario=user, request=request,
             metadata={"aseguradora_id": aseguradora_id, "deleted": resultado["deleted"]},
         )

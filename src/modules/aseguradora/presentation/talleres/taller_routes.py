@@ -19,6 +19,7 @@ from src.modules.aseguradora.application.talleres.update_taller import UpdateTal
 from src.modules.aseguradora.application.talleres.delete_taller import DeleteTaller
 from src.modules.aseguradora.application.talleres.create_taller_user import CreateOperadorTallerUseCase
 from src.modules.aseguradora.presentation.talleres import taller_dependencies
+from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
 
@@ -44,7 +45,7 @@ def crear_taller(
 ):
     resultado = uc.execute(_require_aseguradora(user), dto.nombre_comercial, dto.rfc, dto.direccion_tecnica, dto.telefono_contacto)
     audit.record(
-        evento_modulo=EVENTO, accion="crear_taller",
+        evento_modulo=EVENTO, accion=AccionAudit.CREAR_TALLER,
         usuario=user, request=request,
         metadata={"taller_id": resultado.id},
     )
@@ -83,7 +84,7 @@ def actualizar_taller(
 ):
     resultado = uc.execute(str(id), dto.nombre_comercial, dto.direccion_tecnica, dto.telefono_contacto)
     audit.record(
-        evento_modulo=EVENTO, accion="actualizar_taller",
+        evento_modulo=EVENTO, accion=AccionAudit.ACTUALIZAR_TALLER,
         usuario=user, request=request,
         metadata={"taller_id": str(id)},
     )
@@ -100,7 +101,7 @@ def eliminar_taller(
 ):
     uc.execute(str(id), _require_aseguradora(user))
     audit.record(
-        evento_modulo=EVENTO, accion="eliminar_taller",
+        evento_modulo=EVENTO, accion=AccionAudit.ELIMINAR_TALLER,
         usuario=user, request=request,
         metadata={"taller_id": str(id)},
     )
@@ -117,7 +118,7 @@ def crear_operador_taller(
 ):
     resultado = uc.execute(_require_aseguradora(user), user.usuario_id, str(id), dto)
     audit.record(
-        evento_modulo=EVENTO, accion="crear_operador_taller",
+        evento_modulo=EVENTO, accion=AccionAudit.CREAR_OPERADOR_TALLER,
         usuario=user, request=request,
         metadata={"taller_id": str(id)},
     )

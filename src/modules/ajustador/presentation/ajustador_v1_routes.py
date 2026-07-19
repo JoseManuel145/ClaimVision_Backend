@@ -40,6 +40,7 @@ from src.modules.ajustador.application.actualizar_perfil_ajustador import Actual
 from src.modules.ajustador.presentation import ajustador_dependencies as deps
 from src.shared.infra.storage.url_resolver import resolve_storage_url
 from src.core.supabase import get_supabase_client
+from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
 
@@ -133,7 +134,7 @@ def registrar_peritaje(
         danos_data=[d.model_dump() for d in dto.danos],
     )
     audit.record(
-        evento_modulo=EVENTO, accion="registrar_peritaje", usuario=user, request=request,
+        evento_modulo=EVENTO, accion=AccionAudit.REGISTRAR_PERITAJE, usuario=user, request=request,
         metadata={"siniestro_id": id, "peritaje_id": peritaje.id},
     )
     return peritaje
@@ -155,7 +156,7 @@ def editar_peritaje(
         firma=dto.firma_digital_ajustador,
         observaciones=dto.observaciones_campo,
     )
-    audit.record(evento_modulo=EVENTO, accion="editar_peritaje", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.EDITAR_PERITAJE, usuario=user, request=request,
                  metadata={"peritaje_id": id})
     return peritaje
 
@@ -171,7 +172,7 @@ def agregar_dano(
 ):
     """§5 · Agrega un daño manual al peritaje."""
     peritaje = uc.execute(user.usuario_id, id, dto.model_dump())
-    audit.record(evento_modulo=EVENTO, accion="agregar_dano", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.AGREGAR_DANO, usuario=user, request=request,
                  metadata={"peritaje_id": id})
     return peritaje
 
@@ -186,7 +187,7 @@ def actualizar_disponibilidad(
 ):
     """§5 · Activa/desactiva mi disponibilidad para servicio."""
     aj = uc.execute(user.usuario_id, dto.activo_para_servicio)
-    audit.record(evento_modulo=EVENTO, accion="actualizar_disponibilidad", usuario=user, request=request,
+    audit.record(evento_modulo=EVENTO, accion=AccionAudit.ACTUALIZAR_DISPONIBILIDAD, usuario=user, request=request,
                  metadata={"activo_para_servicio": dto.activo_para_servicio})
     return _perfil_dto(aj)
 

@@ -11,7 +11,7 @@ Se usa desde la capa de presentación tras una mutación exitosa:
         audit.record(
             usuario=user,
             evento_modulo="cliente.siniestros",
-            accion="reportar_siniestro",
+            accion=AccionAudit.REPORTAR_SINIESTRO,
             request=request,
             metadata={"siniestro_id": resultado.id},
         )
@@ -32,6 +32,8 @@ from src.core.logging import get_logger
 from src.modules.admin.domain.models import AuditLog
 from src.modules.admin.infra.db.repositories.audit_log_repository import AuditLogRepository
 from src.modules.auth.domain.models import AuthenticatedUser
+
+from src.shared.domain.models import AccionAudit
 
 logger = get_logger("audit")
 
@@ -56,7 +58,7 @@ class AuditLogger:
         self,
         *,
         evento_modulo: str,
-        accion: str,
+        accion: AccionAudit | str,
         usuario: Optional[AuthenticatedUser] = None,
         usuario_id: Optional[str] = None,
         aseguradora_id: Optional[str] = None,
@@ -70,7 +72,7 @@ class AuditLogger:
                 aseguradora_id=aseguradora_id
                 or (usuario.aseguradora_id if usuario else None),
                 evento_modulo=evento_modulo,
-                accion_realizada=accion,
+                accion_realizada=accion.value if isinstance(accion, AccionAudit) else accion,
                 direccion_ip=client_ip(request),
                 user_agent=user_agent(request),
                 metadata_context=metadata,

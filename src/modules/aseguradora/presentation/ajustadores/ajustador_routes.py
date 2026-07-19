@@ -16,6 +16,7 @@ from src.modules.aseguradora.application.ajustadores.get_ajustador import GetAju
 from src.modules.aseguradora.application.ajustadores.update_ajustador import UpdateAjustador
 from src.modules.aseguradora.application.ajustadores.delete_ajustador import DeleteAjustador
 from src.modules.aseguradora.presentation.ajustadores import ajustador_dependencies
+from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
 
@@ -33,7 +34,7 @@ def crear_ajustador(
 ):
     resultado = uc.execute(user.aseguradora_id, dto)
     audit.record(
-        evento_modulo=EVENTO, accion="crear_ajustador",
+        evento_modulo=EVENTO, accion=AccionAudit.CREAR_AJUSTADOR,
         usuario=user, request=request,
         metadata={"ajustador_id": resultado.id},
     )
@@ -73,7 +74,7 @@ def actualizar_ajustador(
 ):
     resultado = uc.execute(id, dto.cedula_profesional, dto.activo_para_servicio)
     audit.record(
-        evento_modulo=EVENTO, accion="actualizar_ajustador",
+        evento_modulo=EVENTO, accion=AccionAudit.ACTUALIZAR_AJUSTADOR,
         usuario=user, request=request,
         metadata={"ajustador_id": id},
     )
@@ -90,7 +91,7 @@ def eliminar_ajustador(
 ):
     uc.execute(id)
     audit.record(
-        evento_modulo=EVENTO, accion="eliminar_ajustador",
+        evento_modulo=EVENTO, accion=AccionAudit.ELIMINAR_AJUSTADOR,
         usuario=user, request=request,
         metadata={"ajustador_id": id},
     )
