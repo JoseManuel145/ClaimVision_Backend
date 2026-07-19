@@ -12,10 +12,12 @@ class RegisterUser:
         auth_repo: AuthPort,
         password_port: PasswordPort,
         token_port: TokenPort,
+        cliente_repo=None,
     ):
         self.auth_repo = auth_repo
         self.password_repo = password_port
         self.token_repo = token_port
+        self.cliente_repo = cliente_repo
 
     async def execute(self, user: User):
         existing = self.auth_repo.get_by_email(user.email)
@@ -38,6 +40,22 @@ class RegisterUser:
         )
 
         user_created = self.auth_repo.create(model)
+
+        if self.cliente_repo and model.rol == Rol.CLIENTE.value:
+            from src.modules.cliente.domain.models import ClienteProfile
+            profile = ClienteProfile(
+                id=None,
+                usuario_id=model.usuario_id,
+                numero_poliza="",
+                vigencia_poliza=datetime.now(timezone.utc).date(),
+                curp_rfc_cifrado="",
+                consentimiento_aviso_privacidad=False,
+                consentimiento_biometria=False,
+                autoriza_transferencia_talleres=False,
+                fecha_consentimiento=None,
+                fecha_creacion=datetime.now(timezone.utc)
+            )
+            self.cliente_repo.save(profile)
 
         payload = TokenPayload(
             usuario_id=user_created.usuario_id,

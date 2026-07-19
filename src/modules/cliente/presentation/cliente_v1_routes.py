@@ -231,6 +231,20 @@ def actualizar_perfil(
     return _perfil_completo(auth_repo, user, perfil)
 
 
+@router.get("/consentimientos", response_model=ConsentimientosRequest)
+def obtener_consentimientos(
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc: GetPerfilCliente = Depends(get_perfil_cliente_service),
+):
+    """§4 · Obtiene el estado actual de los consentimientos."""
+    perfil = uc.execute(user.usuario_id)
+    return ConsentimientosRequest(
+        consentimiento_aviso_privacidad=perfil.consentimiento_aviso_privacidad,
+        consentimiento_biometria=perfil.consentimiento_biometria,
+        autoriza_transferencia_talleres=perfil.autoriza_transferencia_talleres,
+    )
+
+
 @router.patch("/consentimientos", status_code=status.HTTP_200_OK)
 def actualizar_consentimientos(
     dto: ConsentimientosRequest,

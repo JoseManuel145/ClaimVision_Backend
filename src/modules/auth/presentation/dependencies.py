@@ -40,7 +40,8 @@ def register_user_service(session=Depends(get_session)):
     repo = AuthRepository(session)
     password_service = PasswordService()
     token_service = JwtTokenService()
-    return RegisterUser(repo, password_service, token_service)
+    cliente_repo = ClienteRepository(session)
+    return RegisterUser(repo, password_service, token_service, cliente_repo)
 
 def login_user_service(session=Depends(get_session)):
     repo = AuthRepository(session)
