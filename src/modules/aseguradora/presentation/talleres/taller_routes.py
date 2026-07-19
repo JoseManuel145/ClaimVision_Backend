@@ -19,6 +19,7 @@ from src.modules.aseguradora.application.talleres.update_taller import UpdateTal
 from src.modules.aseguradora.application.talleres.delete_taller import DeleteTaller
 from src.modules.aseguradora.application.talleres.create_taller_user import CreateOperadorTallerUseCase
 from src.modules.aseguradora.presentation.talleres import taller_dependencies
+from src.shared.infra.events.sse_manager import sse_manager
 from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
@@ -48,6 +49,11 @@ def crear_taller(
         evento_modulo=EVENTO, accion=AccionAudit.CREAR_TALLER,
         usuario=user, request=request,
         metadata={"taller_id": resultado.id},
+    )
+    sse_manager.publish_event_sync(
+        event="taller_created",
+        data={"entity": "taller", "action": "CREATE", "taller_id": resultado.id},
+        target_aseguradora_id=user.aseguradora_id,
     )
     return resultado
 
@@ -88,6 +94,11 @@ def actualizar_taller(
         usuario=user, request=request,
         metadata={"taller_id": str(id)},
     )
+    sse_manager.publish_event_sync(
+        event="taller_updated",
+        data={"entity": "taller", "action": "UPDATE", "taller_id": str(id)},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return resultado
 
 
@@ -104,6 +115,11 @@ def eliminar_taller(
         evento_modulo=EVENTO, accion=AccionAudit.ELIMINAR_TALLER,
         usuario=user, request=request,
         metadata={"taller_id": str(id)},
+    )
+    sse_manager.publish_event_sync(
+        event="taller_deleted",
+        data={"entity": "taller", "action": "DELETE", "taller_id": str(id)},
+        target_aseguradora_id=user.aseguradora_id,
     )
 
 

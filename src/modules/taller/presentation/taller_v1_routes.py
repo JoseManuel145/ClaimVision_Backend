@@ -32,10 +32,12 @@ from src.modules.taller.application.actualizar_perfil_taller import ActualizarPe
 from src.modules.taller.infra.pdf.supabase_storage_repository import SupabasePdfStorage
 from src.modules.taller.presentation import taller_v1_dependencies as deps
 from src.shared.infra.storage.url_resolver import resolve_storage_url
+from src.shared.infra.events.sse_manager import sse_manager
 from src.core.supabase import get_supabase_client
 from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
+
 
 get_taller = require_roles("Operador_Taller")
 EVENTO = "taller"
@@ -168,6 +170,11 @@ async def crear_cotizacion(
     )
     audit.record(evento_modulo=EVENTO, accion=AccionAudit.CREAR_COTIZACION, usuario=user, request=request,
                  metadata={"siniestro_id": id, "cotizacion_id": cot.id})
+    sse_manager.publish_event_sync(
+        event="cotizacion_created",
+        data={"entity": "cotizacion", "action": "CREATE", "siniestro_id": id, "cotizacion_id": cot.id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     dto = CotizacionV1DTO.model_validate(cot)
     dto = dto.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})
     return dto
@@ -192,6 +199,11 @@ def editar_cotizacion(
     )
     audit.record(evento_modulo=EVENTO, accion=AccionAudit.EDITAR_COTIZACION, usuario=user, request=request,
                  metadata={"cotizacion_id": id})
+    sse_manager.publish_event_sync(
+        event="cotizacion_updated",
+        data={"entity": "cotizacion", "action": "UPDATE", "cotizacion_id": id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     resp = CotizacionV1DTO.model_validate(cot)
     resp = resp.model_copy(update={"desglose_pdf_url": resolve_storage_url(client, cot.desglose_pdf_url)})
     return resp
@@ -210,6 +222,11 @@ def concluir_trabajo(
     uc.execute(siniestro_id=id, usuario_id=user.usuario_id)
     audit.record(evento_modulo=EVENTO, accion=AccionAudit.CONCLUIR_TRABAJO, usuario=user, request=request,
                  metadata={"siniestro_id": id})
+    sse_manager.publish_event_sync(
+        event="siniestro_updated",
+        data={"entity": "siniestro", "action": "CONCLUIR_TRABAJO", "siniestro_id": id, "estatus": "Trabajo_Concluido"},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return {"message": "Trabajo concluido exitosamente.", "estatus": "Trabajo_Concluido"}
 
 
@@ -225,4 +242,10 @@ def listo_entrega(
     siniestro = uc.execute(usuario_id=user.usuario_id, siniestro_id=id)
     audit.record(evento_modulo=EVENTO, accion=AccionAudit.LISTO_ENTREGA, usuario=user, request=request,
                  metadata={"siniestro_id": id})
+    sse_manager.publish_event_sync(
+        event="siniestro_updated",
+        data={"entity": "siniestro", "action": "LISTO_ENTREGA", "siniestro_id": id, "estatus": "Listo_Para_Entrega"},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return siniestro
+

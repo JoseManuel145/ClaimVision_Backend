@@ -1,8 +1,10 @@
 from src.shared.domain.ports.messaging_port import MessagingPort
 from src.shared.domain.ports.device_token_port import DeviceTokenPort
+from src.shared.infra.events.sse_manager import sse_manager
 from src.core.logging import get_logger
 
 logger = get_logger("notification")
+
 
 
 NOTIFICACIONES_SINIESTRO: dict[str, dict[str, dict[str, str]]] = {
@@ -78,6 +80,21 @@ class SiniestroNotifier:
         cliente_id: str | None = None,
         ajustador_id: str | None = None,
     ) -> None:
+        # Emitir evento SSE siempre para la actualización en tiempo real del frontend
+        sse_payload = {
+            "entity": "siniestro",
+            "action": "STATUS_CHANGE",
+            "siniestro_id": siniestro_id,
+            "estatus": estatus,
+            "cliente_id": cliente_id,
+            "ajustador_id": ajustador_id,
+        }
+        sse_manager.publish_event_sync(event="siniestro_updated", data=sse_payload)
+        if cliente_id:
+            sse_manager.publish_event_sync(event="siniestro_updated", data=sse_payload, target_user_id=cliente_id)
+        if ajustador_id:
+            sse_manager.publish_event_sync(event="siniestro_updated", data=sse_payload, target_user_id=ajustador_id)
+
         config = NOTIFICACIONES_SINIESTRO.get(estatus)
         if not config:
             return
@@ -99,3 +116,4 @@ class SiniestroNotifier:
                 body=config["ajustador"]["body"],
                 data=data_payload,
             )
+

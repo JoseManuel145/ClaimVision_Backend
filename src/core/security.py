@@ -93,6 +93,41 @@ def get_current_user(
         )
 
 
+def get_current_user_sse(
+    token: Optional[str] = None,
+    auth_header: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    token_service: JwtTokenService = Depends(),
+) -> AuthenticatedUser:
+    """
+    Dependencia de autenticación para endpoints SSE.
+    Admite tanto la cabecera 'Authorization: Bearer <token>' como el query parameter '?token=<jwt>'.
+    """
+    jwt_token = None
+    if auth_header and auth_header.credentials:
+        jwt_token = auth_header.credentials
+    elif token:
+        jwt_token = token
+
+    if not jwt_token:
+        raise UnauthorizedError("No se proporcionó token de autorización en la cabecera ni en query param 'token'")
+
+    try:
+        payload = token_service.verify(jwt_token)
+        return AuthenticatedUser(
+            usuario_id=payload.usuario_id,
+            email=payload.email,
+            rol=payload.rol,
+            aseguradora_id=payload.aseguradora_id,
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Credenciales inválidas o expiradas",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+
 def require_roles(*roles: str):
     """
     Factory de dependencia para RBAC. Devuelve una dependencia que valida que el

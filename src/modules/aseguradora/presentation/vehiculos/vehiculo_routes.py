@@ -18,6 +18,7 @@ from src.modules.aseguradora.application.vehiculos.get_vehiculo import GetVehicu
 from src.modules.aseguradora.application.vehiculos.update_vehiculo import UpdateVehiculo
 from src.modules.aseguradora.application.vehiculos.delete_vehiculo import DeleteVehiculo
 from src.modules.aseguradora.presentation.vehiculos import vehiculo_dependencies
+from src.shared.infra.events.sse_manager import sse_manager
 from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
@@ -51,6 +52,11 @@ def crear_vehiculo(
         evento_modulo=EVENTO, accion=AccionAudit.CREAR_VEHICULO,
         usuario=user, request=request,
         metadata={"vehiculo_id": resultado.id},
+    )
+    sse_manager.publish_event_sync(
+        event="vehiculo_created",
+        data={"entity": "vehiculo", "action": "CREATE", "vehiculo_id": resultado.id},
+        target_aseguradora_id=user.aseguradora_id,
     )
     return resultado
 
@@ -96,6 +102,11 @@ def actualizar_vehiculo(
         usuario=user, request=request,
         metadata={"vehiculo_id": str(id)},
     )
+    sse_manager.publish_event_sync(
+        event="vehiculo_updated",
+        data={"entity": "vehiculo", "action": "UPDATE", "vehiculo_id": str(id)},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return resultado
 
 
@@ -112,6 +123,11 @@ def eliminar_vehiculo(
         evento_modulo=EVENTO, accion=AccionAudit.ELIMINAR_VEHICULO,
         usuario=user, request=request,
         metadata={"vehiculo_id": str(id)},
+    )
+    sse_manager.publish_event_sync(
+        event="vehiculo_deleted",
+        data={"entity": "vehiculo", "action": "DELETE", "vehiculo_id": str(id)},
+        target_aseguradora_id=user.aseguradora_id,
     )
 
 
@@ -139,4 +155,10 @@ async def crear_vehiculo_desde_poliza(
         request=request,
         metadata={"vehiculo_id": vehiculo.id, "cliente_id": cliente_id},
     )
+    sse_manager.publish_event_sync(
+        event="vehiculo_created",
+        data={"entity": "vehiculo", "action": "CREATE_FROM_POLIZA", "vehiculo_id": vehiculo.id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return vehiculo
+

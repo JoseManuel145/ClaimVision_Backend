@@ -15,6 +15,7 @@ from src.modules.aseguradora.application.clientes.list_clientes import ListClien
 from src.modules.aseguradora.application.clientes.get_cliente import GetCliente
 from src.modules.aseguradora.application.clientes.update_cliente import UpdateCliente
 from src.modules.aseguradora.presentation.clientes import cliente_dependencies
+from src.shared.infra.events.sse_manager import sse_manager
 from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
@@ -36,6 +37,11 @@ def crear_cliente(
         evento_modulo=EVENTO, accion=AccionAudit.CREAR_CLIENTE,
         usuario=user, request=request,
         metadata={"cliente_id": cliente.id},
+    )
+    sse_manager.publish_event_sync(
+        event="cliente_created",
+        data={"entity": "cliente", "action": "CREATE", "cliente_id": cliente.id},
+        target_aseguradora_id=user.aseguradora_id,
     )
     return cliente
 
@@ -76,4 +82,10 @@ def actualizar_cliente(
         usuario=user, request=request,
         metadata={"cliente_id": id},
     )
+    sse_manager.publish_event_sync(
+        event="cliente_updated",
+        data={"entity": "cliente", "action": "UPDATE", "cliente_id": id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return cliente
+

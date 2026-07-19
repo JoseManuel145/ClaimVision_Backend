@@ -39,10 +39,12 @@ from src.modules.ajustador.application.get_perfil_ajustador import GetPerfilAjus
 from src.modules.ajustador.application.actualizar_perfil_ajustador import ActualizarPerfilAjustador
 from src.modules.ajustador.presentation import ajustador_dependencies as deps
 from src.shared.infra.storage.url_resolver import resolve_storage_url
+from src.shared.infra.events.sse_manager import sse_manager
 from src.core.supabase import get_supabase_client
 from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
+
 
 get_ajustador = require_roles("Ajustador")
 EVENTO = "ajustador"
@@ -137,6 +139,11 @@ def registrar_peritaje(
         evento_modulo=EVENTO, accion=AccionAudit.REGISTRAR_PERITAJE, usuario=user, request=request,
         metadata={"siniestro_id": id, "peritaje_id": peritaje.id},
     )
+    sse_manager.publish_event_sync(
+        event="peritaje_updated",
+        data={"entity": "peritaje", "action": "CREATE", "siniestro_id": id, "peritaje_id": peritaje.id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return peritaje
 
 
@@ -158,6 +165,11 @@ def editar_peritaje(
     )
     audit.record(evento_modulo=EVENTO, accion=AccionAudit.EDITAR_PERITAJE, usuario=user, request=request,
                  metadata={"peritaje_id": id})
+    sse_manager.publish_event_sync(
+        event="peritaje_updated",
+        data={"entity": "peritaje", "action": "UPDATE", "peritaje_id": id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return peritaje
 
 
@@ -174,6 +186,11 @@ def agregar_dano(
     peritaje = uc.execute(user.usuario_id, id, dto.model_dump())
     audit.record(evento_modulo=EVENTO, accion=AccionAudit.AGREGAR_DANO, usuario=user, request=request,
                  metadata={"peritaje_id": id})
+    sse_manager.publish_event_sync(
+        event="peritaje_updated",
+        data={"entity": "peritaje", "action": "ADD_DANO", "peritaje_id": id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return peritaje
 
 
@@ -189,6 +206,11 @@ def actualizar_disponibilidad(
     aj = uc.execute(user.usuario_id, dto.activo_para_servicio)
     audit.record(evento_modulo=EVENTO, accion=AccionAudit.ACTUALIZAR_DISPONIBILIDAD, usuario=user, request=request,
                  metadata={"activo_para_servicio": dto.activo_para_servicio})
+    sse_manager.publish_event_sync(
+        event="disponibilidad_updated",
+        data={"entity": "ajustador", "action": "UPDATE_DISPONIBILIDAD", "ajustador_id": user.usuario_id, "activo": dto.activo_para_servicio},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return _perfil_dto(aj)
 
 
@@ -200,4 +222,10 @@ def actualizar_geolocalizacion(
 ):
     """§5 · Actualiza mi geolocalización (geography Point)."""
     aj = uc.execute(user.usuario_id, dto.latitud, dto.longitud)
+    sse_manager.publish_event_sync(
+        event="geolocalizacion_updated",
+        data={"entity": "ajustador", "action": "UPDATE_LOCATION", "ajustador_id": user.usuario_id, "latitud": dto.latitud, "longitud": dto.longitud},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return _perfil_dto(aj)
+

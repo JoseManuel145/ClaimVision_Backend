@@ -398,6 +398,31 @@
       }
     },
     "/api/v1/cliente/consentimientos": {
+      "get": {
+        "tags": [
+          "v1 · Cliente"
+        ],
+        "summary": "Obtener Consentimientos",
+        "description": "§4 · Obtiene el estado actual de los consentimientos.",
+        "operationId": "obtener_consentimientos_api_v1_cliente_consentimientos_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentimientosRequest"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
       "patch": {
         "tags": [
           "v1 · Cliente"
@@ -5696,6 +5721,121 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnsupervisedHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/stream": {
+      "get": {
+        "tags": [
+          "v1 · Events (SSE)"
+        ],
+        "summary": "Event Stream",
+        "description": "§SSE · Endpoint de streaming en tiempo real (Server-Sent Events).\nTransmite eventos de actualización de siniestros, ajustadores, clientes, talleres y vehículos\npara refrescar los GETs del frontend en tiempo real.",
+        "operationId": "event_stream_api_v1_events_stream_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/events/stream/siniestro/{id}": {
+      "get": {
+        "tags": [
+          "v1 · Events (SSE)"
+        ],
+        "summary": "Siniestro Event Stream",
+        "description": "§SSE · Stream de eventos enfocado en un siniestro específico.",
+        "operationId": "siniestro_event_stream_api_v1_events_stream_siniestro__id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }

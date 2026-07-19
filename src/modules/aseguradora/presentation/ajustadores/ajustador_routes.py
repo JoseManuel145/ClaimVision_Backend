@@ -16,6 +16,7 @@ from src.modules.aseguradora.application.ajustadores.get_ajustador import GetAju
 from src.modules.aseguradora.application.ajustadores.update_ajustador import UpdateAjustador
 from src.modules.aseguradora.application.ajustadores.delete_ajustador import DeleteAjustador
 from src.modules.aseguradora.presentation.ajustadores import ajustador_dependencies
+from src.shared.infra.events.sse_manager import sse_manager
 from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
@@ -37,6 +38,11 @@ def crear_ajustador(
         evento_modulo=EVENTO, accion=AccionAudit.CREAR_AJUSTADOR,
         usuario=user, request=request,
         metadata={"ajustador_id": resultado.id},
+    )
+    sse_manager.publish_event_sync(
+        event="ajustador_created",
+        data={"entity": "ajustador", "action": "CREATE", "ajustador_id": resultado.id},
+        target_aseguradora_id=user.aseguradora_id,
     )
     return resultado
 
@@ -78,6 +84,11 @@ def actualizar_ajustador(
         usuario=user, request=request,
         metadata={"ajustador_id": id},
     )
+    sse_manager.publish_event_sync(
+        event="ajustador_updated",
+        data={"entity": "ajustador", "action": "UPDATE", "ajustador_id": id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return resultado
 
 
@@ -95,3 +106,9 @@ def eliminar_ajustador(
         usuario=user, request=request,
         metadata={"ajustador_id": id},
     )
+    sse_manager.publish_event_sync(
+        event="ajustador_deleted",
+        data={"entity": "ajustador", "action": "DELETE", "ajustador_id": id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
+

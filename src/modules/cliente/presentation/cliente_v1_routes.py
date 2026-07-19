@@ -51,10 +51,12 @@ from src.modules.cliente.presentation.dependencies import (
     confirm_data_service,
 )
 from src.shared.infra.storage.url_resolver import resolve_storage_url
+from src.shared.infra.events.sse_manager import sse_manager
 from src.core.supabase import get_supabase_client
 from src.shared.domain.models import AccionAudit
 
 router = APIRouter()
+
 
 get_cliente = require_roles("Cliente")
 EVENTO = "cliente.siniestros"
@@ -123,7 +125,13 @@ def reportar_siniestro(
         evento_modulo=EVENTO, accion=AccionAudit.REPORTAR_SINIESTRO, usuario=user,
         request=request, metadata={"siniestro_id": siniestro.id},
     )
+    sse_manager.publish_event_sync(
+        event="siniestro_created",
+        data={"entity": "siniestro", "action": "CREATE", "siniestro_id": siniestro.id, "cliente_id": user.usuario_id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     return siniestro
+
 
 
 @router.get("/siniestros", response_model=Page[SiniestroResponseDTO])
@@ -188,7 +196,13 @@ async def registrar_imagen(
         evento_modulo=EVENTO, accion=AccionAudit.SUBIR_IMAGEN, usuario=user,
         request=request, metadata={"siniestro_id": id, "imagen_id": imagen.id},
     )
+    sse_manager.publish_event_sync(
+        event="imagen_uploaded",
+        data={"entity": "siniestro_imagen", "action": "UPLOAD_IMAGE", "siniestro_id": id, "imagen_id": imagen.id},
+        target_aseguradora_id=user.aseguradora_id,
+    )
     dto = ImagenSiniestroResponseDTO.model_validate(imagen)
+
     dto = dto.model_copy(update={"imagen_url": resolve_storage_url(client, imagen.imagen_url)})
     return dto
 
@@ -228,6 +242,11 @@ def actualizar_perfil(
     """§4 · Actualiza datos personales del cliente (nombre, email, teléfono)."""
     uc.execute(user.usuario_id, nombre=dto.nombre, email=dto.email, telefono=dto.telefono)
     perfil = getter.execute(user.usuario_id)
+    sse_manager.publish_event_sync(
+        event="cliente_updated",
+        data={"entity": "cliente", "action": "UPDATE_PERFIL", "cliente_id": user.usuario_id},
+        target_user_id=user.usuario_id,
+    )
     return _perfil_completo(auth_repo, user, perfil)
 
 
@@ -266,7 +285,13 @@ def actualizar_consentimientos(
         evento_modulo="cliente.consentimientos", accion=AccionAudit.ACTUALIZAR_CONSENTIMIENTOS,
         usuario=user, request=request,
     )
+    sse_manager.publish_event_sync(
+        event="cliente_updated",
+        data={"entity": "cliente", "action": "UPDATE_CONSENTIMIENTOS", "cliente_id": user.usuario_id},
+        target_user_id=user.usuario_id,
+    )
     return {"message": "Consentimientos registrados exitosamente."}
+
 
 
 @router.get("/vehiculos", response_model=Page[VehiculoResponseDTO])
@@ -304,4 +329,10 @@ async def crear_vehiculo_desde_poliza(
         request=request,
         metadata={"vehiculo_id": vehiculo.id},
     )
+    sse_manager.publish_event_sync(
+        event="vehiculo_created",
+        data={"entity": "vehiculo", "action": "CREATE_FROM_POLIZA", "vehiculo_id": vehiculo.id, "cliente_id": user.usuario_id},
+        target_user_id=user.usuario_id,
+    )
     return vehiculo
+
