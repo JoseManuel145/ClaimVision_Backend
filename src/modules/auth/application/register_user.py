@@ -55,4 +55,5 @@ class RegisterUser:
             "email": user_created.email,
             "rol": user_created.rol,
             "aseguradora_id": user_created.aseguradora_id,
+            "primer_cambio_password": False,
         }
