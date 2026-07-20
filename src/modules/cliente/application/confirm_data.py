@@ -41,8 +41,20 @@ class ConfirmData:
         self.cliente_repo.update(profile)
 
 
+        target_aseguradora = aseguradora_id or getattr(data, "aseguradora_id", None)
+        if not target_aseguradora and hasattr(self.cliente_repo, "db"):
+            try:
+                from src.modules.admin.infra.db.tables.aseguradora_table import AseguradoraTable
+                from sqlalchemy import select
+                stmt = select(AseguradoraTable.id).where(AseguradoraTable.deleted_at.is_(None)).limit(1)
+                row = self.cliente_repo.db.execute(stmt).scalar()
+                if row:
+                    target_aseguradora = str(row)
+            except Exception:
+                pass
+
         vehiculo = self.vehiculo_module.crear(
-            aseguradora_id=aseguradora_id,
+            aseguradora_id=target_aseguradora or "",
             cliente_id=profile.id,
             marca=data.vehiculo_marca,
             modelo=data.vehiculo_modelo,

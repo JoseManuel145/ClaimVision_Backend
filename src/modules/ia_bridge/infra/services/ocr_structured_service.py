@@ -11,11 +11,11 @@ class OcrStructuredService:
     async def extract_poliza(self, pdf_bytes: bytes, filename: str) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             try:
-                files = {"file": (filename, pdf_bytes, "application/pdf")}
+                files = {"file": (filename or "poliza.pdf", pdf_bytes, "application/pdf")}
                 response = await client.post(
                     f"{self.ia_url}/api/v1/ocr/extract-poliza",
                     files=files,
-                    timeout=60.0,
+                    timeout=120.0,
                 )
                 response.raise_for_status()
                 return response.json()
