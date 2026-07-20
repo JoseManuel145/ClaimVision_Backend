@@ -20,15 +20,15 @@ class AseguradoraTenant:
 
 @dataclass
 class AuditLog:
-    id: str | None
-    usuario_id: str | None
-    usuario_rol: str | None
-    usuario_nombre: str | None
-    usuario_email: str | None
-    aseguradora_id: str | None
-    evento_modulo: str | None
-    accion_realizada: str | None
-    direccion_ip: str | None
-    user_agent: str | None
-    metadata_context: Dict[str, Any] | None
-    created_at: datetime
+    id: str | None = None
+    usuario_id: str | None = None
+    usuario_rol: str | None = None
+    usuario_nombre: str | None = None
+    usuario_email: str | None = None
+    aseguradora_id: str | None = None
+    evento_modulo: str | None = None
+    accion_realizada: str | None = None
+    direccion_ip: str | None = None
+    user_agent: str | None = None
+    metadata_context: Dict[str, Any] | None = None
+    created_at: datetime | None = None
