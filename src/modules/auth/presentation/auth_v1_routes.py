@@ -27,9 +27,12 @@ from src.modules.auth.application.confirm_consent import ConfirmConsent
 from src.modules.auth.application.change_password import ChangePassword
 from src.modules.auth.application.request_password_change_code import RequestPasswordChangeCode
 from src.modules.auth.application.change_password_with_code import ChangePasswordWithCode
+from src.modules.auth.application.register_device_token import RegisterDeviceToken
+from src.modules.auth.application.delete_device_token import DeleteDeviceToken
 from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
 
 router = APIRouter()
+
 
 
 
