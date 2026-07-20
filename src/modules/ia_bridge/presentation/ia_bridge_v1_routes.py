@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile, Form, Query
+from fastapi import APIRouter, Depends, File, UploadFile, Form, Query, Request, HTTPException
 from src.core.security import require_roles
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.modules.ia_bridge.application.predict_damage import PredictDamage
@@ -48,6 +48,8 @@ get_ajustador = require_roles("Ajustador", "Operador_Aseguradora")
 
 
 @router.post("/predict", response_model=PredictResponse)
+@router.post("/v2/predict", response_model=PredictResponse)
+@router.post("/predict/v2", response_model=PredictResponse)
 async def predict_damage(
     file: UploadFile = File(...),
     user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
@@ -126,12 +128,22 @@ async def transcribe_status(
 
 @router.post("/nlp/analizar", response_model=AnalizarResponse)
 async def analyze_text(
-    texto: str = Form(...),
+    request: Request,
+    texto: str | None = Form(None),
     user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
     uc: AnalyzeText = Depends(analizar_service),
 ):
-    return await uc.execute(texto)
-
+    text_content = texto
+    if not text_content:
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                text_content = body.get("texto")
+        except Exception:
+            pass
+    if not text_content:
+        raise HTTPException(status_code=422, detail="Se requiere el campo 'texto' (Form-data o JSON body).")
+    return await uc.execute(text_content)
 
 
 @router.get("/ocr/history", response_model=OcrHistoryResponse)
@@ -164,6 +176,8 @@ async def nlp_detail(
 
 
 @router.get("/predict/history", response_model=PredictionHistoryResponse)
+@router.get("/v2/history", response_model=PredictionHistoryResponse)
+@router.get("/predict/v2/history", response_model=PredictionHistoryResponse)
 async def prediction_history(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
@@ -174,6 +188,8 @@ async def prediction_history(
 
 
 @router.get("/predict/health", response_model=SupervisedHealthResponse)
+@router.get("/v2/health", response_model=SupervisedHealthResponse)
+@router.get("/predict/v2/health", response_model=SupervisedHealthResponse)
 async def supervised_health(
     uc: GetSupervisedHealth = Depends(get_supervised_health_service),
 ):
