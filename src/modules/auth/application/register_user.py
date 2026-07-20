@@ -43,19 +43,23 @@ class RegisterUser:
 
         if self.cliente_repo and model.rol == Rol.CLIENTE.value:
             from src.modules.cliente.domain.models import ClienteProfile
-            profile = ClienteProfile(
-                id=str(uuid4()),
-                usuario_id=model.usuario_id,
-                numero_poliza="",
-                vigencia_poliza=datetime.now(timezone.utc).date(),
-                curp_rfc_cifrado="",
-                consentimiento_aviso_privacidad=False,
-                consentimiento_biometria=False,
-                autoriza_transferencia_talleres=False,
-                fecha_consentimiento=None,
-                fecha_creacion=datetime.now(timezone.utc)
-            )
-            self.cliente_repo.save(profile)
+            try:
+                profile = ClienteProfile(
+                    id=str(uuid4()),
+                    usuario_id=user_created.usuario_id,
+                    numero_poliza="",
+                    vigencia_poliza=datetime.now(timezone.utc).date(),
+                    curp_rfc_cifrado="",
+                    consentimiento_aviso_privacidad=False,
+                    consentimiento_biometria=False,
+                    autoriza_transferencia_talleres=False,
+                    fecha_consentimiento=None,
+                    fecha_creacion=datetime.now(timezone.utc)
+                )
+                self.cliente_repo.save(profile)
+            except Exception as e:
+                import logging
+                logging.getLogger("register_user").warning(f"No se pudo crear perfil cliente secundario: {e}")
 
         payload = TokenPayload(
             usuario_id=user_created.usuario_id,

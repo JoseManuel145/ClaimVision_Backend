@@ -45,16 +45,23 @@ class AuthRepository(AuthPort):
             "fecha_creacion": user.fecha_creacion,
             "fecha_eliminacion": user.fecha_eliminacion,
         })
+        import uuid
+        user_uuid = uuid.UUID(user.usuario_id) if isinstance(user.usuario_id, str) else user.usuario_id
+        aseg_uuid = (
+            uuid.UUID(encrypted["aseguradora_id"])
+            if encrypted["aseguradora_id"] and isinstance(encrypted["aseguradora_id"], str)
+            else encrypted["aseguradora_id"]
+        )
         model = UserTable(
-            id=user.usuario_id,
+            id=user_uuid,
             nombre_completo_cifrado=encrypted["nombre_completo_cifrado"],
             email=encrypted["email"],
             password_hash=encrypted["password_hash"],
             telefono_cifrado=encrypted.get("telefono_cifrado", ""),
             rol=encrypted["rol"],
             estatus_arco=encrypted["estatus_arco"],
-            aseguradora_id=encrypted["aseguradora_id"],
-            primer_cambio_password=True,
+            aseguradora_id=aseg_uuid,
+            primer_cambio_password=False,
             fecha_creacion=encrypted["fecha_creacion"],
             fecha_eliminacion=encrypted["fecha_eliminacion"],
         )
