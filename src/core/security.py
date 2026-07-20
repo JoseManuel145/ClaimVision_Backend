@@ -7,7 +7,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-from fastapi import Depends
+from fastapi import Depends, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.modules.auth.infra.jwt.token_service import JwtTokenService
@@ -19,6 +19,7 @@ from nacl.utils import random as nacl_random
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 security_scheme = HTTPBearer()
+security_scheme_optional = HTTPBearer(auto_error=False)
 
 XSALSA20_NONCE_SIZE = 24
 AES_GCM_NONCE_SIZE = 12
@@ -94,8 +95,8 @@ def get_current_user(
 
 
 def get_current_user_sse(
-    token: Optional[str] = None,
-    auth_header: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme),
+    token: Optional[str] = Query(None),
+    auth_header: Optional[HTTPAuthorizationCredentials] = Depends(security_scheme_optional),
     token_service: JwtTokenService = Depends(),
 ) -> AuthenticatedUser:
     """

@@ -86,7 +86,7 @@ class SSEManager:
 
             # Filtrado por aseguradora (Administrador_Global puede recibir todo)
             if target_aseguradora_id and sub.role != "Administrador_Global":
-                if sub.aseguradora_id and sub.aseguradora_id != target_aseguradora_id:
+                if sub.aseguradora_id != target_aseguradora_id:
                     continue
 
             # Filtrado por rol

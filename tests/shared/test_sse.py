@@ -84,3 +84,31 @@ def test_get_current_user_sse_with_token_param():
 def test_get_current_user_sse_without_token():
     with pytest.raises(UnauthorizedError):
         get_current_user_sse(token=None, auth_header=None, token_service=None)
+
+
+@pytest.mark.asyncio
+async def test_sse_manager_broadcast_same_aseguradora():
+    """Verifica que dos usuarios distintos de la misma aseguradora reciban el evento."""
+    mgr = SSEManager()
+    qid1, q1 = mgr.subscribe(user_id="user_A", role="Operador_Aseguradora", aseguradora_id="aseg_100")
+    qid2, q2 = mgr.subscribe(user_id="user_B", role="Operador_Aseguradora", aseguradora_id="aseg_100")
+    qid3, q3 = mgr.subscribe(user_id="user_C", role="Operador_Aseguradora", aseguradora_id="aseg_999")
+
+    # Publicar evento para la aseguradora 100
+    await mgr.publish_event(
+        event="cliente_created",
+        data={"cliente_id": "c_1"},
+        target_aseguradora_id="aseg_100",
+    )
+
+    frame1 = await asyncio.wait_for(q1.get(), timeout=2.0)
+    frame2 = await asyncio.wait_for(q2.get(), timeout=2.0)
+
+    assert "c_1" in frame1
+    assert "c_1" in frame2
+    assert q3.empty()
+
+    mgr.unsubscribe(qid1)
+    mgr.unsubscribe(qid2)
+    mgr.unsubscribe(qid3)
+
