@@ -26,6 +26,7 @@ from src.modules.cliente.presentation.cliente_v1_dependencies import (
     list_siniestros_cliente_service,
     get_siniestro_cliente_service,
     subir_imagen_siniestro_service,
+    subir_audio_siniestro_service,
     get_perfil_cliente_service,
     confirm_consent_service,
     actualizar_perfil_cliente_service,
@@ -205,6 +206,36 @@ async def registrar_imagen(
 
     dto = dto.model_copy(update={"imagen_url": resolve_storage_url(client, imagen.imagen_url)})
     return dto
+
+
+@router.post(
+    "/siniestros/{id}/audio",
+    status_code=status.HTTP_200_OK,
+)
+async def registrar_audio_siniestro(
+    id: str,
+    file: UploadFile = File(...),
+    request: Request = None,
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc=Depends(subir_audio_siniestro_service),
+    get_detalle: GetSiniestroCliente = Depends(get_siniestro_cliente_service),
+    audit: AuditLogger = Depends(get_audit_logger),
+    client=Depends(get_supabase_client),
+):
+    """§4 · Sube el archivo de audio de narración del siniestro a Storage."""
+    try:
+        get_detalle.execute(user.usuario_id, id)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Siniestro no encontrado o no pertenece al cliente.")
+
+    file_bytes = await file.read()
+    audio_url = uc.execute(id, file_bytes, file.filename or "narracion.wav", file.content_type or "audio/wav")
+    resolved_url = resolve_storage_url(client, audio_url)
+    audit.record(
+        evento_modulo=EVENTO, accion=AccionAudit.SUBIR_IMAGEN, usuario=user,
+        request=request, metadata={"siniestro_id": id, "audio_url": resolved_url},
+    )
+    return {"message": "Audio de narración registrado exitosamente.", "audio_url": resolved_url, "siniestro_id": id}
 
 
 def _perfil_completo(auth_repo, user: AuthenticatedUser, perfil_cliente) -> PerfilClienteResponse:

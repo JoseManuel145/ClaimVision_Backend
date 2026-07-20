@@ -97,6 +97,17 @@ def subir_imagen_siniestro_service(
     )
 
 
+def subir_audio_siniestro_service(
+    session: Session = Depends(get_session),
+    client=Depends(get_supabase_client),
+):
+    from src.modules.siniestro.application.siniestros.subir_audio_siniestro import SubirAudioSiniestro
+    return SubirAudioSiniestro(
+        SiniestroRepository(session),
+        SupabaseStorageAdapter(client),
+    )
+
+
 def create_vehicle_from_poliza_service(
     session: Session = Depends(get_session),
 ) -> CreateVehicleFromPoliza:
