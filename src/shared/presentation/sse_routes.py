@@ -62,9 +62,10 @@ async def event_stream(
         event_generator(),
         media_type="text/event-stream",
         headers={
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-cache, no-transform",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",  # Desactivar buffering en proxies Nginx
+            "X-Accel-Buffering": "no",
+            "Content-Encoding": "none",
         },
     )
 
@@ -110,8 +111,9 @@ async def siniestro_event_stream(
         event_generator(),
         media_type="text/event-stream",
         headers={
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-cache, no-transform",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
+            "Content-Encoding": "none",
         },
     )
