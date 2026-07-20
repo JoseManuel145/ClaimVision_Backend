@@ -32,7 +32,12 @@ from src.modules.auth.application.change_password_with_code import ChangePasswor
 from src.modules.auth.application.register_device_token import RegisterDeviceToken
 from src.modules.auth.application.delete_device_token import DeleteDeviceToken
 
+def get_auth_repo_service(session=Depends(get_session)):
+    return AuthRepository(session)
+
+
 def verify_token_service():
+
     token_service = JwtTokenService()
     return VerifyToken(token_service)
 

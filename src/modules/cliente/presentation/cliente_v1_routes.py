@@ -265,7 +265,9 @@ def obtener_consentimientos(
 
 
 @router.patch("/consentimientos", status_code=status.HTTP_200_OK)
+@router.put("/consentimientos", status_code=status.HTTP_200_OK)
 def actualizar_consentimientos(
+
     dto: ConsentimientosRequest,
     request: Request,
     user: AuthenticatedUser = Depends(get_cliente),

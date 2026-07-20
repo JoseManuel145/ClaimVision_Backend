@@ -27,10 +27,10 @@ from src.modules.auth.application.confirm_consent import ConfirmConsent
 from src.modules.auth.application.change_password import ChangePassword
 from src.modules.auth.application.request_password_change_code import RequestPasswordChangeCode
 from src.modules.auth.application.change_password_with_code import ChangePasswordWithCode
-from src.modules.auth.application.register_device_token import RegisterDeviceToken
-from src.modules.auth.application.delete_device_token import DeleteDeviceToken
+from src.modules.auth.infra.db.repositories.auth_repository import AuthRepository
 
 router = APIRouter()
+
 
 
 @router.post("/register", response_model=LoginResponseDTO, status_code=status.HTTP_201_CREATED)
@@ -84,9 +84,19 @@ async def verify_code(
     data: RecoveryVerifyDTO,
     usecase_code: VerifyRecoveryCode = Depends(deps.verify_recovery_code_service),
     usecase_auth: VerifyUser = Depends(deps.verify_user_service),
+    auth_repo: AuthRepository = Depends(deps.get_auth_repo_service),
 ):
-    if await usecase_code.execute(data.usuario_id, data.code):
-        return await usecase_auth.execute(data.usuario_id)
+    target_id = data.usuario_id
+    if not target_id and data.email:
+        user = auth_repo.get_by_email(data.email)
+        if user:
+            target_id = user.usuario_id
+
+    if not target_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Se requiere usuario_id o email.")
+
+    if await usecase_code.execute(target_id, data.code):
+        return await usecase_auth.execute(target_id)
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Código inválido o expirado.")
 
 
@@ -97,10 +107,21 @@ async def reset_password(
     data: RecoveryResetDTO,
     usecase_verify: VerifyRecoveryCode = Depends(deps.verify_recovery_code_service),
     usecase_reset: ResetPassword = Depends(deps.reset_password_service),
+    auth_repo: AuthRepository = Depends(deps.get_auth_repo_service),
 ):
-    if not await usecase_verify.execute(data.usuario_id, data.code):
+    target_id = data.usuario_id
+    if not target_id and data.email:
+        user = auth_repo.get_by_email(data.email)
+        if user:
+            target_id = user.usuario_id
+
+    if not target_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Se requiere usuario_id o email.")
+
+    if not await usecase_verify.execute(target_id, data.code):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Código inválido o expirado.")
-    return await usecase_reset.execute(data.usuario_id, data.new_password)
+    return await usecase_reset.execute(target_id, data.new_password)
+
 
 
 @router.post("/consentimiento", status_code=status.HTTP_200_OK)

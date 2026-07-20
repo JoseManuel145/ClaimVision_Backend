@@ -108,7 +108,7 @@ async def extract_and_validate(
 @router.post("/nlp/transcribir", response_model=TranscribirResponse)
 async def transcribe_audio(
     file: UploadFile = File(...),
-    user: AuthenticatedUser = Depends(get_ajustador),
+    user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
     uc: TranscribeAudio = Depends(transcribir_service),
 ):
     audio_bytes = await file.read()
@@ -118,7 +118,7 @@ async def transcribe_audio(
 @router.get("/nlp/transcribir/status/{job_id}")
 async def transcribe_status(
     job_id: str,
-    user: AuthenticatedUser = Depends(get_ajustador),
+    user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
     uc: TranscribeAudio = Depends(transcribir_service),
 ):
     return await uc.get_status(job_id)
@@ -127,10 +127,11 @@ async def transcribe_status(
 @router.post("/nlp/analizar", response_model=AnalizarResponse)
 async def analyze_text(
     texto: str = Form(...),
-    user: AuthenticatedUser = Depends(get_ajustador),
+    user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
     uc: AnalyzeText = Depends(analizar_service),
 ):
     return await uc.execute(texto)
+
 
 
 @router.get("/ocr/history", response_model=OcrHistoryResponse)

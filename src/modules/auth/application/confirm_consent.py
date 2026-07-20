@@ -18,7 +18,22 @@ class ConfirmConsent:
         
         profile = self.cliente_repo.get_by_usuario_id(usuario_id)
         if not profile:
-            raise NotFoundError("Perfil de cliente no inicializado. Contacte a su Aseguradora.")
+            from src.modules.cliente.domain.models import ClienteProfile
+            from uuid import uuid4
+            profile = ClienteProfile(
+                id=str(uuid4()),
+                usuario_id=usuario_id,
+                numero_poliza="",
+                vigencia_poliza=datetime.now(timezone.utc).date(),
+                curp_rfc_cifrado="",
+                consentimiento_aviso_privacidad=data.aviso_privacidad,
+                consentimiento_biometria=data.biometria,
+                autoriza_transferencia_talleres=data.transferencia_talleres,
+                fecha_consentimiento=datetime.now(timezone.utc),
+                fecha_creacion=datetime.now(timezone.utc),
+            )
+            profile = self.cliente_repo.save(profile)
+
 
         if not data.aviso_privacidad:
             raise BusinessRuleError("El consentimiento del aviso de privacidad es obligatorio.")

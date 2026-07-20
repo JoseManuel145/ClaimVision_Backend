@@ -63,12 +63,14 @@ class RecoveryRequestDTO(BaseModel):
 
 
 class RecoveryVerifyDTO(BaseModel):
-    usuario_id: str
+    usuario_id: str | None = None
+    email: str | None = None
     code: str
 
 
 class RecoveryResetDTO(BaseModel):
-    usuario_id: str
+    usuario_id: str | None = None
+    email: str | None = None
     code: str
     new_password: str
 
@@ -76,6 +78,7 @@ class RecoveryResetDTO(BaseModel):
     @classmethod
     def check_password(cls, v: str) -> str:
         return validate_password_strength(v)
+
 
 
 class ChangePasswordRequest(BaseModel):

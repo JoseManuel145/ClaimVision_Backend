@@ -423,6 +423,49 @@
           }
         ]
       },
+      "put": {
+        "tags": [
+          "v1 · Cliente"
+        ],
+        "summary": "Actualizar Consentimientos",
+        "description": "§4 · Registra consentimientos LFPDPPP → setea fecha_consentimiento.",
+        "operationId": "actualizar_consentimientos_api_v1_cliente_consentimientos_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentimientosRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
       "patch": {
         "tags": [
           "v1 · Cliente"
@@ -8919,8 +8962,26 @@
       "RecoveryResetDTO": {
         "properties": {
           "usuario_id": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Usuario Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
           },
           "code": {
             "type": "string",
@@ -8933,7 +8994,6 @@
         },
         "type": "object",
         "required": [
-          "usuario_id",
           "code",
           "new_password"
         ],
@@ -8942,8 +9002,26 @@
       "RecoveryVerifyDTO": {
         "properties": {
           "usuario_id": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Usuario Id"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
           },
           "code": {
             "type": "string",
@@ -8952,7 +9030,6 @@
         },
         "type": "object",
         "required": [
-          "usuario_id",
           "code"
         ],
         "title": "RecoveryVerifyDTO"

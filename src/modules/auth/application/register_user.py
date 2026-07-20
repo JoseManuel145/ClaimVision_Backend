@@ -44,7 +44,7 @@ class RegisterUser:
         if self.cliente_repo and model.rol == Rol.CLIENTE.value:
             from src.modules.cliente.domain.models import ClienteProfile
             profile = ClienteProfile(
-                id=None,
+                id=str(uuid4()),
                 usuario_id=model.usuario_id,
                 numero_poliza="",
                 vigencia_poliza=datetime.now(timezone.utc).date(),

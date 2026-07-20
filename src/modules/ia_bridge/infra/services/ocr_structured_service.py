@@ -1,7 +1,7 @@
 import httpx
 import json
 from typing import Any
-from src.core.exceptions import ThirdPartyServiceError
+from src.core.exceptions import ThirdPartyServiceError, BadRequestError
 
 
 class OcrStructuredService:
@@ -23,6 +23,8 @@ class OcrStructuredService:
                 raise ThirdPartyServiceError(f"Error de comunicacion con el servicio de IA: {e}")
             except httpx.HTTPStatusError as e:
                 error_detail = self._extract_error_detail(e.response)
+                if e.response.status_code == 400:
+                    raise BadRequestError(f"Servicio de IA: {error_detail}")
                 raise ThirdPartyServiceError(f"Servicio de IA: {error_detail}")
 
     async def extract_ine(self, file_bytes: bytes, filename: str, content_type: str) -> dict[str, Any]:
@@ -40,6 +42,8 @@ class OcrStructuredService:
                 raise ThirdPartyServiceError(f"Error de comunicacion con el servicio de IA: {e}")
             except httpx.HTTPStatusError as e:
                 error_detail = self._extract_error_detail(e.response)
+                if e.response.status_code == 400:
+                    raise BadRequestError(f"Servicio de IA: {error_detail}")
                 raise ThirdPartyServiceError(f"Servicio de IA: {error_detail}")
 
     async def extract_and_validate(
@@ -67,7 +71,10 @@ class OcrStructuredService:
                 raise ThirdPartyServiceError(f"Error de comunicacion con el servicio de IA: {e}")
             except httpx.HTTPStatusError as e:
                 error_detail = self._extract_error_detail(e.response)
+                if e.response.status_code == 400:
+                    raise BadRequestError(f"Servicio de IA: {error_detail}")
                 raise ThirdPartyServiceError(f"Servicio de IA: {error_detail}")
+
 
     def _extract_error_detail(self, response: httpx.Response) -> str:
         try:

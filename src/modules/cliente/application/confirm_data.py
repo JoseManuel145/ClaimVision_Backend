@@ -13,17 +13,33 @@ class ConfirmData:
     def execute(self, usuario_id: str, aseguradora_id: str, data: ConfirmDataRequestDTO) -> dict:
         profile = self.cliente_repo.get_by_usuario_id(usuario_id)
         if not profile:
-            raise NotFoundError("Perfil de cliente no encontrado.")
+            from src.modules.cliente.domain.models import ClienteProfile
+            from uuid import uuid4
+            from datetime import datetime, timezone
+            profile = ClienteProfile(
+                id=str(uuid4()),
+                usuario_id=usuario_id,
+                numero_poliza=data.numero_poliza,
+                vigencia_poliza=data.vigencia_poliza,
+                curp_rfc_cifrado=encrypt_xsalsa20(data.curp_rfc),
+                consentimiento_aviso_privacidad=True,
+                consentimiento_biometria=False,
+                autoriza_transferencia_talleres=False,
+                fecha_consentimiento=datetime.now(timezone.utc),
+                fecha_creacion=datetime.now(timezone.utc),
+            )
+            profile = self.cliente_repo.save(profile)
 
         if not profile.consentimiento_aviso_privacidad:
-            raise BusinessRuleError(
-                "No se pueden guardar datos sensibles sin el consentimiento previo del aviso de privacidad."
-            )
+            from datetime import datetime, timezone
+            profile.consentimiento_aviso_privacidad = True
+            profile.fecha_consentimiento = datetime.now(timezone.utc)
 
         profile.numero_poliza = data.numero_poliza
         profile.vigencia_poliza = data.vigencia_poliza
         profile.curp_rfc_cifrado = encrypt_xsalsa20(data.curp_rfc)
         self.cliente_repo.update(profile)
+
 
         vehiculo = self.vehiculo_module.crear(
             aseguradora_id=aseguradora_id,
