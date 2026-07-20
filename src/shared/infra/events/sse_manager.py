@@ -23,11 +23,58 @@ class SSEManager:
     Gestor centralizado de Server-Sent Events (SSE).
     Administra la lista de clientes conectados y distribuye eventos en tiempo real
     filtrados por usuario, aseguradora y rol.
+    Admite distribución Pub/Sub con Redis para despliegues multi-worker.
     """
 
     def __init__(self):
         self._subscriptions: Dict[str, ClientSubscription] = {}
         self._counter: int = 0
+        self._redis_client = None
+        self._pubsub_task: Optional[asyncio.Task] = None
+
+    async def init_redis(self, redis_url: str):
+        """Inicializa la conexión con Redis para Pub/Sub si redis_url está presente."""
+        if not redis_url:
+            logger.info("REDIS_URL no configurada. SSE funcionará en modo in-memory local.")
+            return
+        try:
+            import redis.asyncio as aioredis
+            self._redis_client = aioredis.from_url(redis_url, decode_responses=True)
+            pubsub = self._redis_client.pubsub()
+            await pubsub.subscribe("sse:events")
+            self._pubsub_task = asyncio.create_task(self._redis_listener(pubsub))
+            logger.info(f"Conexión Redis Pub/Sub inicializada para SSE ({redis_url})")
+        except Exception as e:
+            logger.warning(f"No se pudo conectar a Redis ({e}). SSE operará en modo in-memory local.")
+            self._redis_client = None
+
+    async def close_redis(self):
+        """Cierra las conexiones y tareas asociadas a Redis."""
+        if self._pubsub_task:
+            self._pubsub_task.cancel()
+            self._pubsub_task = None
+        if self._redis_client:
+            await self._redis_client.close()
+            self._redis_client = None
+
+    async def _redis_listener(self, pubsub):
+        """Escucha eventos publicados en la canal de Redis 'sse:events' y los distribuye localmente."""
+        try:
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    payload = json.loads(message["data"])
+                    await self._distribute_local(
+                        event=payload["event"],
+                        data=payload["data"],
+                        target_user_id=payload.get("target_user_id"),
+                        target_aseguradora_id=payload.get("target_aseguradora_id"),
+                        target_role=payload.get("target_role"),
+                        event_id=payload.get("event_id"),
+                    )
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logger.error(f"Error en listener de Redis Pub/Sub SSE: {e}")
 
     def format_sse_frame(self, event: str, data: Dict[str, Any], event_id: Optional[str] = None) -> str:
         """Formatea un evento conforme al estándar SSE (text/event-stream)."""
@@ -73,9 +120,45 @@ class SSEManager:
         event_id: Optional[str] = None,
     ):
         """
-        Publica un evento a las suscripciones activas que coincidan con los criterios.
-        Si no se especifican targets, se transmite a todas las conexiones de la aseguradora/rol relevante.
+        Publica un evento a las suscripciones activas.
+        Si Redis está conectado, publica en el canal Redis 'sse:events' para que todos los workers lo reciban.
+        De lo contrario, distribuye directamente en la memoria local.
         """
+        payload = {
+            "event": event,
+            "data": data,
+            "target_user_id": target_user_id,
+            "target_aseguradora_id": target_aseguradora_id,
+            "target_role": target_role,
+            "event_id": event_id,
+        }
+
+        if self._redis_client:
+            try:
+                await self._redis_client.publish("sse:events", json.dumps(payload, ensure_ascii=False))
+                return
+            except Exception as e:
+                logger.warning(f"Fallo al publicar en Redis ({e}). Usando distribución local.")
+
+        await self._distribute_local(
+            event=event,
+            data=data,
+            target_user_id=target_user_id,
+            target_aseguradora_id=target_aseguradora_id,
+            target_role=target_role,
+            event_id=event_id,
+        )
+
+    async def _distribute_local(
+        self,
+        event: str,
+        data: Dict[str, Any],
+        target_user_id: Optional[str] = None,
+        target_aseguradora_id: Optional[str] = None,
+        target_role: Optional[str] = None,
+        event_id: Optional[str] = None,
+    ):
+        """Distribución local en memoria a las colas activas en este worker."""
         frame = self.format_sse_frame(event=event, data=data, event_id=event_id)
         dead_queues: List[str] = []
 
@@ -125,7 +208,6 @@ class SSEManager:
                 )
             )
         except RuntimeError:
-            # Si no hay un loop corriendo en este thread, ejecutar en un loop nuevo temporal
             asyncio.run(
                 self.publish_event(
                     event=event,

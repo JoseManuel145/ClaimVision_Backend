@@ -33,10 +33,18 @@ register_exception_handlers(app)
 # Registrar todas las rutas de los módulos
 app.include_router(api_router, prefix="/api")
 
+from src.shared.infra.events.sse_manager import sse_manager
+from src.core.config import settings
+
 @app.on_event("startup")
-def startup_event():
+async def startup_event():
     Base.metadata.create_all(bind=engine)
     init_firebase()
+    await sse_manager.init_redis(settings.REDIS_URL)
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await sse_manager.close_redis()
 
 @app.get("/", tags=["Root"])
 def root():
