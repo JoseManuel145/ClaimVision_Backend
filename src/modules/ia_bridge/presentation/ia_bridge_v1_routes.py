@@ -43,8 +43,8 @@ from src.modules.ia_bridge.presentation.dependencies import (
 
 router = APIRouter()
 
-get_cliente_o_ajustador = require_roles("Cliente", "Ajustador")
-get_ajustador = require_roles("Ajustador")
+get_cliente_o_ajustador = require_roles("Cliente", "Ajustador", "Operador_Aseguradora")
+get_ajustador = require_roles("Ajustador", "Operador_Aseguradora")
 
 
 @router.post("/predict", response_model=PredictResponse)

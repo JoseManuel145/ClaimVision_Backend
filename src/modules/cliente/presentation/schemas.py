@@ -13,3 +13,6 @@ class ConfirmDataRequestDTO(BaseModel):
     vehiculo_placas: str
     vehiculo_vin: Optional[str] = None
     vehiculo_color: Optional[str] = None
+    aseguradora_id: Optional[str] = None
+    aseguradora: Optional[str] = None
+    version: Optional[int] = 1

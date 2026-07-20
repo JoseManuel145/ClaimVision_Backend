@@ -264,8 +264,18 @@ def obtener_consentimientos(
     )
 
 
-@router.patch("/consentimientos", status_code=status.HTTP_200_OK)
 @router.put("/consentimientos", status_code=status.HTTP_200_OK)
+def actualizar_consentimientos_put(
+    dto: ConsentimientosRequest,
+    request: Request,
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc: ConfirmConsent = Depends(confirm_consent_service),
+    audit: AuditLogger = Depends(get_audit_logger),
+):
+    return actualizar_consentimientos(dto, request, user, uc, audit)
+
+
+@router.patch("/consentimientos", status_code=status.HTTP_200_OK)
 def actualizar_consentimientos(
 
     dto: ConsentimientosRequest,

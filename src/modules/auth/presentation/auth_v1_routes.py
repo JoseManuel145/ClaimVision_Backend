@@ -76,8 +76,11 @@ async def request_recovery(
     generate_uc: GenerateRecoveryCode = Depends(deps.generate_recovery_code_service),
     send_uc: SendRecoveryCode = Depends(deps.send_recovery_code_service),
 ):
-    code = await generate_uc.execute(data.email)
-    return await send_uc.execute(data.email, code)
+    try:
+        code = await generate_uc.execute(data.email)
+        return await send_uc.execute(data.email, code)
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
 
 
 @router.post("/recovery/verify", status_code=status.HTTP_200_OK)

@@ -32,15 +32,18 @@ class ClienteRepository(ClienteRepositoryPort):
         return _to_domain(r)
 
     def save(self, profile: ClienteProfile) -> ClienteProfile:
+        import uuid
+        prof_id = uuid.UUID(profile.id) if isinstance(profile.id, str) else profile.id
+        usr_id = uuid.UUID(profile.usuario_id) if isinstance(profile.usuario_id, str) else profile.usuario_id
         model = ClienteProfileTable(
-            id=profile.id,
-            usuario_id=profile.usuario_id,
-            numero_poliza=profile.numero_poliza,
+            id=prof_id,
+            usuario_id=usr_id,
+            numero_poliza=profile.numero_poliza or "",
             vigencia_poliza=profile.vigencia_poliza,
-            curp_rfc_cifrado=profile.curp_rfc_cifrado,
-            consentimiento_aviso_privacidad=profile.consentimiento_aviso_privacidad,
-            consentimiento_biometria=profile.consentimiento_biometria,
-            autoriza_transferencia_talleres=profile.autoriza_transferencia_talleres,
+            curp_rfc_cifrado=profile.curp_rfc_cifrado or "",
+            consentimiento_aviso_privacidad=profile.consentimiento_aviso_privacidad or False,
+            consentimiento_biometria=profile.consentimiento_biometria or False,
+            autoriza_transferencia_talleres=profile.autoriza_transferencia_talleres or False,
             fecha_consentimiento=profile.fecha_consentimiento,
             created_at=profile.fecha_creacion or datetime.now(timezone.utc)
         )

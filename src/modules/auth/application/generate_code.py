@@ -15,6 +15,8 @@ class GenerateRecoveryCode:
     async def execute(self, email: str) -> tuple[str, datetime]:
 
         user = self.user_repo.get_by_email(email)
+        if not user:
+            raise ValueError("No existe una cuenta registrada con este correo electrónico.")
         plain_code = ''.join(secrets.choice(string.digits) for _ in range(6))
         expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
         code_hash = hashlib.sha256(plain_code.encode()).hexdigest()
