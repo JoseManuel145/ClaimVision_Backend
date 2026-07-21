@@ -23,6 +23,36 @@ class PredictService:
             except httpx.HTTPStatusError as e:
                 raise ThirdPartyServiceError(f"Error en la respuesta del servicio de IA: {e.response.status_code}")
 
+    async def predict_all(self, files: list[tuple[str, bytes, str]]) -> dict[str, Any]:
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(
+                    f"{self.ia_url}/api/v2/predict-all",
+                    files=[("files", f) for f in files],
+                    timeout=120.0,
+                )
+                response.raise_for_status()
+                return response.json()
+            except httpx.RequestError as e:
+                raise ThirdPartyServiceError(f"Error de comunicacion con el servicio de IA: {e}")
+            except httpx.HTTPStatusError as e:
+                raise ThirdPartyServiceError(f"Error en la respuesta del servicio de IA: {e.response.status_code}")
+
+    async def get_resumen(self, danos: list[dict[str, str]]) -> dict[str, Any]:
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(
+                    f"{self.ia_url}/api/v2/obtener-resumen",
+                    json={"danos": danos},
+                    timeout=60.0,
+                )
+                response.raise_for_status()
+                return response.json()
+            except httpx.RequestError as e:
+                raise ThirdPartyServiceError(f"Error de comunicacion con el servicio de IA: {e}")
+            except httpx.HTTPStatusError as e:
+                raise ThirdPartyServiceError(f"Error en la respuesta del servicio de IA: {e.response.status_code}")
+
     async def get_history(self, page: int, limit: int) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             try:

@@ -98,3 +98,44 @@ class UnsupervisedHealthResponse(BaseModel):
     status: str
     model_loaded: bool
     k_value: Optional[int] = None
+
+
+class PredictAllItem(BaseModel):
+    filename: str
+    phash: str
+    tipo_dano: str
+    severidad: str
+    confianza: float
+    duplicado_de: Optional[str] = None
+
+
+class PredictAllSummary(BaseModel):
+    total_imagenes: int
+    imagenes_unicas: int
+    duplicados_detectados: int
+
+
+class PredictAllResponse(BaseModel):
+    predicciones: list[PredictAllItem]
+    resumen: PredictAllSummary
+
+
+class DanoRequest(BaseModel):
+    tipo: str
+    severidad: str
+
+
+class ResumenRequest(BaseModel):
+    danos: list[DanoRequest]
+
+
+class DanoResumen(BaseModel):
+    tipo: str
+    severidad: str
+    costo_reparacion: float
+
+
+class ResumenResponse(BaseModel):
+    precio_total: float
+    danos: list[DanoResumen]
+    moneda: str

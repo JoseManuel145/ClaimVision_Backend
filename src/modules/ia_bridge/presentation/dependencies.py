@@ -6,6 +6,7 @@ from src.modules.ia_bridge.infra.services.transcribir_service import Transcribir
 from src.modules.ia_bridge.infra.services.analizar_service import AnalizarService
 from src.modules.ia_bridge.infra.services.unsupervised_service import UnsupervisedService
 from src.modules.ia_bridge.application.predict_damage import PredictDamage
+from src.modules.ia_bridge.application.predict_all_damage import PredictAllDamage
 from src.modules.ia_bridge.application.extract_text import ExtractText
 from src.modules.ia_bridge.application.extract_poliza_data import ExtractPolizaData
 from src.modules.ia_bridge.application.extract_ine_data import ExtractIneData
@@ -16,6 +17,7 @@ from src.modules.ia_bridge.application.get_ocr_history import GetOcrHistory
 from src.modules.ia_bridge.application.get_nlp_history import GetNlpHistory
 from src.modules.ia_bridge.application.get_nlp_detail import GetNlpDetail
 from src.modules.ia_bridge.application.get_prediction_history import GetPredictionHistory
+from src.modules.ia_bridge.application.get_cost_summary import GetCostSummary
 from src.modules.ia_bridge.application.get_health import GetSupervisedHealth, GetUnsupervisedHealth
 
 
@@ -87,3 +89,13 @@ def get_supervised_health_service():
 def get_unsupervised_health_service():
     port = UnsupervisedService(settings.IA_SERVICE_URL)
     return GetUnsupervisedHealth(port)
+
+
+def predict_all_service():
+    port = PredictService(settings.IA_SERVICE_URL)
+    return PredictAllDamage(port)
+
+
+def get_cost_summary_service():
+    port = PredictService(settings.IA_SERVICE_URL)
+    return GetCostSummary(port)

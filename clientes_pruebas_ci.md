@@ -23,6 +23,8 @@ A continuación se listan los clientes dados de alta exitosamente para la **Aseg
 | 11 | `yara24315@gmail.com` | Cliente yara24315 | 5550000010 |
 | 12 | `elmanu22448@gmail.com` | Cliente elmanu22448 | 5550000011 |
 | 13 | `233384@ids.upchiapas.edu.mx` | Cliente 233384 | 5550000012 |
+| 14 | `jairo0274@gmail.com` | Cliente jairo0274 | 5550000013 |
+| 15 | `jmacias@upchiapas.edu.mx` | Cliente jmacias | 5550000014 |
 
 ---
 **Nota:** Al realizar el primer inicio de sesión en la aplicación (Onboarding), el sistema obligará a los clientes a actualizar su contraseña mediante la bandera `primer_cambio_password`.
