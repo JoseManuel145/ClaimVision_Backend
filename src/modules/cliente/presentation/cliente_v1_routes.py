@@ -20,6 +20,8 @@ from src.modules.cliente.presentation.cliente_v1_schemas import (
     PerfilClienteUpdateRequest,
     PerfilClienteResponse,
     SiniestroDetalleClienteDTO,
+    SubirDocumentosResponse,
+    ObtenerDocumentosResponse,
 )
 from src.modules.cliente.presentation.cliente_v1_dependencies import (
     reportar_siniestro_service,
@@ -33,6 +35,8 @@ from src.modules.cliente.presentation.cliente_v1_dependencies import (
     get_auth_repo_for_enrichment,
     list_vehiculos_cliente_service,
     create_vehicle_from_poliza_service,
+    subir_documentos_service,
+    obtener_documentos_service,
 )
 from src.modules.cliente.presentation.schemas import ConfirmDataRequestDTO
 from src.modules.cliente.application.process_ocr import ProcessOcr
@@ -43,6 +47,8 @@ from src.modules.siniestro.application.siniestros.list_siniestros_cliente import
 from src.modules.siniestro.application.siniestros.get_siniestro_cliente import GetSiniestroCliente
 from src.modules.siniestro.application.siniestros.subir_imagen_siniestro import SubirImagenSiniestro
 from src.modules.cliente.application.get_perfil_cliente import GetPerfilCliente
+from src.modules.cliente.application.subir_documentos import SubirDocumentos
+from src.modules.cliente.application.obtener_documentos import ObtenerDocumentos
 from src.modules.aseguradora.application.vehiculos.list_vehiculos_cliente import ListVehiculosCliente
 from src.modules.aseguradora.presentation.vehiculos.vehiculo_dto import VehiculoResponseDTO
 from src.modules.auth.application.confirm_consent import ConfirmConsent
@@ -378,4 +384,59 @@ async def crear_vehiculo_desde_poliza(
         target_user_id=user.usuario_id,
     )
     return vehiculo
+
+
+@router.post(
+    "/documentos/subir",
+    response_model=SubirDocumentosResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def subir_documentos(
+    identificacion: UploadFile = File(...),
+    poliza: UploadFile = File(...),
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc: SubirDocumentos = Depends(subir_documentos_service),
+    client=Depends(get_supabase_client),
+):
+    """Sube la identificación (imagen o PDF) y la póliza (PDF) del cliente."""
+    id_bytes = await identificacion.read()
+    pol_bytes = await poliza.read()
+
+    res = uc.execute(
+        usuario_id=user.usuario_id,
+        identificacion_bytes=id_bytes,
+        identificacion_filename=identificacion.filename or "identificacion.jpg",
+        identificacion_content_type=identificacion.content_type or "image/jpeg",
+        poliza_bytes=pol_bytes,
+        poliza_filename=poliza.filename or "poliza.pdf",
+        poliza_content_type=poliza.content_type or "application/pdf",
+    )
+
+    # Resolver las URLs para firmarlas
+    res["identificacion_url"] = resolve_storage_url(client, res["identificacion_url"])
+    res["poliza_url"] = resolve_storage_url(client, res["poliza_url"])
+    return res
+
+
+@router.get(
+    "/documentos",
+    response_model=ObtenerDocumentosResponse,
+    status_code=status.HTTP_200_OK,
+)
+def obtener_documentos(
+    user: AuthenticatedUser = Depends(get_cliente),
+    uc: ObtenerDocumentos = Depends(obtener_documentos_service),
+    client=Depends(get_supabase_client),
+):
+    """Obtiene las referencias de los documentos del cliente."""
+    res = uc.execute(usuario_id=user.usuario_id)
+
+    # Resolver URLs firmadas si están presentes
+    if res.get("identificacion"):
+        res["identificacion"]["url"] = resolve_storage_url(client, res["identificacion"]["url"])
+    if res.get("poliza"):
+        res["poliza"]["url"] = resolve_storage_url(client, res["poliza"]["url"])
+
+    return res
+
 

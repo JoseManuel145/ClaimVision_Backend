@@ -115,3 +115,33 @@ def create_vehicle_from_poliza_service(
     vehiculo_adapter = VehiculoAdapter(VehiculoRepository(session))
     cliente_repo = ClienteRepository(session)
     return CreateVehicleFromPoliza(ocr_port, vehiculo_adapter, cliente_repo)
+
+
+def get_cliente_documento_repo(session: Session = Depends(get_session)):
+    from src.modules.cliente.infra.db.repositories.cliente_documento_repository import ClienteDocumentoRepository
+    return ClienteDocumentoRepository(session)
+
+
+def subir_documentos_service(
+    session: Session = Depends(get_session),
+    client = Depends(get_supabase_client)
+):
+    from src.modules.cliente.application.subir_documentos import SubirDocumentos
+    from src.modules.cliente.infra.db.repositories.cliente_documento_repository import ClienteDocumentoRepository
+    return SubirDocumentos(
+        ClienteDocumentoRepository(session),
+        SupabaseStorageAdapter(client),
+    )
+
+
+def obtener_documentos_service(
+    session: Session = Depends(get_session)
+):
+    from src.modules.cliente.application.obtener_documentos import ObtenerDocumentos
+    from src.modules.cliente.infra.db.repositories.cliente_documento_repository import ClienteDocumentoRepository
+    from src.modules.cliente.infra.db.repositories.cliente_repository import ClienteRepository
+    return ObtenerDocumentos(
+        ClienteDocumentoRepository(session),
+        ClienteRepository(session),
+    )
+

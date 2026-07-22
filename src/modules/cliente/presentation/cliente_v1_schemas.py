@@ -50,3 +50,29 @@ class TimelineItemDTO(BaseModel):
 class SiniestroDetalleClienteDTO(SiniestroResponseDTO):
     imagenes: List[ImagenSiniestroResponseDTO] = []
     timeline: List[TimelineItemDTO] = []
+
+
+class SubirDocumentosResponse(BaseModel):
+    identificacion_url: str
+    poliza_url: str
+    subido_en: datetime
+
+
+class DocumentoItem(BaseModel):
+    url: str
+    tipo: str
+    subido_en: datetime
+
+
+class PolizaDocumentoItem(BaseModel):
+    url: str
+    tipo: str
+    numero_poliza: Optional[str] = None
+    vigencia: Optional[date] = None
+    subido_en: datetime
+
+
+class ObtenerDocumentosResponse(BaseModel):
+    identificacion: Optional[DocumentoItem] = None
+    poliza: Optional[PolizaDocumentoItem] = None
+

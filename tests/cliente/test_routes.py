@@ -11,12 +11,21 @@ from src.modules.cliente.application.get_perfil_cliente import GetPerfilCliente
 from src.modules.cliente.application.actualizar_perfil_cliente import ActualizarPerfilCliente
 from src.modules.cliente.application.confirm_data import ConfirmData
 from src.modules.auth.application.confirm_consent import ConfirmConsent
+from src.modules.cliente.application.subir_documentos import SubirDocumentos
+from src.modules.cliente.application.obtener_documentos import ObtenerDocumentos
 from src.modules.cliente.presentation import cliente_v1_dependencies as deps
 from src.modules.cliente.presentation.dependencies import confirm_data_service, process_ocr_service
 from src.core.security import get_current_user
 from src.modules.auth.domain.models import AuthenticatedUser
 
-from tests.fakes.cliente import FakeClienteChecker, FakeClienteRepo, FakeOcrService, default_cliente_profile
+from tests.fakes.cliente import (
+    FakeClienteChecker,
+    FakeClienteRepo,
+    FakeOcrService,
+    default_cliente_profile,
+    FakeClienteDocumentoRepo,
+    FakeStorage,
+)
 from tests.fakes.siniestro import FakeSiniestroRepo, FakeImagenRepo
 from tests.fakes.auth import FakeAuthRepo, FakeUser
 
@@ -43,6 +52,7 @@ def wired(client):
     auth_repo.create(FakeUser(usuario_id="user-1", nombre="Cliente", email="cli@x.mx",
                               password_hash="x", rol="Cliente", aseguradora_id="aseg-1",
                               email_verificado=False))
+    doc_repo = FakeClienteDocumentoRepo()
 
     app.dependency_overrides[deps.reportar_siniestro_service] = lambda: InicializarSiniestro(sin_repo, checker)
     app.dependency_overrides[deps.list_siniestros_cliente_service] = lambda: ListSiniestrosCliente(sin_repo, checker)
@@ -54,7 +64,9 @@ def wired(client):
     app.dependency_overrides[deps.get_auth_repo_for_enrichment] = lambda: auth_repo
     app.dependency_overrides[confirm_data_service] = lambda: ConfirmData(cli_repo)
     app.dependency_overrides[process_ocr_service] = lambda: FakeOcrService()
-    return {"client": client, "sin_repo": sin_repo, "img_repo": img_repo, "cli_repo": cli_repo, "auth_repo": auth_repo}
+    app.dependency_overrides[deps.subir_documentos_service] = lambda: SubirDocumentos(doc_repo, FakeStorage())
+    app.dependency_overrides[deps.obtener_documentos_service] = lambda: ObtenerDocumentos(doc_repo, cli_repo)
+    return {"client": client, "sin_repo": sin_repo, "img_repo": img_repo, "cli_repo": cli_repo, "auth_repo": auth_repo, "doc_repo": doc_repo}
 
 
 def test_reportar_siniestro_crea_en_estatus_preliminar(wired):
@@ -353,3 +365,70 @@ def test_tester_global_bypass_cliente(wired):
 
     r_create = wired["client"].post(f"{BASE}/siniestros", json=REPORTE)
     assert r_create.status_code == 201, r_create.text
+
+
+def test_obtener_documentos_inicialmente_nulos(wired):
+    """GET /documentos retorna null si no se han subido."""
+    r = wired["client"].get(f"{BASE}/documentos")
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["identificacion"] is None
+    assert body["poliza"] is None
+
+
+def test_subir_documentos_exitoso(wired):
+    """POST /documentos/subir con archivos válidos -> 201 y retorna URLs."""
+    files = {
+        "identificacion": ("ine.jpg", b"fake-ine-bytes", "image/jpeg"),
+        "poliza": ("poliza.pdf", b"fake-poliza-bytes", "application/pdf"),
+    }
+    r = wired["client"].post(f"{BASE}/documentos/subir", files=files)
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert "identificacion_url" in body
+    assert "poliza_url" in body
+    assert "subido_en" in body
+
+    # Obtener de nuevo y verificar que se retornan enriquecidos con póliza
+    r_get = wired["client"].get(f"{BASE}/documentos")
+    assert r_get.status_code == 200
+    body_get = r_get.json()
+    assert body_get["identificacion"]["tipo"] == "jpg"
+    assert body_get["poliza"]["tipo"] == "pdf"
+    assert body_get["poliza"]["numero_poliza"] == "POL-123"  # del fake profile
+    assert body_get["poliza"]["vigencia"] == "2030-01-01"
+
+
+def test_subir_documentos_tamano_excedido_falla(wired):
+    """POST /documentos/subir con archivo > 10MB -> 400 Bad Request."""
+    large_file = b"x" * (10 * 1024 * 1024 + 1)
+    files = {
+        "identificacion": ("ine.jpg", b"fake-ine-bytes", "image/jpeg"),
+        "poliza": ("poliza.pdf", large_file, "application/pdf"),
+    }
+    r = wired["client"].post(f"{BASE}/documentos/subir", files=files)
+    assert r.status_code == 400, r.text
+    assert "supera el límite de 10MB" in r.json()["error"]
+
+
+def test_subir_documentos_formato_invalido_identificacion_falla(wired):
+    """POST /documentos/subir con identificación inválida (ej. txt) -> 400."""
+    files = {
+        "identificacion": ("ine.txt", b"fake-ine-bytes", "text/plain"),
+        "poliza": ("poliza.pdf", b"fake-poliza-bytes", "application/pdf"),
+    }
+    r = wired["client"].post(f"{BASE}/documentos/subir", files=files)
+    assert r.status_code == 400, r.text
+    assert "debe ser PDF o imagen" in r.json()["error"]
+
+
+def test_subir_documentos_formato_invalido_poliza_falla(wired):
+    """POST /documentos/subir con póliza inválida (ej. png) -> 400."""
+    files = {
+        "identificacion": ("ine.jpg", b"fake-ine-bytes", "image/jpeg"),
+        "poliza": ("poliza.png", b"fake-poliza-bytes", "image/png"),
+    }
+    r = wired["client"].post(f"{BASE}/documentos/subir", files=files)
+    assert r.status_code == 400, r.text
+    assert "debe ser de tipo PDF" in r.json()["error"]
+

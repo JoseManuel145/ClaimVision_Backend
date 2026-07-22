@@ -2,7 +2,31 @@
 from datetime import date, datetime, timezone
 from typing import Optional
 
-from src.modules.cliente.domain.models import ClienteProfile
+from src.modules.cliente.domain.models import ClienteProfile, ClienteDocumento
+
+
+class FakeClienteDocumentoRepo:
+    def __init__(self, document: ClienteDocumento | None = None):
+        self.documents = {}
+        if document:
+            self.documents[document.usuario_id] = document
+
+    def get_by_usuario_id(self, usuario_id: str) -> Optional[ClienteDocumento]:
+        return self.documents.get(usuario_id)
+
+    def save(self, documento: ClienteDocumento) -> ClienteDocumento:
+        self.documents[documento.usuario_id] = documento
+        return documento
+
+    def update(self, documento: ClienteDocumento) -> ClienteDocumento:
+        self.documents[documento.usuario_id] = documento
+        return documento
+
+
+class FakeStorage:
+    def upload_file(self, bucket_name: str, file_path: str, file_bytes: bytes, content_type: str) -> str:
+        return f"http://localhost/{bucket_name}/{file_path}"
+
 
 
 class FakeClienteChecker:
