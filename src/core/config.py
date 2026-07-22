@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     # FIREBASE
     FIREBASE_CREDENTIALS_PATH: str
 
+    # GATEWAY
+    ENVIRONMENT: str = "production"
+    GATEWAY_INTERNAL_SECRET: str = ""
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
