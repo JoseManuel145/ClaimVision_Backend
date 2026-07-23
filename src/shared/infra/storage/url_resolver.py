@@ -11,8 +11,6 @@ _SIGN_PATTERN = re.compile(r"/object/sign/([^/]+)/([^?]+)")
 
 # Mapeo de paths legacy → estándar nuevo.
 # Clave: (bucket_viejo, prefijo_path_viejo)  →  Valor: (bucket_nuevo, prefijo_path_nuevo)
-# Cuando un URL apunta a un bucket/prefijo legacy y falla la resolución,
-# se intenta resolver (y migrar) al bucket/prefijo nuevo.
 _LEGACY_MAP: dict[tuple[str, str], tuple[str, str]] = {
     ("cotizaciones", "documentos/"): ("documentos", "documentos/"),
 }
@@ -106,39 +104,13 @@ def _migrate_file(
         return False
 
 
-def _resolve_legacy(
-    supabase_client: Client,
-    bucket: str,
-    path: str,
-) -> str | None:
-    """
-    Intenta resolver un URL legacy buscando un mapeo en _LEGACY_MAP.
-    Si encuentra match, migra el archivo al bucket nuevo y retorna la URL firmada nueva.
-    """
-    for (legacy_bucket, legacy_prefix), (new_bucket, new_prefix) in _LEGACY_MAP.items():
-        if bucket == legacy_bucket and path.startswith(legacy_prefix):
-            new_path = new_prefix + path[len(legacy_prefix):]
-
-            migrated = _migrate_file(supabase_client, bucket, path, new_bucket, new_path)
-            target_bucket = new_bucket if migrated else bucket
-            target_path = new_path if migrated else path
-
-            try:
-                signed = supabase_client.storage.from_(target_bucket).create_signed_url(
-                    target_path, _SIGNED_TTL,
-                )
-                result = signed["signedURL"]
-                logger.info(
-                    "resolve_legacy: resuelto bucket=%s path=%s → %s (migrated=%s)",
-                    bucket, path, result[:120], migrated,
-                )
-                return result
-            except Exception as e:
-                logger.error(
-                    "resolve_legacy: fallo resolución post-migración bucket=%s path=%s: %s",
-                    target_bucket, target_path, e,
-                )
-    return None
+def _try_sign(supabase_client: Client, bucket: str, path: str) -> str | None:
+    """Intenta crear una URL firmada. Retorna None si falla."""
+    try:
+        signed = supabase_client.storage.from_(bucket).create_signed_url(path, _SIGNED_TTL)
+        return signed["signedURL"]
+    except Exception:
+        return None
 
 
 def resolve_storage_url(supabase_client: Client, url: str | None) -> str | None:
@@ -149,27 +121,58 @@ def resolve_storage_url(supabase_client: Client, url: str | None) -> str | None:
     if not bucket or not path:
         return url
 
-    # 1. Intentar resolver con el bucket/path actual
-    try:
-        signed = supabase_client.storage.from_(bucket).create_signed_url(path, _SIGNED_TTL)
-        result = signed["signedURL"]
+    # 1. Verificar si es un path legacy → migrar PRIMERO, resolver del bucket nuevo
+    for (legacy_bucket, legacy_prefix), (new_bucket, new_prefix) in _LEGACY_MAP.items():
+        if bucket == legacy_bucket and path.startswith(legacy_prefix):
+            new_path = new_prefix + path[len(legacy_prefix):]
+
+            # Si el archivo ya existe en el bucket nuevo, resolver directo desde ahí
+            signed_new = _try_sign(supabase_client, new_bucket, new_path)
+            if signed_new:
+                logger.info(
+                    "resolve_storage_url: legacy ya migrado, resolviendo de %s/%s",
+                    new_bucket, new_path,
+                )
+                return signed_new
+
+            # Migrar del bucket viejo al nuevo
+            migrated = _migrate_file(supabase_client, bucket, path, new_bucket, new_path)
+            if migrated:
+                signed_new = _try_sign(supabase_client, new_bucket, new_path)
+                if signed_new:
+                    logger.info(
+                        "resolve_storage_url: migrado y resuelto %s/%s → %s",
+                        bucket, path, signed_new[:120],
+                    )
+                    return signed_new
+
+            # Migración fallida — intentar resolver del bucket legacy como último recurso
+            signed_legacy = _try_sign(supabase_client, bucket, path)
+            if signed_legacy:
+                logger.warning(
+                    "resolve_storage_url: migración fallida, resolviendo de legacy %s/%s",
+                    bucket, path,
+                )
+                return signed_legacy
+
+            # Ni legacy ni nuevo funcionan — fallback sin token
+            fallback = f"{settings.SUPABASE_URL}/storage/v1/object/sign/{new_bucket}/{new_path}"
+            logger.error(
+                "resolve_storage_url: fallo total bucket=%s path=%s, fallback=%s",
+                bucket, path, fallback,
+            )
+            return fallback
+
+    # 2. No es legacy — resolver normalmente del bucket actual
+    signed = _try_sign(supabase_client, bucket, path)
+    if signed:
         logger.info(
             "resolve_storage_url: resolved bucket=%s path=%s result=%s",
-            bucket, path, result[:120],
+            bucket, path, signed[:120],
         )
-        return result
-    except Exception as e:
-        logger.warning(
-            "resolve_storage_url: create_signed_url fallo bucket=%s path=%s error=%s",
-            bucket, path, e,
-        )
+        return signed
 
-    # 2. Intentar resolver como legacy (con migración automática)
-    legacy_url = _resolve_legacy(supabase_client, bucket, path)
-    if legacy_url:
-        return legacy_url
-
-    # 3. Fallback: URL firmada sin token (puede que funcione si el bucket es público)
+    # 3. Fallback: URL firmada sin token
     fallback = f"{settings.SUPABASE_URL}/storage/v1/object/sign/{bucket}/{path}"
     logger.warning("resolve_storage_url: usando fallback sin token url=%s", fallback)
     return fallback
