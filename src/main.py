@@ -38,6 +38,25 @@ from src.core.config import settings
 
 @app.on_event("startup")
 async def startup_event():
+    # Importar todas las tablas para registrarlas en Base.metadata
+    from src.modules.admin.infra.db.tables.aseguradora_table import AseguradoraTable
+    from src.modules.admin.infra.db.tables.audit_log_table import AuditLogTable
+    from src.modules.aseguradora.infra.db.tables.ajustador_table import AjustadorTable
+    from src.modules.aseguradora.infra.db.tables.convenio_table import ConvenioAseguradoraTallerTable
+    from src.modules.aseguradora.infra.db.tables.perfil_cliente_table import PerfilClienteTable
+    from src.modules.aseguradora.infra.db.tables.taller_table import TallerTable
+    from src.modules.aseguradora.infra.db.tables.vehiculo_table import VehiculoTable
+    from src.modules.auth.infra.db.tables.recovery_code import RecoveryCodeTable
+    from src.modules.auth.infra.db.tables.user_table import UserTable
+    from src.modules.cliente.infra.db.tables.cliente_documento_table import ClienteDocumentoTable
+    from src.modules.cliente.infra.db.tables.cliente_profile_table import ClienteProfileTable
+    from src.modules.siniestro.infra.db.tables.imagen_siniestro_table import ImagenSiniestroTable
+    from src.modules.siniestro.infra.db.tables.peritaje_table import PeritajeAjustadorTable, DanosAjustadosManualTable
+    from src.modules.siniestro.infra.db.tables.siniestro_table import SiniestroTable
+    from src.modules.taller.infra.db.tables.cotizacion_table import CotizacionTallerTable
+    from src.modules.taller.infra.db.tables.perfil_taller_table import PerfilTallerUsuariosTable
+    from src.shared.infra.device_token.device_token_table import DeviceTokenTable
+
     Base.metadata.create_all(bind=engine)
     init_firebase()
     await sse_manager.init_redis(settings.REDIS_URL)
