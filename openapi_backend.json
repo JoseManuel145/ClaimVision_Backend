@@ -325,6 +325,62 @@
         }
       }
     },
+    "/api/v1/cliente/siniestros/{id}/audio": {
+      "post": {
+        "tags": [
+          "v1 · Cliente"
+        ],
+        "summary": "Registrar Audio Siniestro",
+        "description": "§4 · Sube el archivo de audio de narración del siniestro a Storage.",
+        "operationId": "registrar_audio_siniestro_api_v1_cliente_siniestros__id__audio_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_registrar_audio_siniestro_api_v1_cliente_siniestros__id__audio_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cliente/perfil": {
       "get": {
         "tags": [
@@ -427,9 +483,8 @@
         "tags": [
           "v1 · Cliente"
         ],
-        "summary": "Actualizar Consentimientos",
-        "description": "§4 · Registra consentimientos LFPDPPP → setea fecha_consentimiento.",
-        "operationId": "actualizar_consentimientos_api_v1_cliente_consentimientos_put",
+        "summary": "Actualizar Consentimientos Put",
+        "operationId": "actualizar_consentimientos_put_api_v1_cliente_consentimientos_put",
         "requestBody": {
           "content": {
             "application/json": {
@@ -606,6 +661,80 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cliente/documentos/subir": {
+      "post": {
+        "tags": [
+          "v1 · Cliente"
+        ],
+        "summary": "Subir Documentos",
+        "description": "Sube la identificación (imagen o PDF) y la póliza (PDF) del cliente.",
+        "operationId": "subir_documentos_api_v1_cliente_documentos_subir_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_subir_documentos_api_v1_cliente_documentos_subir_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubirDocumentosResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cliente/documentos": {
+      "get": {
+        "tags": [
+          "v1 · Cliente"
+        ],
+        "summary": "Obtener Documentos",
+        "description": "Obtiene las referencias de los documentos del cliente.",
+        "operationId": "obtener_documentos_api_v1_cliente_documentos_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObtenerDocumentosResponse"
                 }
               }
             }
@@ -5138,6 +5267,98 @@
         ]
       }
     },
+    "/api/v1/ia/predict/v2": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Predict Damage",
+        "operationId": "predict_damage_api_v1_ia_predict_v2_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_predict_damage_api_v1_ia_predict_v2_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ia/v2/predict": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Predict Damage",
+        "operationId": "predict_damage_api_v1_ia_v2_predict_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_predict_damage_api_v1_ia_v2_predict_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/ia/predict": {
       "post": {
         "tags": [
@@ -5162,6 +5383,98 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PredictResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ia/v2/predict-all": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Predict All",
+        "operationId": "predict_all_api_v1_ia_v2_predict_all_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_predict_all_api_v1_ia_v2_predict_all_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictAllResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/ia/v2/obtener-resumen": {
+      "post": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Obtener Resumen",
+        "operationId": "obtener_resumen_api_v1_ia_v2_obtener_resumen_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResumenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumenResponse"
                 }
               }
             }
@@ -5467,8 +5780,7 @@
                 "$ref": "#/components/schemas/Body_analyze_text_api_v1_ia_nlp_analizar_post"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -5668,6 +5980,128 @@
         }
       }
     },
+    "/api/v1/ia/predict/v2/history": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Prediction History",
+        "operationId": "prediction_history_api_v1_ia_predict_v2_history_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictionHistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ia/v2/history": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Prediction History",
+        "operationId": "prediction_history_api_v1_ia_v2_history_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictionHistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/ia/predict/history": {
       "get": {
         "tags": [
@@ -5722,6 +6156,48 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ia/predict/v2/health": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Supervised Health",
+        "operationId": "supervised_health_api_v1_ia_predict_v2_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisedHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ia/v2/health": {
+      "get": {
+        "tags": [
+          "v1 · IA Bridge"
+        ],
+        "summary": "Supervised Health",
+        "operationId": "supervised_health_api_v1_ia_v2_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupervisedHealthResponse"
                 }
               }
             }
@@ -6731,14 +7207,18 @@
       "Body_analyze_text_api_v1_ia_nlp_analizar_post": {
         "properties": {
           "texto": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Texto"
           }
         },
         "type": "object",
-        "required": [
-          "texto"
-        ],
         "title": "Body_analyze_text_api_v1_ia_nlp_analizar_post"
       },
       "Body_crear_cotizacion_api_v1_taller_siniestros__id__cotizacion_post": {
@@ -6902,6 +7382,23 @@
         ],
         "title": "Body_ocr_extraction_api_v1_cliente_onboarding_ocr_post"
       },
+      "Body_predict_all_api_v1_ia_v2_predict_all_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_predict_all_api_v1_ia_v2_predict_all_post"
+      },
       "Body_predict_damage_api_v1_ia_predict_post": {
         "properties": {
           "file": {
@@ -6916,6 +7413,48 @@
         ],
         "title": "Body_predict_damage_api_v1_ia_predict_post"
       },
+      "Body_predict_damage_api_v1_ia_predict_v2_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_predict_damage_api_v1_ia_predict_v2_post"
+      },
+      "Body_predict_damage_api_v1_ia_v2_predict_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_predict_damage_api_v1_ia_v2_predict_post"
+      },
+      "Body_registrar_audio_siniestro_api_v1_cliente_siniestros__id__audio_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_registrar_audio_siniestro_api_v1_cliente_siniestros__id__audio_post"
+      },
       "Body_registrar_imagen_api_v1_cliente_siniestros__id__imagenes_post": {
         "properties": {
           "file": {
@@ -6929,6 +7468,26 @@
           "file"
         ],
         "title": "Body_registrar_imagen_api_v1_cliente_siniestros__id__imagenes_post"
+      },
+      "Body_subir_documentos_api_v1_cliente_documentos_subir_post": {
+        "properties": {
+          "identificacion": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Identificacion"
+          },
+          "poliza": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Poliza"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identificacion",
+          "poliza"
+        ],
+        "title": "Body_subir_documentos_api_v1_cliente_documentos_subir_post"
       },
       "Body_transcribe_audio_api_v1_ia_nlp_transcribir_post": {
         "properties": {
@@ -7212,6 +7771,40 @@
               }
             ],
             "title": "Vehiculo Color"
+          },
+          "aseguradora_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aseguradora Id"
+          },
+          "aseguradora": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aseguradora"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "default": 1
           }
         },
         "type": "object",
@@ -7494,6 +8087,47 @@
         ],
         "title": "DanoAjustadoResponseDTO"
       },
+      "DanoRequest": {
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "severidad": {
+            "type": "string",
+            "title": "Severidad"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tipo",
+          "severidad"
+        ],
+        "title": "DanoRequest"
+      },
+      "DanoResumen": {
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "severidad": {
+            "type": "string",
+            "title": "Severidad"
+          },
+          "costo_reparacion": {
+            "type": "number",
+            "title": "Costo Reparacion"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tipo",
+          "severidad",
+          "costo_reparacion"
+        ],
+        "title": "DanoResumen"
+      },
       "DashboardResumenDTO": {
         "properties": {
           "total_siniestros": {
@@ -7573,6 +8207,30 @@
           "activo_para_servicio"
         ],
         "title": "DisponibilidadRequest"
+      },
+      "DocumentoItem": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "subido_en": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Subido En"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "tipo",
+          "subido_en"
+        ],
+        "title": "DocumentoItem"
       },
       "EditarCotizacionRequest": {
         "properties": {
@@ -7960,6 +8618,32 @@
           "limit"
         ],
         "title": "NlpHistoryResponse"
+      },
+      "ObtenerDocumentosResponse": {
+        "properties": {
+          "identificacion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DocumentoItem"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "poliza": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolizaDocumentoItem"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ObtenerDocumentosResponse"
       },
       "OcrHistoryItem": {
         "properties": {
@@ -8777,6 +9461,140 @@
         ],
         "title": "PeritajeUpsertRequestDTO"
       },
+      "PolizaDocumentoItem": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "numero_poliza": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numero Poliza"
+          },
+          "vigencia": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vigencia"
+          },
+          "subido_en": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Subido En"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "tipo",
+          "subido_en"
+        ],
+        "title": "PolizaDocumentoItem"
+      },
+      "PredictAllItem": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "phash": {
+            "type": "string",
+            "title": "Phash"
+          },
+          "tipo_dano": {
+            "type": "string",
+            "title": "Tipo Dano"
+          },
+          "severidad": {
+            "type": "string",
+            "title": "Severidad"
+          },
+          "confianza": {
+            "type": "number",
+            "title": "Confianza"
+          },
+          "duplicado_de": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duplicado De"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filename",
+          "phash",
+          "tipo_dano",
+          "severidad",
+          "confianza"
+        ],
+        "title": "PredictAllItem"
+      },
+      "PredictAllResponse": {
+        "properties": {
+          "predicciones": {
+            "items": {
+              "$ref": "#/components/schemas/PredictAllItem"
+            },
+            "type": "array",
+            "title": "Predicciones"
+          },
+          "resumen": {
+            "$ref": "#/components/schemas/PredictAllSummary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "predicciones",
+          "resumen"
+        ],
+        "title": "PredictAllResponse"
+      },
+      "PredictAllSummary": {
+        "properties": {
+          "total_imagenes": {
+            "type": "integer",
+            "title": "Total Imagenes"
+          },
+          "imagenes_unicas": {
+            "type": "integer",
+            "title": "Imagenes Unicas"
+          },
+          "duplicados_detectados": {
+            "type": "integer",
+            "title": "Duplicados Detectados"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_imagenes",
+          "imagenes_unicas",
+          "duplicados_detectados"
+        ],
+        "title": "PredictAllSummary"
+      },
       "PredictResponse": {
         "properties": {
           "id": {
@@ -9033,6 +9851,48 @@
           "code"
         ],
         "title": "RecoveryVerifyDTO"
+      },
+      "ResumenRequest": {
+        "properties": {
+          "danos": {
+            "items": {
+              "$ref": "#/components/schemas/DanoRequest"
+            },
+            "type": "array",
+            "title": "Danos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "danos"
+        ],
+        "title": "ResumenRequest"
+      },
+      "ResumenResponse": {
+        "properties": {
+          "precio_total": {
+            "type": "number",
+            "title": "Precio Total"
+          },
+          "danos": {
+            "items": {
+              "$ref": "#/components/schemas/DanoResumen"
+            },
+            "type": "array",
+            "title": "Danos"
+          },
+          "moneda": {
+            "type": "string",
+            "title": "Moneda"
+          }
+        },
+        "type": "object",
+        "required": [
+          "precio_total",
+          "danos",
+          "moneda"
+        ],
+        "title": "ResumenResponse"
       },
       "SiniestroDetalleAjustadorDTO": {
         "properties": {
@@ -9978,6 +10838,30 @@
           "count"
         ],
         "title": "SiniestrosPorMesDTO"
+      },
+      "SubirDocumentosResponse": {
+        "properties": {
+          "identificacion_url": {
+            "type": "string",
+            "title": "Identificacion Url"
+          },
+          "poliza_url": {
+            "type": "string",
+            "title": "Poliza Url"
+          },
+          "subido_en": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Subido En"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identificacion_url",
+          "poliza_url",
+          "subido_en"
+        ],
+        "title": "SubirDocumentosResponse"
       },
       "SupervisedHealthResponse": {
         "properties": {
