@@ -14,6 +14,6 @@ class SupabaseStorageAdapter(StoragePort):
             file_options={"content-type": content_type}
         )
         
-        # Generar URL firmada (expira en 1 hora)
-        signed_res = self.supabase.storage.from_(bucket_name).create_signed_url(file_path, 3600)
-        return signed_res['signedURL']
+        # Return public URL so url_resolver can resolve it dynamically with a fresh token
+        public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{bucket_name}/{file_path}"
+        return public_url

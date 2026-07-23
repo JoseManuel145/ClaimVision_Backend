@@ -119,3 +119,23 @@ def test_subir_documentos_valida_formatos():
             poliza_content_type="image/png"
         )
     assert "debe ser de tipo PDF" in str(exc_info.value)
+
+
+def test_resolve_storage_url_compatibilidad():
+    from src.shared.infra.storage.url_resolver import resolve_storage_url
+    from unittest.mock import MagicMock
+
+    client = MagicMock()
+    # Mock supabase storage client
+    client.storage.from_().create_signed_url.return_value = {"signedURL": "http://fresh-signed-url"}
+
+    # 1. Test public URL
+    url_pub = "https://abc.supabase.co/storage/v1/object/public/pdfs/file.pdf"
+    res_pub = resolve_storage_url(client, url_pub)
+    assert res_pub == "http://fresh-signed-url"
+
+    # 2. Test old signed URL (with token query param)
+    url_sign = "https://abc.supabase.co/storage/v1/object/sign/pdfs/file.pdf?token=oldjwt"
+    res_sign = resolve_storage_url(client, url_sign)
+    assert res_sign == "http://fresh-signed-url"
+

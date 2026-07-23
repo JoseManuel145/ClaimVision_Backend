@@ -7,28 +7,35 @@ logger = get_logger("storage.url_resolver")
 
 _SIGNED_TTL = 3600
 _PUBLIC_PATTERN = re.compile(r"/object/public/([^/]+)/(.+)$")
+_SIGN_PATTERN = re.compile(r"/object/sign/([^/]+)/([^?]+)")
 
 
 def resolve_storage_url(supabase_client: Client, url: str | None) -> str | None:
     if not url:
         return url
 
-    if "/object/public/" not in url:
-        return url
+    bucket = None
+    path = None
 
-    match = _PUBLIC_PATTERN.search(url)
-    if not match:
-        logger.warning("resolve_storage_url: patron no matchea url=%s", url)
-        return url
+    if "/object/public/" in url:
+        match = _PUBLIC_PATTERN.search(url)
+        if match:
+            bucket = match.group(1)
+            path = match.group(2)
+    elif "/object/sign/" in url:
+        match = _SIGN_PATTERN.search(url)
+        if match:
+            bucket = match.group(1)
+            path = match.group(2)
 
-    bucket = match.group(1)
-    path = match.group(2)
+    if not bucket or not path:
+        return url
 
     try:
         signed = supabase_client.storage.from_(bucket).create_signed_url(path, _SIGNED_TTL)
         result = signed["signedURL"]
         logger.info(
-            "resolve_storage_url: public→signed bucket=%s path=%s result=%s",
+            "resolve_storage_url: resolved bucket=%s path=%s result=%s",
             bucket, path, result[:120],
         )
         return result

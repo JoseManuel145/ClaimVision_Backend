@@ -40,16 +40,12 @@ class SupabasePdfStorage(PdfStoragePort):
                 detail=f"Error al subir el archivo al almacenamiento: {e}"
             )
 
-        signed_res = self.supabase.storage.from_(self.bucket_name).create_signed_url(
-            unique_path, SIGNED_URL_TTL
-        )
-        signed_url = signed_res['signedURL']
-
+        public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{self.bucket_name}/{unique_path}"
         logger.info(
             "PDF subido exitosamente: bucket=%s path=%s url=%s",
-            self.bucket_name, unique_path, signed_url,
+            self.bucket_name, unique_path, public_url,
         )
-        return signed_url
+        return public_url
 
     async def upload_pdf(self, file_bytes: bytes, filename: str, content_type: str = "application/pdf") -> str:
         return await asyncio.to_thread(self._do_upload, file_bytes, filename, content_type)
