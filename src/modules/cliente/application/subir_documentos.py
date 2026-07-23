@@ -39,33 +39,28 @@ class SubirDocumentos:
         if pol_ext != "pdf" and poliza_content_type != "application/pdf":
             raise BadRequestError("La póliza debe ser de tipo PDF.")
 
-        # Determinar buckets adecuados
-        id_bucket = settings.SUPABASE_BUCKET_PDF if id_ext == "pdf" or identificacion_content_type == "application/pdf" else settings.SUPABASE_BUCKET_IMG
-        pol_bucket = settings.SUPABASE_BUCKET_PDF
-
-        # Rutas de almacenamiento únicas por usuario
+        # Rutas de almacenamiento — el bucket se resuelve automáticamente por filename
         id_path = f"documentos/{usuario_id}_ine.{id_ext or 'pdf'}"
         pol_path = f"documentos/{usuario_id}_poliza.{pol_ext or 'pdf'}"
 
-        # 3. Subir a storage
-        # La llamada a self.storage.upload_file sube los bytes al bucket correspondiente
+        # 3. Subir a storage (bucket_name=None → resolve_bucket detecta "documentos" por el path)
         self.storage.upload_file(
-            bucket_name=id_bucket,
+            bucket_name=None,
             file_path=id_path,
             file_bytes=identificacion_bytes,
             content_type=identificacion_content_type,
         )
 
         self.storage.upload_file(
-            bucket_name=pol_bucket,
+            bucket_name=None,
             file_path=pol_path,
             file_bytes=poliza_bytes,
             content_type=poliza_content_type,
         )
 
         # Generar URLs persistentes en el formato que resolve_storage_url reconoce
-        id_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{id_bucket}/{id_path}"
-        pol_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{pol_bucket}/{pol_path}"
+        id_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{settings.SUPABASE_BUCKET_DOCUMENTOS}/{id_path}"
+        pol_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/{settings.SUPABASE_BUCKET_DOCUMENTOS}/{pol_path}"
 
         now = datetime.now(timezone.utc)
 

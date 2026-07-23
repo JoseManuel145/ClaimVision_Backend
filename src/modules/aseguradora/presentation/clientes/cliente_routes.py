@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, Query, Request, status
 
 from src.core.security import require_roles
+from src.core.supabase import get_supabase_client
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.shared.presentation.pagination import Page, offset_from_page
 from src.shared.audit.audit_logger import AuditLogger, get_audit_logger
+from src.shared.infra.storage.url_resolver import resolve_storage_url
 
 from src.modules.aseguradora.presentation.clientes.cliente_dto import (
     ClienteCreateDTO,
@@ -98,7 +100,13 @@ def obtener_documentos_cliente(
     user: AuthenticatedUser = Depends(get_operador),
     get_uc: GetCliente = Depends(cliente_dependencies.get_cliente_service),
     uc: GetDocumentosByClienteId = Depends(cliente_dependencies.get_documentos_cliente_service),
+    client=Depends(get_supabase_client),
 ):
     cliente = get_uc.execute(id)
-    return uc.execute(cliente.usuario_id)
+    res = uc.execute(cliente.usuario_id)
+    if res.get("identificacion"):
+        res["identificacion"]["url"] = resolve_storage_url(client, res["identificacion"]["url"])
+    if res.get("poliza"):
+        res["poliza"]["url"] = resolve_storage_url(client, res["poliza"]["url"])
+    return res
 

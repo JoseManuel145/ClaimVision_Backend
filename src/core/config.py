@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     SUPABASE_KEY: str
     SUPABASE_BUCKET_IMG: str
     SUPABASE_BUCKET_PDF: str
+    SUPABASE_BUCKET_DOCUMENTOS: str = "documentos"
 
     MAIL_USERNAME: str
     MAIL_PASSWORD: str
