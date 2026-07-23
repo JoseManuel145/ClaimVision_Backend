@@ -1,5 +1,8 @@
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from sqlalchemy.orm import Session
+from src.core.logging import get_logger
+
+logger = get_logger("cliente.presentation")
 
 from src.core.database import get_session
 from src.core.security import require_roles
@@ -229,19 +232,46 @@ async def registrar_audio_siniestro(
     client=Depends(get_supabase_client),
 ):
     """§4 · Sube el archivo de audio de narración del siniestro a Storage."""
-    try:
-        get_detalle.execute(user.usuario_id, id)
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Siniestro no encontrado o no pertenece al cliente.")
-
-    file_bytes = await file.read()
-    audio_url = uc.execute(id, file_bytes, file.filename or "narracion.wav", file.content_type or "audio/wav")
-    resolved_url = resolve_storage_url(client, audio_url)
-    audit.record(
-        evento_modulo=EVENTO, accion=AccionAudit.SUBIR_IMAGEN, usuario=user,
-        request=request, metadata={"siniestro_id": id, "audio_url": resolved_url},
+    logger.info(
+        "Petición subir_audio_siniestro: siniestro_id=%s, filename=%s, content_type=%s, usuario_id=%s",
+        id,
+        file.filename,
+        file.content_type,
+        user.usuario_id,
     )
-    return {"message": "Audio de narración registrado exitosamente.", "audio_url": resolved_url, "siniestro_id": id}
+    try:
+        try:
+            get_detalle.execute(user.usuario_id, id)
+        except Exception:
+            logger.warning(
+                "Intento de subir audio a siniestro %s no encontrado o ajeno al usuario %s",
+                id,
+                user.usuario_id,
+            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Siniestro no encontrado o no pertenece al cliente.")
+
+        file_bytes = await file.read()
+        logger.info(
+            "Archivo de audio leído: %d bytes. Guardando en Supabase Storage...",
+            len(file_bytes),
+        )
+        audio_url = uc.execute(id, file_bytes, file.filename or "narracion.wav", file.content_type or "audio/wav")
+        resolved_url = resolve_storage_url(client, audio_url)
+        logger.info("Audio subido con éxito. URL: %s", resolved_url)
+        audit.record(
+            evento_modulo=EVENTO, accion=AccionAudit.SUBIR_IMAGEN, usuario=user,
+            request=request, metadata={"siniestro_id": id, "audio_url": resolved_url},
+        )
+        return {"message": "Audio de narración registrado exitosamente.", "audio_url": resolved_url, "siniestro_id": id}
+    except Exception as e:
+        logger.error(
+            "Fallo al registrar audio para el siniestro %s por el usuario %s: %s",
+            id,
+            user.usuario_id,
+            str(e),
+            exc_info=True,
+        )
+        raise
 
 
 def _perfil_completo(auth_repo, user: AuthenticatedUser, perfil_cliente) -> PerfilClienteResponse:

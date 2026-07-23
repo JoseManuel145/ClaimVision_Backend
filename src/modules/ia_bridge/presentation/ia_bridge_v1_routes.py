@@ -1,4 +1,8 @@
 from fastapi import APIRouter, Depends, File, UploadFile, Form, Query, Request, HTTPException
+from src.core.logging import get_logger
+
+logger = get_logger("ia_bridge.presentation")
+
 from src.core.security import require_roles
 from src.modules.auth.domain.models import AuthenticatedUser
 from src.modules.ia_bridge.application.predict_damage import PredictDamage
@@ -142,8 +146,30 @@ async def transcribe_audio(
     user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
     uc: TranscribeAudio = Depends(transcribir_service),
 ):
-    audio_bytes = await file.read()
-    return await uc.execute(audio_bytes, file.filename, file.content_type)
+    logger.info(
+        "Petición de transcripción recibida: filename=%s, content_type=%s, usuario_id=%s",
+        file.filename,
+        file.content_type,
+        user.usuario_id,
+    )
+    try:
+        audio_bytes = await file.read()
+        logger.info(
+            "Archivo de audio leído con éxito: %d bytes. Enviando a servicio de IA...",
+            len(audio_bytes),
+        )
+        result = await uc.execute(audio_bytes, file.filename, file.content_type)
+        logger.info("Respuesta de servicio de IA recibida para transcripción: %s", result)
+        return result
+    except Exception as e:
+        logger.error(
+            "Fallo en transcribe_audio para el archivo %s por el usuario %s: %s",
+            file.filename,
+            user.usuario_id,
+            str(e),
+            exc_info=True,
+        )
+        raise
 
 
 @router.get("/nlp/transcribir/status/{job_id}")
@@ -152,7 +178,24 @@ async def transcribe_status(
     user: AuthenticatedUser = Depends(get_cliente_o_ajustador),
     uc: TranscribeAudio = Depends(transcribir_service),
 ):
-    return await uc.get_status(job_id)
+    logger.info(
+        "Consulta de estado de transcripción: job_id=%s, usuario_id=%s",
+        job_id,
+        user.usuario_id,
+    )
+    try:
+        status_res = await uc.get_status(job_id)
+        logger.info("Estado del job %s devuelto: %s", job_id, status_res)
+        return status_res
+    except Exception as e:
+        logger.error(
+            "Error al obtener estado del job %s para el usuario %s: %s",
+            job_id,
+            user.usuario_id,
+            str(e),
+            exc_info=True,
+        )
+        raise
 
 
 @router.post("/nlp/analizar", response_model=AnalizarResponse)
