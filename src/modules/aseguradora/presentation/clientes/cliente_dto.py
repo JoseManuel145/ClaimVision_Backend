@@ -31,3 +31,14 @@ class ClienteUpdateDTO(BaseModel):
     telefono: str | None = None
     numero_poliza: str | None = None
     vigencia_poliza: date | None = None
+
+
+class DocumentoItemDTO(BaseModel):
+    url: str
+    tipo: str
+    subido_en: datetime
+
+
+class DocumentosClienteResponseDTO(BaseModel):
+    identificacion: Optional[DocumentoItemDTO] = None
+    poliza: Optional[DocumentoItemDTO] = None

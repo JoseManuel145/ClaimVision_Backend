@@ -9,11 +9,13 @@ from src.modules.aseguradora.presentation.clientes.cliente_dto import (
     ClienteCreateDTO,
     ClienteResponseDTO,
     ClienteUpdateDTO,
+    DocumentosClienteResponseDTO,
 )
 from src.modules.aseguradora.application.clientes.create_cliente import CreateClienteByAseguradora
 from src.modules.aseguradora.application.clientes.list_clientes import ListClientes
 from src.modules.aseguradora.application.clientes.get_cliente import GetCliente
 from src.modules.aseguradora.application.clientes.update_cliente import UpdateCliente
+from src.modules.aseguradora.application.clientes.get_documentos_cliente import GetDocumentosByClienteId
 from src.modules.aseguradora.presentation.clientes import cliente_dependencies
 from src.shared.infra.events.sse_manager import sse_manager
 from src.shared.domain.models import AccionAudit
@@ -88,4 +90,15 @@ def actualizar_cliente(
         target_aseguradora_id=user.aseguradora_id,
     )
     return cliente
+
+
+@router.get("/{id}/documentos", response_model=DocumentosClienteResponseDTO)
+def obtener_documentos_cliente(
+    id: str,
+    user: AuthenticatedUser = Depends(get_operador),
+    get_uc: GetCliente = Depends(cliente_dependencies.get_cliente_service),
+    uc: GetDocumentosByClienteId = Depends(cliente_dependencies.get_documentos_cliente_service),
+):
+    cliente = get_uc.execute(id)
+    return uc.execute(cliente.usuario_id)
 

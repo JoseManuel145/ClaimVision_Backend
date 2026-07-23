@@ -35,3 +35,11 @@ def get_cliente_service(module: ClienteAdapter = Depends(_adapter)) -> GetClient
 
 def update_cliente_service(module: ClienteAdapter = Depends(_adapter)) -> UpdateCliente:
     return UpdateCliente(module)
+
+
+def get_documentos_cliente_service(
+    session: Session = Depends(get_session),
+):
+    from src.modules.aseguradora.application.clientes.get_documentos_cliente import GetDocumentosByClienteId
+    from src.modules.cliente.infra.db.repositories.cliente_documento_repository import ClienteDocumentoRepository
+    return GetDocumentosByClienteId(ClienteDocumentoRepository(session))
